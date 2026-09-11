@@ -39,6 +39,13 @@ struct HomeView: View {
         // Marca la pantalla entera, **en cualquiera de sus estados**. Es lo que permite que las
         // pruebas del arranque afirmen «se llegó al contenido principal» sin atarse a si el
         // listado está vacío, con publicaciones o en error.
+        //
+        // **`.contain` no es opcional aquí.** Sin él, un identificador puesto sobre un contenedor
+        // se propaga a **todos** sus descendientes y les machaca el suyo: el volcado del árbol
+        // mostraba `home_menu`, `home_search` y `home_info` convertidos los tres en `home_root`.
+        // Y la otra mitad, que también costó: **no se anidan dos contenedores declarados**, porque
+        // entonces el de dentro desaparece.
+        .accessibilityElement(children: .contain)
         .accessibilityIdentifier("home_root")
         // `.task(id:)` cancela la consulta anterior al cambiar de selección, que es justo lo que
         // se quiere, y mantiene la tarea con dueño.

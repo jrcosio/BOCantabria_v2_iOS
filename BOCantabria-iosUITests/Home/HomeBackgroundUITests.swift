@@ -14,10 +14,14 @@ final class HomeBackgroundUITests: XCTestCase {
 
     func testTheListingSurvivesBackgroundAndForeground() {
         let app = XCUIApplication()
-        app.launchArguments = ["-AppleLanguages", "(es)", "-AppleLocale", "es_ES"]
+        app.launchArguments = [
+            "-boc-data-scenario=today",
+            "-AppleLanguages", "(es)", "-AppleLocale", "es_ES",
+            "-home_selection", "",
+        ]
         app.launch()
 
-        let listing = app.descendants(matching: .any).matching(identifier: "home_empty").firstMatch
+        let listing = app.descendants(matching: .any).matching(identifier: "home_content").firstMatch
         XCTAssertTrue(listing.waitForExistence(timeout: 10))
 
         XCUIDevice.shared.press(.home)

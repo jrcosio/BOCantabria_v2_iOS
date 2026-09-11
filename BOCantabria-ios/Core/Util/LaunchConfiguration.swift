@@ -20,6 +20,13 @@ import Foundation
 
 enum LaunchConfiguration {
     static let startupArgumentPrefix = "-boc-startup-scenario="
+    static let dataArgumentPrefix = "-boc-data-scenario="
+
+    /// El desenlace de datos que pide la prueba de interfaz. Sin argumento, la aplicación de
+    /// verdad.
+    static var dataScenario: DataScenario {
+        value(for: dataArgumentPrefix).flatMap { DataScenario(rawValue: $0) } ?? .live
+    }
 
     /// El escenario de arranque que pide la prueba de interfaz.
     ///

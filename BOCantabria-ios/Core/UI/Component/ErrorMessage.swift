@@ -11,6 +11,10 @@ import SwiftUI
 struct ErrorMessage: View {
     let message: LocalizedStringResource
     let retryTitle: LocalizedStringResource
+    /// Identificador del botón. **Los botones no se buscan por su texto**: hay más de un
+    /// «Reintentar» en la aplicación, y una aserción por texto acabaría tocando el de otra
+    /// pantalla.
+    var retryIdentifier: String?
     let onRetry: () -> Void
 
     var body: some View {
@@ -27,6 +31,7 @@ struct ErrorMessage: View {
                     .padding(.vertical, BocTheme.spacing.sm)
             }
             .buttonStyle(BocPrimaryButtonStyle())
+            .accessibilityIdentifier(retryIdentifier ?? "")
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding(BocTheme.spacing.screenMargin)

@@ -386,7 +386,7 @@ con el recuento. Es el paso 6 del quickstart.
 - [X] T083 [US1] **D-320** `APP/UI/Home/`: todo contenedor que tenga que encontrarse se declara
       `.accessibilityElement(children: .contain)` **antes** del identificador. Sin eso no entra en
       el árbol, aunque se vea en pantalla.
-- [ ] T084 [US1] **D-322** `APP/Data/Sync/ScenarioDatabaseSeeder.swift` y
+- [X] T084 [US1] **D-322** `APP/Data/Sync/ScenarioDatabaseSeeder.swift` y
       `APP/Core/Util/LaunchConfiguration.swift`: `-boc-data-scenario=` con `today`, `empty`,
       `failing`, `offline` y `slow`, sembrando la base con un conjunto **sintetizado en código**,
       en memoria o fichero temporal, **jamás la de la persona**. Sustituye a la costura vieja:
@@ -394,14 +394,14 @@ con el recuento. Es el paso 6 del quickstart.
       `TEST/Fixtures/`**: viajan solo en el bundle de pruebas y este código corre en el proceso de
       la aplicación, que no las ve; y embarcarlas en el binario que se publica es justo lo que la
       promesa de costura acotada evita.
-- [ ] T085 [US1] **FR-086** `UITEST/Home/HomeStatesUITests.swift`: devolverle los cinco escenarios,
+- [X] T085 [US1] **FR-086** `UITEST/Home/HomeStatesUITests.swift`: devolverle los cinco escenarios,
       con **los mismos identificadores** de la 001, que son contrato. **D-328**: esperar por
       existencia, nunca reposo — el esqueleto pulsa sin fin por diseño y una espera de reposo se
       cuelga en lugar de fallar.
-- [ ] T086 [US1] **D-316** `UITEST/`: lanzar fijando idioma y región por argumentos. El sistema de
+- [X] T086 [US1] **D-316** `UITEST/`: lanzar fijando idioma y región por argumentos. El sistema de
       preferencias lee el dominio de argumentos por su cuenta, así que **no se toca una línea de
       producción**.
-- [ ] T087 [US1] `TEST/Integration/SyncFlowIntegrationTests.swift`: el grafo real sobre base en
+- [X] T087 [US1] `TEST/Integration/SyncFlowIntegrationTests.swift`: el grafo real sobre base en
       memoria con descargador falso. Primera sincronización con las diez muestras, y el estado que
       la pantalla acaba viendo.
 - [X] T088 [US1] **FR-029, D-327** `APP/Data/Sync/FeedSyncCoordinator.swift` y
@@ -430,13 +430,13 @@ inmediato, con el aviso. Pasos 7 y 8 del quickstart.
       `isCacheStale()` contra `last_success_at` y el `now()` inyectado. **Un transcurrido negativo o
       una marca en el futuro se tratan como caducado**, no como recién sincronizado: si no, la
       caché se congela hasta que el reloj del dispositivo alcance ese valor.
-- [ ] T091 [US2] `TEST/Data/PublicationRepositoryImplTests.swift`: a los veintinueve minutos no
+- [X] T091 [US2] `TEST/Data/PublicationRepositoryImplTests.swift`: a los veintinueve minutos no
       sincroniza, a los treinta y uno sí, y con la marca en el futuro sí. Con `ManualClock`, las
       tres en microsegundos. **`ImmediateClock` no vale aquí**: gana toda carrera contra un límite.
 - [ ] T092 [US2] **FR-024, FR-025, FR-026** `APP/UI/Home/HomeViewModel.swift`: `onRefresh()` con
       `force: true`, que **siempre** sale a la red; `isRefreshing` mientras dura; y el contenido
       existente **intacto** durante toda la actualización.
-- [ ] T093 [US2] **FR-025, D-307** `TEST/Data/FeedSyncCoordinatorTests.swift`: dos llamadas
+- [X] T093 [US2] **FR-025, D-307** `TEST/Data/FeedSyncCoordinatorTests.swift`: dos llamadas
       concurrentes producen **diecinueve** descargas, no treinta y ocho, y **las dos devuelven el
       mismo resumen**. La segunda espera y comparte; ignorarla haría que el indicador desapareciera
       antes que la sincronización.
@@ -459,13 +459,13 @@ inmediato, con el aviso. Pasos 7 y 8 del quickstart.
 - [ ] T099 [US2] **SC-004** `TEST/Integration/SyncFlowIntegrationTests.swift`: cinco
       sincronizaciones seguidas no duplican nada y **el recuento no baja**, ni siquiera cuando una
       publicación deja de aparecer en la fuente.
-- [ ] T100 [US2] **FR-083** `TEST/Integration/SyncFlowIntegrationTests.swift`: **la matriz completa
+- [X] T100 [US2] **FR-083** `TEST/Integration/SyncFlowIntegrationTests.swift`: **la matriz completa
       de la sincronización, los nueve casos nombrados uno a uno**: primera obtención; segunda sin
       cambios, que **no reescribe nada** porque la huella coincide; publicación nueva; publicación
       actualizada, que conserva `first_seen_at`; publicación que **sale de la ventana de cien** y
       sigue guardada; una fuente que falla; todas fallan **con** contenido guardado; todas fallan
       **sin** contenido guardado; y un duplicado entre dos fuentes, que da **un solo registro**.
-- [ ] T101 [US2] **FR-086** `UITEST/Home/HomeStatesUITests.swift`: el escenario `offline` muestra el
+- [X] T101 [US2] **FR-086** `UITEST/Home/HomeStatesUITests.swift`: el escenario `offline` muestra el
       aviso **sin tapar el contenido**, y el escenario `slow` sigue siendo necesario — comprobar la
       carga contra una latencia corta es una carrera contra el arranque, y subir el tiempo de espera
       no arregla nada porque el problema es el contrario.
@@ -482,65 +482,65 @@ prueba que demuestra que nada borra.
 **Independent Test**: abrir el panel, desplegar una sección con subsecciones y elegir una; la lista,
 la cabecera y las dos filas cambian. Pasos 9, 10 y 11 del quickstart.
 
-- [ ] T102 [US3] **FR-068, D-318** `APP/Data/Source/Local/UserDefaultsSelectionStore.swift`: guarda
+- [X] T102 [US3] **FR-068, D-318** `APP/Data/Source/Local/UserDefaultsSelectionStore.swift`: guarda
       **el código como cadena** y al restaurar lo **resuelve contra el catálogo**; si no casa, cae a
       «Boletín de hoy» en silencio. **Nunca un índice** y nunca un `init(rawValue:)` sin su
       alternativa explícita detrás: las subsecciones del BOC pueden cambiar, y un código guardado
       que ya no exista tumbaría Inicio en el único camino que nadie recorre a mano.
-- [ ] T103 [US3] `TEST/Data/UserDefaultsSelectionStoreTests.swift`: guarda, lee, código desconocido
+- [X] T103 [US3] `TEST/Data/UserDefaultsSelectionStoreTests.swift`: guarda, lee, código desconocido
       y cadena vacía. Los cuatro casos.
-- [ ] T104 [US3] `APP/UI/Main/MainUiState.swift` y `MainViewModel.swift`: la selección, el árbol de
+- [X] T104 [US3] `APP/UI/Main/MainUiState.swift` y `MainViewModel.swift`: la selección, el árbol de
       secciones y el conjunto de desplegadas. **El abierto/cerrado del panel no está aquí**: es
       `@State` de la vista, porque es efímero y no sobrevive a nada (**D-319**).
-- [ ] T105 [US3] `TEST/UI/MainViewModelTests.swift`: elegir, desplegar, contraer, y **un valor
+- [X] T105 [US3] `TEST/UI/MainViewModelTests.swift`: elegir, desplegar, contraer, y **un valor
       guardado inválido que se resuelve a «Boletín de hoy»**.
-- [ ] T106 [US3] **FR-057, FR-064, D-319** `APP/UI/Main/SectionsDrawer.swift`: pila en profundidad
+- [X] T106 [US3] **FR-057, FR-064, D-319** `APP/UI/Main/SectionsDrawer.swift`: pila en profundidad
       alineada al inicio con contenido, velo y panel; entrada por encima del contenido; cierre por
       deslizar y por tocar fuera. **No se construye gesto de apertura desde el borde**: ese borde ya
       lo usan el gesto de volver y los del sistema, y esto es una decisión del propietario, no una
       omisión.
-- [ ] T107 [US3] **FR-060 … FR-063** `APP/UI/Main/SectionsDrawer.swift`: la cabecera con el escudo,
+- [X] T107 [US3] **FR-060 … FR-063** `APP/UI/Main/SectionsDrawer.swift`: la cabecera con el escudo,
       «BOC Cantabria» y, **al final de la fila**, la flecha que recoge el panel, con descripción
       accesible. **Sin campo de filtro**, y sin nada de su lógica: ni filtrado, ni poda de
       subsecciones, ni apertura automática, ni estado vacío de «ninguna sección coincide».
-- [ ] T108 [US3] **FR-058, FR-059, FR-066** `APP/UI/Main/SectionsDrawerRow.swift`: fila de 72 pt
+- [X] T108 [US3] **FR-058, FR-059, FR-066** `APP/UI/Main/SectionsDrawerRow.swift`: fila de 72 pt
       mínimo, icono de sección en el color de su grupo, número y nombre, chevron con rotación y
       divisor; subsecciones sobre `surfaceSoft` con sangría. El panel se recorre entero con todo
       desplegado.
-- [ ] T109 [US3] **D-320** `APP/UI/Main/SectionsDrawer.swift`: el panel se mantiene montado con
+- [X] T109 [US3] **D-320** `APP/UI/Main/SectionsDrawer.swift`: el panel se mantiene montado con
       `.accessibilityHidden(!isOpen)` **y** `.allowsHitTesting(isOpen)`, más el rasgo modal mientras
       está abierto y la acción de escape. Un panel a mano no trae gratis lo que una hoja nativa sí.
       **FR-067**: y una aserción de que el panel **no contiene campana ni tarjeta de alertas**, que
       hoy se cumple por ausencia y mañana es lo que impide que alguien las reintroduzca sin pensar.
-- [ ] T110 [US3] **D-320** `UITEST/Main/SectionsDrawerUITests.swift`: **antes de abrir nada**,
+- [X] T110 [US3] **D-320** `UITEST/Main/SectionsDrawerUITests.swift`: **antes de abrir nada**,
       afirmar que una etiqueta exclusiva del panel **no existe**. La aserción es sobre existencia,
       **no sobre pulsabilidad**: `allowsHitTesting(false)` a secas deja el elemento en el árbol, y
       comprobar lo segundo es comprobar la mitad equivocada.
-- [ ] T111 [US3] **FR-065, SC-008** `UITEST/Main/SectionsDrawerUITests.swift`: contar los toques
+- [X] T111 [US3] **FR-065, SC-008** `UITEST/Main/SectionsDrawerUITests.swift`: contar los toques
       hasta una subsección, que son **tres como máximo**; abrir con el botón; cerrar tocando el
       velo; cerrar arrastrando; cerrar con la flecha **sin que cambie la selección**; y elegir una
       subsección comprobando que el panel se retira y la cabecera la nombra **por identificador**,
       nunca por texto.
-- [ ] T112 [US3] **FR-045, FR-046, FR-054** `APP/UI/Home/Component/SectionChipRow.swift`: una sola
+- [X] T112 [US3] **FR-045, FR-046, FR-054** `APP/UI/Home/Component/SectionChipRow.swift`: una sola
       vista que sirve a las dos filas, con estilo primario y secundario. El primer chip dice
       **«Boletín de hoy»**, no «Todo»: el comportamiento era correcto y la palabra era la
       equivocada.
-- [ ] T113 [US3] **FR-047 … FR-053, FR-055** `APP/UI/Home/HomeViewModel.swift` y
+- [X] T113 [US3] **FR-047 … FR-053, FR-055** `APP/UI/Home/HomeViewModel.swift` y
       `HomeContentView.swift`: la segunda fila solo cuando procede; `Toda la sección`; **un solo
       toque hace las dos cosas**; la primera fila sigue marcando la sección padre; y llegar desde el
       panel produce el mismo resultado que llegar desde los chips.
-- [ ] T114 [US3] `TEST/UI/HomeViewModelTests.swift`: las seis reglas anteriores, una aserción cada
+- [X] T114 [US3] `TEST/UI/HomeViewModelTests.swift`: las seis reglas anteriores, una aserción cada
       una, incluida la de que pasar a una sección sin subsecciones **retira** la segunda fila.
 - [ ] T115 [US3] **FR-038** `APP/UI/Home/`: con sección elegida, el listado **no se limita a una
       fecha** y el rótulo de la cabecera pasa a «Última publicación: …». Es lo que evita que una
       fecha de 2021 se lea como un fallo.
-- [ ] T116 [US3] **FR-056, FR-086** `UITEST/Home/HomeFiltersUITests.swift`: las dos filas, con
+- [X] T116 [US3] **FR-056, FR-086** `UITEST/Home/HomeFiltersUITests.swift`: las dos filas, con
       `home_subsection_chips` **que no existe** cuando no procede; que ambas se desplazan
       horizontalmente; y que **el resto de la pantalla no se desplaza** con ellas.
 - [ ] T117 [US3] **SC-007** `TEST/Integration/SyncFlowIntegrationTests.swift`: elegir 8.1 da estado
       vacío **con mensaje propio y ningún error**; elegir 4.3 da sus publicaciones antiguas con su
       advertencia registrada y **ninguna descartada**.
-- [ ] T118 [US3] `APP/UI/Home/HomeView.swift`: la selección llega de `MainView` como `let` y se
+- [X] T118 [US3] `APP/UI/Home/HomeView.swift`: la selección llega de `MainView` como `let` y se
       aplica con `.task(id: selection)`, que cancela la consulta anterior al cambiar. **Nada de
       `@Environment`** para esto (**D-321**).
 
@@ -556,32 +556,32 @@ la muerte del proceso.
 **Independent Test**: recorrer los tres destinos y las dos acciones de la barra superior. Paso 12
 del quickstart.
 
-- [ ] T119 [US4] **FR-069, FR-070, FR-072, D-321** `APP/UI/Main/MainView.swift` y `BocTabBar.swift`:
+- [X] T119 [US4] **FR-069, FR-070, FR-072, D-321** `APP/UI/Main/MainView.swift` y `BocTabBar.swift`:
       `ZStack { TabView ; velo ; panel }` con **un `NavigationStack` por pestaña**. Envolver el
       `TabView` con un `NavigationStack` es el error habitual: rompe la barra y deja una sola pila
       para tres destinos. El panel va **por encima** del `TabView`, y como la portada es hermana de
       `MainView`, **no la alcanza**.
-- [ ] T120 [US4] **D-321** `APP/UI/Main/BocTabBar.swift`: fondo de la barra declarado
+- [X] T120 [US4] **D-321** `APP/UI/Main/BocTabBar.swift`: fondo de la barra declarado
       explícitamente, porque por defecto se pinta un material translúcido y el apartado 10.1 del
       documento de diseño pide blanco con borde superior. Activo marcado por **forma o peso, además
       del color** (**FR-070**).
-- [ ] T121 [US4] **D-318, D-321** `APP/UI/Navigation/Route.swift`: `MainTab` restaurado **por
+- [X] T121 [US4] **D-318, D-321** `APP/UI/Navigation/Route.swift`: `MainTab` restaurado **por
       nombre**, con su alternativa explícita. Misma cautela que la selección: una pestaña guardada
       que ya no exista tumbaría la aplicación al volver de la muerte del proceso.
-- [ ] T122 [US4] [P] **FR-071** `APP/UI/Search/SearchView.swift` y `APP/UI/Saved/SavedView.swift`
+- [X] T122 [US4] [P] **FR-071** `APP/UI/Search/SearchView.swift` y `APP/UI/Saved/SavedView.swift`
       sobre `APP/Core/UI/Component/ComingSoonMessage.swift`: destinos reales con el aspecto de la
       aplicación.
-- [ ] T123 [US4] **FR-073, FR-074** `APP/UI/Home/Component/HomeTopBar.swift`: la lupa avisa de que
+- [X] T123 [US4] **FR-073, FR-074** `APP/UI/Home/Component/HomeTopBar.swift`: la lupa avisa de que
       la búsqueda llegará próximamente; la información está y **no hace nada todavía**.
 - [ ] T124 [US4] **FR-075** `APP/Core/UI/Component/PublicationCard.swift`: compartir abre la hoja
       del sistema **con el enlace del documento oficial**.
 - [ ] T125 [US4] **FR-076, FR-077** `APP/Core/UI/Component/PublicationCard.swift`: guardar avisa; y
       **tocar el cuerpo de la tarjeta no navega a ningún sitio**, que es lo que la feature siguiente
       va a cambiar.
-- [ ] T126 [US4] **FR-078** `APP/UI/Navigation/RootView.swift`: conmutar a `MainView` en lugar de a
+- [X] T126 [US4] **FR-078** `APP/UI/Navigation/RootView.swift`: conmutar a `MainView` en lugar de a
       `HomeView`, conservando que la portada **no entra en la pila** y que volver desde Inicio no la
       hace reaparecer.
-- [ ] T127 [US4] **FR-086, SC-009** `UITEST/Main/TabNavigationUITests.swift`: los tres destinos, el
+- [X] T127 [US4] **FR-086, SC-009** `UITEST/Main/TabNavigationUITests.swift`: los tres destinos, el
       marcador
       en dos de ellos, y que la barra refleja cuál está activo.
 - [ ] T128 [US4] `TEST/Integration/AppContainerTests.swift`: que el contenedor resuelve las fábricas

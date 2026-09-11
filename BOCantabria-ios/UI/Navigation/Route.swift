@@ -1,12 +1,13 @@
 //
 //  Route.swift
-//  The typed destinations of the application.
+//  The typed destinations inside a tab.
 //
-//  Un enumerado y no una cadena, a propósito: una ruta mal escrita tiene que ser un error de
-//  compilación y no un fallo en el móvil (research.md D-107). Hoy solo hay un destino; el
-//  mecanismo queda montado para que añadir el siguiente no obligue a rediseñarlo (FR-006).
+//  Hoy no hay ninguno: **pulsar una tarjeta no navega a ningún sitio** en esta feature (FR-077).
+//  El mecanismo se conserva montado porque el detalle de la publicación es la feature siguiente y
+//  entonces cada pestaña tendrá su pila con destinos tipados.
 //
 
 enum Route: Hashable {
-    case home
+    /// El detalle de una publicación, identificado por su clave externa. Llega con la 004.
+    case publicationDetail(externalKey: String)
 }

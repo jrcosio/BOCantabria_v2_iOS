@@ -76,6 +76,10 @@ struct HomeContentView: View {
             }
             .padding(.horizontal, BocTheme.spacing.screenMargin)
             .padding(.vertical, BocTheme.spacing.sm)
+            // Elemento propio, no contenedor: los marcadores están ocultos al lector de pantalla
+            // —no dicen nada— así que un contenedor sin hijos accesibles no entra en el árbol.
+            .accessibilityElement()
+            .accessibilityLabel(Text(Strings.Home.loading))
             .accessibilityIdentifier("home_skeleton")
 
         case .publications(let items):
@@ -91,6 +95,7 @@ struct HomeContentView: View {
             }
             .padding(.horizontal, BocTheme.spacing.screenMargin)
             .padding(.vertical, BocTheme.spacing.sm)
+            .accessibilityElement(children: .contain)
             .accessibilityIdentifier("home_content")
 
         case .empty:
@@ -104,9 +109,11 @@ struct HomeContentView: View {
             ErrorMessage(
                 message: Strings.Home.errorSync,
                 retryTitle: Strings.Action.retry,
+                retryIdentifier: "home_retry",
                 onRetry: onRetry
             )
             .padding(.top, BocTheme.spacing.xxl)
+            .accessibilityElement(children: .contain)
             .accessibilityIdentifier("home_error")
         }
     }

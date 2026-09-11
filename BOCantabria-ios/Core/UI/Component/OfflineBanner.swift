@@ -26,6 +26,7 @@ struct OfflineBanner: View {
         .clipShape(RoundedRectangle(cornerRadius: BocTheme.shape.banner))
         .padding(.horizontal, BocTheme.spacing.screenMargin)
         .padding(.top, BocTheme.spacing.xs)
+        .accessibilityElement(children: .combine)
         .accessibilityIdentifier("home_offline_banner")
     }
 }

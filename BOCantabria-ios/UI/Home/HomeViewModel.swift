@@ -32,10 +32,16 @@ final class HomeViewModel {
     /// quién escribir, que no es lo mismo que dejar de observar.
     private let observations = ObservationBox()
 
-    /// Mientras no haya terminado una sincronización y no haya nada guardado, lo que se enseña son
-    /// los marcadores. Una lista vacía **antes** de la primera vuelta no es «no hay nada»: es «no
-    /// se sabe todavía» (FR-041).
+    /// Las tres cosas de las que depende qué se pinta. **El contenido se deriva de ellas en un
+    /// solo sitio**, y no se escribe desde dos.
+    ///
+    /// La primera versión lo escribía desde la sincronización y desde la observación, y las dos
+    /// llegaban en orden imprevisible: con todas las fuentes caídas, el error se publicaba y la
+    /// observación lo pisaba con «no hay nada» un instante después. El escenario de error enseñaba
+    /// el estado vacío.
+    private var latestItems: [Publication] = []
     private var hasSynced = false
+    private var lastSyncError: DomainError?
     private var isRefreshing = false
 
     init(
@@ -133,29 +139,41 @@ final class HomeViewModel {
         switch result {
         case .success(let summary):
             analytics.track(.bulletinSync(summary))
+            lastSyncError = nil
             // Sin conexión **con** contenido guardado no es un error: es un resultado correcto que
             // enciende el aviso y deja el contenido donde está (FR-027).
             state.isOffline = summary.allFailed
-            if case .skeleton = state.content { state.content = .empty }
         case .failure(let error):
+            lastSyncError = error
             state.isOffline = error == .network
-            // Solo se pinta el error cuando no hay nada que enseñar. Con contenido a la vista, lo
-            // que se enseña es el contenido.
-            if case .publications = state.content { return }
-            state.content = .error(error)
         }
+        renderContent()
     }
 
     private func publish(_ result: AppResult<[Publication]>) {
         switch result {
-        case .success(let items) where !items.isEmpty:
-            state.content = .publications(items)
-        case .success:
-            // Vacío **después** de haber sincronizado; antes, marcadores.
-            state.content = hasSynced ? .empty : .skeleton
+        case .success(let items):
+            latestItems = items
         case .failure(let error):
-            if case .publications = state.content { return }
-            state.content = .error(error)
+            latestItems = []
+            lastSyncError = error
+        }
+        renderContent()
+    }
+
+    /// **El único sitio que decide qué se pinta.**
+    ///
+    /// El orden de las tres preguntas es la política entera: con contenido, se enseña el
+    /// contenido —aunque la última sincronización fallara, porque entonces lo que hay es un aviso
+    /// y no un error—; sin contenido y con un fallo, el error; y sin ninguna de las dos cosas,
+    /// marcadores mientras no se sepa y estado vacío cuando ya se sepa.
+    private func renderContent() {
+        if !latestItems.isEmpty {
+            state.content = .publications(latestItems)
+        } else if let lastSyncError {
+            state.content = .error(lastSyncError)
+        } else {
+            state.content = hasSynced ? .empty : .skeleton
         }
     }
 

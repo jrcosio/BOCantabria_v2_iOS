@@ -52,6 +52,10 @@ struct BulletinHeaderView: View {
         .padding(BocTheme.spacing.lg)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(BocTheme.colors.primary)
+        // `.contain` es obligatorio: sin él, este identificador se propaga a los tres hijos y les
+        // machaca el suyo. El volcado del árbol mostraba tres elementos llamados `home_header` y
+        // ni rastro de `home_header_date` ni de `home_header_count`.
+        .accessibilityElement(children: .contain)
         .accessibilityIdentifier("home_header")
     }
 }
