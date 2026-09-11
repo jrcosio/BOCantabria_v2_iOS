@@ -17,6 +17,22 @@ enum Strings {
         static let error = LocalizedStringResource("home_error_body")
     }
 
+    enum Splash {
+        static let acronym = LocalizedStringResource("splash_acronym")
+        static let titleLineOne = LocalizedStringResource("splash_title_line_one")
+        static let titleLineTwo = LocalizedStringResource("splash_title_line_two")
+        static let authorshipLabel = LocalizedStringResource("splash_authorship_label")
+        static let authorshipName = LocalizedStringResource("splash_authorship_name")
+        static let loadingDescription = LocalizedStringResource("splash_loading_description")
+        static let errorTitle = LocalizedStringResource("splash_error_title")
+        static let errorNetwork = LocalizedStringResource("splash_error_network")
+        static let errorUnknown = LocalizedStringResource("splash_error_unknown")
+        static let continueOffline = LocalizedStringResource("splash_continue_offline")
+        static let updateRequiredTitle = LocalizedStringResource("splash_update_required_title")
+        static let updateRequiredMessage = LocalizedStringResource("splash_update_required_message")
+        static let maintenanceTitle = LocalizedStringResource("splash_maintenance_title")
+    }
+
     enum Action {
         static let retry = LocalizedStringResource("action_retry")
     }

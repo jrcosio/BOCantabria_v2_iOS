@@ -30,16 +30,45 @@ struct BocTextStyle: Sendable, Equatable {
     /// Altura total de la línea, tal como la declara el documento de diseño.
     let lineHeight: CGFloat
     let weight: Font.Weight
+    /// Espaciado adicional entre letras.
+    ///
+    /// **Cero en los catorce estilos del §6.2, a propósito** — ver la nota 1 de la cabecera—. Deja
+    /// de ser una constante porque el §13.2 sí declara espaciado para la denominación de la
+    /// portada, que es el único estilo del proyecto que lo lleva.
+    let tracking: CGFloat
+
+    init(size: CGFloat, lineHeight: CGFloat, weight: Font.Weight, tracking: CGFloat = 0) {
+        self.size = size
+        self.lineHeight = lineHeight
+        self.weight = weight
+        self.tracking = tracking
+    }
 
     var font: Font { .system(size: size, weight: weight) }
 
     /// Espacio adicional entre líneas, que es lo que SwiftUI entiende por `lineSpacing`.
     var lineSpacing: CGFloat { max(0, lineHeight - uiFont.lineHeight) }
 
-    /// Cero en los catorce estilos, a propósito. Ver la nota de cabecera.
-    var tracking: CGFloat { 0 }
-
     private var uiFont: UIFont { .systemFont(ofSize: size, weight: weight.uiWeight) }
+}
+
+/// Los tres estilos que el apartado 13.2 del documento de diseño define **solo** para la portada.
+///
+/// Viven aparte de los catorce del apartado 6.2 y no entran en su escala: aquel apartado es una
+/// tabla cerrada y este fichero dice en su cabecera que la transcribe. Meterlos dentro haría que
+/// esa afirmación dejara de ser cierta. Están aquí, y no escritos en la vista, porque la
+/// convención del proyecto es que ningún tamaño ni ningún espaciado se escriba a mano fuera del
+/// tema.
+struct BocSplashTypography: Sendable {
+    /// 20/26 · `BOLETÍN OFICIAL` y `DE CANTABRIA`, con espaciado amplio.
+    let subtitle: BocTextStyle
+    /// 13/18 · «Diseñada y desarrollada por».
+    let authorshipLabel: BocTextStyle
+    /// 15/20 · «José Ramón Blanco Gutiérrez».
+    let authorshipName: BocTextStyle
+
+    /// Los tres, para poder recorrerlos en una prueba.
+    var all: [BocTextStyle] { [subtitle, authorshipLabel, authorshipName] }
 }
 
 struct BocTypography: Sendable {
@@ -72,7 +101,10 @@ struct BocTypography: Sendable {
     /// 11/15 · Metadatos muy breves.
     let labelSmall: BocTextStyle
 
-    /// Los catorce, para poder recorrerlos en una prueba.
+    /// Los tres estilos propios de la portada (§13.2). **No entran en `all`.**
+    let splash: BocSplashTypography
+
+    /// Los catorce del §6.2, para poder recorrerlos en una prueba.
     var all: [BocTextStyle] {
         [displayLarge, displaySmall, headlineLarge, headlineMedium, headlineSmall,
          titleLarge, titleMedium, titleSmall,
@@ -99,7 +131,15 @@ extension BocTypography {
         bodySmall: BocTextStyle(size: 12, lineHeight: 18, weight: .regular),
         labelLarge: BocTextStyle(size: 14, lineHeight: 20, weight: .semibold),
         labelMedium: BocTextStyle(size: 12, lineHeight: 17, weight: .semibold),
-        labelSmall: BocTextStyle(size: 11, lineHeight: 15, weight: .semibold)
+        labelSmall: BocTextStyle(size: 11, lineHeight: 15, weight: .semibold),
+        splash: BocSplashTypography(
+            // El documento pide «tracking amplio» sin dar una cifra. Dos puntos sobre veinte es
+            // un diez por ciento del cuerpo, que es lo que se ve en la imagen de referencia. Se
+            // comprueba comparando la captura con ella (quickstart, paso 8a), no de memoria.
+            subtitle: BocTextStyle(size: 20, lineHeight: 26, weight: .medium, tracking: 2),
+            authorshipLabel: BocTextStyle(size: 13, lineHeight: 18, weight: .regular),
+            authorshipName: BocTextStyle(size: 15, lineHeight: 20, weight: .semibold)
+        )
     )
 }
 
@@ -109,6 +149,7 @@ private extension Font.Weight {
     var uiWeight: UIFont.Weight {
         switch self {
         case .semibold: .semibold
+        case .medium: .medium
         default: .regular
         }
     }

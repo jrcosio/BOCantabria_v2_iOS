@@ -19,6 +19,26 @@ import Testing
 @MainActor
 struct AppContainerTests {
 
+    @Test("Resuelve el modelo de pantalla del arranque, y nace preparando")
+    func resolvesTheSplashViewModel() {
+        let container = AppContainer(
+            telemetry: .noOp,
+            clock: ImmediateClock(),
+            connectivity: FixedConnectivityDataSource(online: true)
+        )
+        #expect(container.makeSplashViewModel().state == .preparing)
+    }
+
+    @Test("Cada pantalla recibe su propio modelo del arranque")
+    func eachScreenGetsItsOwnSplashViewModel() {
+        let container = AppContainer(
+            telemetry: .noOp,
+            clock: ImmediateClock(),
+            connectivity: FixedConnectivityDataSource(online: true)
+        )
+        #expect(container.makeSplashViewModel() !== container.makeSplashViewModel())
+    }
+
     @Test("Se construye entero y entrega todas las pantallas")
     func buildsAndDeliversEveryScreen() {
         let container = AppContainer(telemetry: .noOp, clock: ImmediateClock())

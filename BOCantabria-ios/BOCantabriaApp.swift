@@ -10,14 +10,27 @@ import SwiftUI
 
 @main
 struct BOCantabriaApp: App {
-    @State private var container = AppContainer(
-        telemetry: .resolved(),
-        contentScenario: LaunchConfiguration.contentScenario
-    )
+    @State private var container = AppContainer.live()
 
     var body: some Scene {
         WindowGroup {
             RootView(container: container)
         }
+    }
+}
+
+private extension AppContainer {
+    /// El contenedor de producción.
+    ///
+    /// El proveedor se resuelve **una sola vez** y de ahí salen las dos cosas que dependen de que
+    /// esté configurado: la telemetría y la configuración remota (research.md D-209).
+    static func live() -> AppContainer {
+        let provider = ProviderBundle.resolved()
+        return AppContainer(
+            telemetry: provider.telemetry,
+            contentScenario: LaunchConfiguration.contentScenario,
+            remoteConfig: provider.remoteConfig,
+            startupScenario: LaunchConfiguration.startupScenario
+        )
     }
 }

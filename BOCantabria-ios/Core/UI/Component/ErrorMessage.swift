@@ -51,6 +51,25 @@ struct BocPrimaryButtonStyle: ButtonStyle {
     }
 }
 
+/// El botón principal **sobre el azul institucional**.
+///
+/// `BocPrimaryButtonStyle` pinta el fondo con `primary`, que es exactamente el color de fondo de la
+/// portada: allí el botón se vuelve invisible y solo se ve su texto. No es un caso raro —es el
+/// único sitio donde hay un botón sobre `primary`— y se descubrió mirando la portada con el texto
+/// al 200 %, no leyendo el código.
+struct BocOnPrimaryButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .foregroundStyle(BocTheme.colors.primary)
+            .background(
+                configuration.isPressed
+                    ? BocTheme.colors.onPrimaryAccent
+                    : BocTheme.colors.onPrimary
+            )
+            .clipShape(RoundedRectangle(cornerRadius: BocTheme.shape.small))
+    }
+}
+
 #Preview {
     ErrorMessage(
         message: Strings.Home.error,
