@@ -596,50 +596,90 @@ fijada para las features siguientes.
 
 **Purpose**: dejar los documentos coherentes, atravesar la frontera real y anotar las cifras.
 
-- [ ] T129 **SC-010** Revisar la pantalla con el tamaño de letra del sistema al **200 %**: las
-      tarjetas crecen y no se recorta el organismo, el título ni la fecha, y la posición de lectura
-      no se pierde (**FR-044**). **Se mira la pantalla, no el código**: así se descubrió que el
-      botón principal era invisible sobre la portada.
-- [ ] T130 Comprobar las tres trampas que en Android solo aparecieron en el dispositivo: que el
-      organismo **no salga dos veces** en la tarjeta, que no haya un hueco de área segura sobre el
-      escudo, y que el panel no tenga un tinte que no es suyo. Ninguna prueba de esta casa las ve.
-- [ ] T131 **FR-081** `docs/diseno/especificaciones-diseno.md`: anotar las desviaciones propias de
+- [X] T129 **SC-010** Con el tamaño de letra al **200 %** las tarjetas crecen y no se recorta nada,
+      y hay pruebas que lo comprueban (`AccessibilityUITests`). **Y encontraron un defecto real de
+      la 001**: `Font.system(size:)` da un tamaño **fijo** y no responde al ajuste del dispositivo,
+      así que la tarjeta medía **exactamente lo mismo** al 100 % y al 200 %. En Android no había
+      nada que decidir —`sp` escala por su cuenta— y al portar la tabla tipográfica tal cual el
+      texto dejó de crecer sin que nada fallara. Los catorce tokens se anclan ahora a un estilo del
+      sistema y escalan; **la portada no**, porque es una composición fija verificada contra una
+      imagen de referencia.
+- [X] T130 Las tres trampas que en Android solo aparecieron en el dispositivo, comprobadas: el
+      organismo **sale una sola vez** —hay una prueba que lo afirma, porque el dato está en el campo
+      de clasificación **y** como prefijo del título y es fácil pintar los dos—; no hay hueco de
+      área segura sobre el escudo, que aquí lo pinta la barra superior y no la ventana; y el panel
+      no tiene tinte del sistema, porque su fondo es `surface` explícito y la regla 8 impide leer
+      el ajuste del dispositivo.
+- [X] T131 **FR-081** `docs/diseno/especificaciones-diseno.md`: anotar las desviaciones propias de
       iOS con su fecha y su motivo —tres destinos mientras no existan los avisos, y la tarjeta de
       alertas del panel en suspenso—, y **corregir los apartados 32 y 36**, que siguen
       transcribiendo el microcopy y el checklist que las enmiendas de 14.4 y 16 dejaron sin efecto.
-- [ ] T132 `CLAUDE.md`: retirar la **013** del orden de portado explicando por qué se absorbe, y
+- [X] T132 `CLAUDE.md`: retirar la **013** del orden de portado explicando por qué se absorbe, y
       añadir las trampas nuevas: el aislamiento por defecto que ya no salta al pool, el delegado
       débil del analizador, el texto que llega troceado, el booleano de `parse()`, el panel siempre
       montado en el árbol de accesibilidad, y la cadena SQL que el motor de reglas no ve.
-- [ ] T133 `README.md`: la tabla de estado se quedó en la 001 —dice «Esqueleto de arquitectura» y
+- [X] T133 `README.md`: la tabla de estado se quedó en la 001 —dice «Esqueleto de arquitectura» y
       «58 sin interfaz · 6 de interfaz»—. Ponerla al día con las cifras de esta feature.
-- [ ] T134 **FR-088, SC-013 · Paso 13 del quickstart**: contraste contra el servicio real. Anotar
-      **con cifras**: fuentes que respondieron, publicaciones recibidas, aceptadas, rechazadas con
-      su motivo, sin identificador en el enlace, con clasificación que no corresponde, **con orden
-      anómalo** —en Android fueron ocho, todas del feed 4.3— e identificadores repetidos. Es lo
-      único que mira al otro lado de la frontera.
-- [ ] T135 **SC-001, SC-002** Medir y **anotar las dos cifras de rendimiento**: con contenido
-      guardado, cuánto tarda Inicio en mostrar publicaciones desde que la pantalla aparece —objetivo,
-      menos de 1 s, con y sin conexión—; y en instalación limpia con conexión, cuánto tarda el
-      boletín del día desde el toque —objetivo, menos de 15 s—. La constitución pide cifras, no
-      recorridos: recorrerlo en el quickstart no basta.
-- [ ] T136 **D-329** Volver a medir el arranque con `XCTApplicationLaunchMetric`, cinco tomas, y
-      anotar la cifra junto a los **815 ms** anteriores. Esta feature mete abrir un fichero y
-      migrarlo en ese camino. «Sigue bien» no es una cifra.
+- [X] T134 **FR-088, SC-013 · Paso 13 del quickstart**: contraste contra el servicio real,
+      ejecutado el **11 de septiembre de 2026**, primero pidiendo las diecinueve fuentes
+      directamente y después con la aplicación instalada en el simulador. **Las dos cuentas
+      coinciden**:
+
+      | Medida | Servicio | Aplicación |
+      |---|---:|---:|
+      | Fuentes que respondieron | 19 de 19 | 19 de 19 |
+      | Publicaciones recibidas | 1.709 | — |
+      | Guardadas | — | **1.709** |
+      | Rechazadas | 0 | 0 |
+      | Sin identificador en el enlace | 0 | 0 |
+      | Clasificación que no corresponde | 0 | 0 |
+      | **Con orden anómalo** | **7**, las siete del 4.3 | **7** |
+      | Identificadores repetidos | 0 | 0 |
+      | Enlaces no HTTPS | — | 0 |
+      | Sin organismo deducido | — | 0 |
+      | Fuentes con fallos | 0 | 0 |
+      | Fuente vacía | 8.1 | 8.1, y sin una sola fila |
+      | 4.3 | 9 entradas | 9 |
+      | Fecha más reciente | 2026-09-11 | 2026-09-11, **33 anuncios** |
+
+      **Una discrepancia con la cifra de Android, y conviene dejarla escrita**: allí se contaron
+      **ocho** publicaciones con orden anómalo y aquí son **siete**. No es una muestra distinta: el
+      4.3 trae las mismas nueve entradas, y de ellas siete llevan el tipo de edición fuera de la
+      última posición —las otras dos lo llevan al final, que es la forma normal—. La cuenta de aquí
+      sale igual sobre la muestra conservada y sobre el servicio vivo, así que la regla es
+      consistente consigo misma; lo que no se puede reconstruir es qué contaba la octava.
+- [X] T135 **SC-001, SC-002** Las dos cifras, medidas:
+
+      - **SC-001 · 126 ms** de media en cinco tomas (desviación relativa del 24,8 %; valores entre
+        108 y 189 ms) desde que Inicio aparece hasta que hay publicaciones en pantalla. Objetivo:
+        menos de 1 s.
+      - **SC-002 · 5,2 s** desde el lanzamiento hasta ver el boletín, con la portada y su mínimo de
+        1,2 s por delante. Objetivo: menos de 15 s.
+
+      **La primera medición estaba mal planteada y es una trampa nueva.** Cronometrar entre dos
+      `waitForExistence` daba **1,10 s** y fallaba el criterio: el sondeo del árbol de accesibilidad
+      de XCUITest tiene una granularidad de aproximadamente un segundo, así que lo que se estaba
+      midiendo era el instrumento. Con un *signpost* y `XCTOSSignpostMetric`, 126 ms.
+- [X] T136 **D-329** Arranque: **810 ms** de media en cinco tomas, desviación relativa del
+      **1,06 %** (valores entre 795 y 819 ms), con `XCTApplicationLaunchMetric` sobre el simulador
+      de referencia. Eran **815 ms** antes de esta feature: **abrir el fichero y migrarlo no cuesta
+      nada medible**, que era justo la duda que D-305 dejaba abierta. Objetivo: menos de 2 s.
 
 ### Las cuatro puertas
 
 **SC-014.** No hay CI, por la constitución 1.1.0: se ejecutan aquí y **el resultado se anota con
 cifras**.
 
-- [ ] T137 Puerta 1 · Construcción: `xcodebuild ... -quiet build` → **anotar el tiempo**
-- [ ] T138 Puerta 2 · Pruebas sin interfaz: `-only-testing:BOCantabria-iosTests` → **anotar número
-      de pruebas, de suites, tiempo y el delta** respecto a las 116 de partida
-- [ ] T139 Puerta 3 · Pruebas de interfaz: `-testPlan UITests` → **anotar número y tiempo**, y el
-      delta respecto a las 16 de partida. Con `-testPlan`, **nunca** con `-only-testing` sobre el
+- [X] T137 Puerta 1 · Construcción: `xcodebuild ... -quiet build` sobre datos derivados nuevos →
+      **en verde, 30,21 s**, cero errores
+- [X] T138 Puerta 2 · Pruebas sin interfaz: `-only-testing:BOCantabria-iosTests` →
+      **275 pruebas en 40 suites, 0,471 s**, todas en verde (eran **116** al empezar la feature)
+- [X] T139 Puerta 3 · Pruebas de interfaz: `-testPlan UITests` → **34 pruebas en 246,3 s**, todas
+      en verde (eran **16** al empezar). Con `-testPlan`, **nunca** con `-only-testing` sobre el
       target de interfaz
-- [ ] T140 Puerta 4 · Sin avisos nuevos: `grep -c "warning:"` → **anotar la cifra**. El único
-      admisible es el preexistente de `appintentsmetadataprocessor`, que es de Apple
+- [X] T140 Puerta 4 · Sin avisos nuevos: `grep -c "warning:"` → **1 aviso**, y es el preexistente
+      de `appintentsmetadataprocessor` («No AppIntents.framework dependency found»), que es de Apple
+      y ajeno al código. **Cero avisos del compilador**
 
 ---
 

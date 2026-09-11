@@ -69,9 +69,20 @@ El mismo que en Android, y por la misma razón: cada feature se apoya en la ante
 | 008 | `008-acerca-de` | Acerca de |
 | 011 | `011-preguntar-al-boc` | Preguntar sobre el documento |
 | 012 | `012-avisos` | Avisos: reglas, coincidencias y notificaciones |
-| 013 | `013-inicio-secciones-y-panel` | Secciones, subsecciones y panel |
 | 014 | `014-estabilidad-auditoria` | Las correcciones de estabilidad que sigan aplicando |
 | 015 | `015-buscar-solo-filtros` | Filtros que bastan para buscar |
+
+**La 013 de Android no tiene feature propia aquí: la absorbió la 003.** Aquella fue una corrección
+de Inicio y del panel —el chip que decía «Todo» y no mostraba todo, la fecha sin rótulo, la
+segunda fila de subsecciones, y el campo de filtro del panel que sobraba—, y el documento de
+diseño ya describe ese estado final. Portar el estado histórico habría significado escribir
+—y probar— código contra un documento que dice lo contrario, para quitarlo dos features después.
+Se llega directamente al final, **igual que con 007+009+010**, y el porqué se conserva: está en la
+sección *Procedencia* de `specs/003-boletin-del-dia/spec.md`.
+
+Lo único de la 013 que **no** se absorbió es su bloque del filtro rápido dentro de la lista: ese
+control nació con la Buscar de Android, y aquí la lupa dice «Próximamente» hasta que llegue la
+006.
 
 Las features 009 y 010 de Android son la historia de dos cambios de proveedor de IA. Aquí se
 llega directamente al estado final, pero **el porqué se conserva**: está resumido abajo, en
@@ -456,8 +467,20 @@ borrar una prueba para que pase la build.
   permutadas, el 8.1 vacío, el que trae `<!DOCTYPE`, el de la entidad externa y el de la fecha
   inválida. Si el servicio cambia de forma, se actualizan las muestras y las pruebas lo dicen.
 
-**Reglas de arquitectura** (`BOCantabria-iosTests/Architecture/`): **nueve**, en una prueba propia
-que recorre el árbol de fuentes. Localiza el árbol con `#filePath` —el proceso de pruebas del
+**Reglas de arquitectura** (`BOCantabria-iosTests/Architecture/`): **trece**, en una prueba propia
+que recorre el árbol de fuentes. Las cuatro últimas llegaron con el boletín: **10**, que encierra
+GRDB en `Data/Source/Local/` —la 6 para en la capa y permitiría la base en cualquier punto de
+`Data`—; **11**, que prohíbe `Date()`, `Locale.current`, `Calendar.current`, `TimeZone.current` y
+`DateFormatter(` fuera de `Core/Util`, y que es la de más valor por línea porque la constitución
+exige pruebas «sin reloj del sistema» y hasta entonces no lo comprobaba nada; **12**, que prohíbe
+`Task.detached`; y **13**, que es la única que mira `rawCode` —el código **con** las cadenas— porque
+una sentencia SQL es una cadena y sobre `code` no se vería.
+
+**La regla 13 es la capa barata, no la garantía.** GRDB borra con métodos de registro, sin que la
+palabra aparezca en ninguna cadena del fuente, así que lo que de verdad demuestra que nunca se
+borra una publicación es `NoDeleteRegressionTests`: recoge **cada sentencia que se ejecuta** durante
+una sincronización completa. Esa misma traza sirve para el invariante de la lista blanca de
+columnas, y es la infraestructura que Guardados y Avisos van a necesitar tal cual. Localiza el árbol con `#filePath` —el proceso de pruebas del
 simulador lee el sistema de ficheros del anfitrión— y por cada fichero saca su ruta, sus `import` y
 los tipos que declara al nivel superior.
 
@@ -562,6 +585,70 @@ siendo posible aquí; las demás son propias de esta plataforma.
 - **Las pruebas de interfaz se lanzan con `-testPlan UITests`, no con `-only-testing`.** El esquema
   usa planes de prueba y el plan por defecto solo lleva el target unitario: `-only-testing` sobre el
   de interfaz falla con «isn't a member of the specified test plan or scheme».
+- **El aislamiento por defecto ya no salta al pool, y eso decide dónde corre el trabajo pesado.**
+  `SWIFT_APPROACHABLE_CONCURRENCY = YES` activa `NonisolatedNonsendingByDefault`: una
+  `nonisolated async func` **hereda el ejecutor de quien la llama** en vez de saltar al pool
+  cooperativo. Una función «suelta» invocada desde el actor principal analiza cinco megabytes de
+  XML *en el actor principal*, y **el compilador no dice nada**. Cada trozo de CPU entra por una
+  función marcada `@concurrent`, y hay una prueba que afirma desde el actor principal que el
+  analizado no corre en él: sin ella, el atributo es una convención. `Task.detached` no vale —
+  pierde prioridad, valores de tarea y cancelación estructurada— y la regla 12 lo prohíbe.
+- **Un identificador de accesibilidad puesto sobre un contenedor se PROPAGA a todos sus
+  descendientes y les machaca el suyo.** El volcado del árbol mostraba `home_menu`, `home_search` y
+  `home_info` convertidos los tres en `home_root`. Hay que declarar
+  `.accessibilityElement(children: .contain)`. Y la otra mitad: **un contenedor cuyos hijos están
+  ocultos no entra en el árbol** —el esqueleto de carga tuvo que declararse elemento propio, no
+  contenedor—. Con la nota que ya estaba, son **tres** caras de la misma trampa, y las tres se ven
+  solo ejecutando las pruebas de interfaz.
+- **`.accessibilityHidden(false→true)` no saca del árbol el contenido de un contenedor ya
+  declarado.** Ni antes ni después de `.accessibilityElement(children: .contain)`: el panel lateral
+  cerrado se seguía encontrando. Se desmonta, y la animación de entrada se conserva con una
+  transición. Y el rasgo `.isModal`, aplicado siempre, deja fuera del árbol **todo lo que hay
+  detrás**, así que solo se pone mientras el panel está montado.
+- **`Font.system(size:)` NO escala con el ajuste de tamaño de letra del dispositivo.** En Android
+  `sp` escalaba por su cuenta, así que al portar la tabla tipográfica tal cual el texto dejó de
+  crecer **sin que nada fallara**: la tarjeta medía exactamente lo mismo al 100 % y al 200 %. Cada
+  token se ancla a un estilo del sistema con `Font.custom("", size:relativeTo:)`. La portada es la
+  excepción, y a propósito: es una composición fija verificada contra una imagen de referencia.
+  Lo cazó una prueba de interfaz que compara la **altura** de la tarjeta a los dos tamaños; mirar
+  si el texto se recorta no habría bastado, porque no se recortaba: es que no crecía.
+- **Encadenar `try?` con opcionales y `??` hace explotar al comprobador de tipos.** Una línea como
+  `(try? database?.read { … }) ?? [] ?? []` compila, y la construcción pasa de cuatro segundos a
+  más de diez minutos **sin un solo mensaje de error**: el síntoma es que la suite no termina. Se
+  escribe con `guard let` y `do/catch`. La misma explosión, en las pruebas, la produce un
+  `arguments:` con tuplas de cuatro y miembros inferidos; se arregla con un `struct` de caso.
+- **Una llamada `rethrows` como expresión completa de un `#expect` no compila**: «call can throw,
+  but it is not marked with `try`». Pasa con `allSatisfy`, `contains(where:)` y compañía en la raíz
+  de la aserción; dentro de una comparación no. Se calcula el valor en un `let` y se afirma sobre
+  él.
+- **El `deinit` de una clase `@MainActor` es `nonisolated`** y no puede tocar sus propiedades
+  aisladas. Una observación guardada en una propiedad aislada no se puede cancelar al morir el
+  modelo de pantalla: solo deja de tener a quién escribir, que no es lo mismo que dejar de
+  observar. Vive en una caja `nonisolated` con cerrojo.
+- **`XMLParser` tiene tres trampas y cada una cuesta una prueba.** `parser.delegate` es una
+  referencia **débil**: asignar un acumulador recién creado lo libera en el acto y el analizado
+  termina «bien» con cero publicaciones, sin error. `foundCharacters` llega **troceado**, así que
+  un título con tildes o entidades se entrega en varias llamadas y confirmar en la primera lo
+  corta. Y `parse()` devuelve un **booleano**: ignorarlo convierte un XML roto en «cero anuncios»,
+  indistinguible de un feed vacío legítimo — que existe, es la 8.1. Y una cuarta: abortar a
+  propósito, por el tope de items o por cancelación, también devuelve `false`, y **eso no es un XML
+  roto**.
+- **Escribir dos veces el mismo estado desde dos sitios es una carrera aunque los dos sean
+  correctos.** El contenido de Inicio se publicaba desde la sincronización y desde la observación:
+  con todas las fuentes caídas, el error se publicaba y la observación lo pisaba con «no hay nada»
+  un instante después, y el escenario de error enseñaba el estado vacío. Se deriva en un solo
+  sitio, de tres variables, y el orden de las preguntas **es** la política.
+- **XCUITest no sabe medir por debajo del segundo.** Su sondeo del árbol tiene una granularidad de
+  aproximadamente un segundo, así que cronometrar entre dos `waitForExistence` da siempre algo por
+  encima de un segundo: la primera medición de SC-001 daba 1,10 s y con un *signpost* dio **126
+  ms**. Lo que se estaba midiendo era el instrumento.
+- **Un doble de prueba que fija una columna única siempre igual hace fallar la transacción
+  entera**, y la prueba ve una lista vacía sin saber por qué. `blob_id` es único: el doble lo
+  deriva de la clave.
+- **`UserDefaults.standard` es compartido entre ejecuciones y contamina las pruebas.** Una prueba
+  del contenedor heredó la selección «2.2» que había dejado una tanda de pruebas de interfaz. El
+  almacén se inyecta, y las pruebas de interfaz pasan siempre el argumento aunque quieran el valor
+  por defecto.
 - *(heredada)* **Con el reloj congelado, un filtro por fechas es inerte y no se comprueba
   nada.** Las pruebas de integración de los avisos almacenan y activan en el mismo instante:
   las que quieren ver actuar el filtro tienen que **avanzar el reloj** entre ciclos.

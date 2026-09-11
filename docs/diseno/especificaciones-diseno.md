@@ -401,6 +401,12 @@ No utilizar:
 > **Enmienda (6 de septiembre de 2026, feature 012).** Las notificaciones existen y `Avisos` vuelve
 > como **cuarto destino**, con icono de campana y un badge con el número de publicaciones sin leer
 > («9+» por encima de nueve, oculto en cero). El resto del apartado vale tal cual estaba.
+>
+> **Desviación del port a iOS (11 de septiembre de 2026, feature 003).** En iOS la barra tiene
+> **tres** destinos otra vez, y volverá a tener cuatro cuando el port llegue a su feature de
+> avisos. No es un cambio de criterio: es que el orden de portado repite el mismo camino, y las
+> notificaciones todavía no existen aquí. Mientras tanto vale la enmienda del 29 de agosto: un
+> cuarto destino que solo pudiera prometer algo sería peor que tres que llevan a alguna parte.
 
 La navegación principal tiene cuatro destinos:
 
@@ -925,6 +931,9 @@ Hoja inferior de gran altura o pantalla completa en dispositivos compactos.
 
 > **Sin efecto mientras no existan las notificaciones (feature 003).** El contenido se conserva
 > para cuando se retome.
+>
+> **Y sigue en suspenso en el port a iOS (11 de septiembre de 2026).** Por la misma razón y con la
+> misma fecha de caducidad: la feature de avisos del port.
 
 - Fondo `PrimaryContainer`.
 - Icono de campana dentro de círculo `Primary`.
@@ -1696,14 +1705,19 @@ El diseño debe conservar su jerarquía hasta un escalado del 200 %:
 
 ## 32. Microcopy visible en los mockups
 
+> **Corrección (11 de septiembre de 2026, port a iOS).** Este apartado transcribía el microcopy
+> anterior a las enmiendas de los apartados 14.3, 14.4 y 16, y llevaba desde entonces diciendo lo
+> contrario que ellas. Se pone al día: el primer chip dice `Boletín de hoy` y no `Todo`, la fecha
+> va rotulada, y el panel no tiene campo de búsqueda ni tarjeta de alertas.
+
 ### Inicio
 
 ```text
 BOC Cantabria
 Boletín de hoy
-27 de agosto de 2026
-48 anuncios
-Todo
+Edición del 11 de septiembre de 2026
+33 anuncios
+Boletín de hoy
 Disposiciones
 Personal
 Contratación
@@ -1743,9 +1757,9 @@ Ver PDF oficial
 ### Secciones
 
 ```text
-Secciones
-Buscar una sección
-Alertas personalizadas
+BOC Cantabria
+Recoger el panel
+1 · Disposiciones Generales
 ```
 
 ---
@@ -1830,10 +1844,11 @@ Icono estándar:         24 dp
 
 ### Secciones (panel lateral)
 
-- [ ] Campo de búsqueda.
+- [ ] Cabecera con escudo, nombre y flecha de recoger al final de la fila.
 - [ ] Filas expandibles.
 - [ ] Iconografía uniforme.
 - [ ] Subsecciones agrupadas en fondo suave.
+- [ ] **Sin** campo de búsqueda: lo retiró la enmienda del apartado 16.
 
 ### Buscar
 

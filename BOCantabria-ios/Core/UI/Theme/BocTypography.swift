@@ -37,16 +37,40 @@ struct BocTextStyle: Sendable, Equatable {
     /// portada, que es el único estilo del proyecto que lo lleva.
     let tracking: CGFloat
 
-    init(size: CGFloat, lineHeight: CGFloat, weight: Font.Weight, tracking: CGFloat = 0) {
+    /// El estilo del sistema al que este token **se ancla para escalar**.
+    ///
+    /// Hace falta porque `Font.system(size:)` da un tamaño **fijo**: no responde al ajuste de
+    /// tamaño de letra del dispositivo. En Android no había que decidir nada —`sp` escala por su
+    /// cuenta— y al portar la tabla tal cual el texto dejó de crecer sin que nada fallara. Lo cazó
+    /// la prueba de interfaz que mide la altura de la tarjeta al 200 %: era **exactamente la
+    /// misma** que al 100 %.
+    let relativeTo: Font.TextStyle
+
+    init(
+        size: CGFloat,
+        lineHeight: CGFloat,
+        weight: Font.Weight,
+        tracking: CGFloat = 0,
+        relativeTo: Font.TextStyle = .body
+    ) {
         self.size = size
         self.lineHeight = lineHeight
         self.weight = weight
         self.tracking = tracking
+        self.relativeTo = relativeTo
     }
 
-    var font: Font { .system(size: size, weight: weight) }
+    /// La fuente **escalable**. `Font.custom` con el nombre vacío usa la del sistema y, con
+    /// `relativeTo:`, escala con el ajuste del dispositivo; `Font.system(size:)` no.
+    var font: Font { .custom("", size: size, relativeTo: relativeTo).weight(weight) }
+
+    /// La fuente de tamaño fijo, para lo que no debe crecer.
+    var fixedFont: Font { .system(size: size, weight: weight) }
 
     /// Espacio adicional entre líneas, que es lo que SwiftUI entiende por `lineSpacing`.
+    ///
+    /// Se declara sobre el tamaño nominal: al crecer la letra, SwiftUI ya reparte el suyo, y
+    /// escalar además este valor separaría las líneas el doble.
     var lineSpacing: CGFloat { max(0, lineHeight - uiFont.lineHeight) }
 
     private var uiFont: UIFont { .systemFont(ofSize: size, weight: weight.uiWeight) }
@@ -118,20 +142,20 @@ extension BocTypography {
     // cercano: pedir 650 da o el 600 real o un engrosamiento sintético de peor calidad según el
     // dispositivo, y la diferencia es imperceptible en pantalla.
     static let boc = BocTypography(
-        displayLarge: BocTextStyle(size: 56, lineHeight: 64, weight: .regular),
-        displaySmall: BocTextStyle(size: 40, lineHeight: 48, weight: .regular),
-        headlineLarge: BocTextStyle(size: 30, lineHeight: 38, weight: .semibold),
-        headlineMedium: BocTextStyle(size: 26, lineHeight: 34, weight: .semibold),
-        headlineSmall: BocTextStyle(size: 22, lineHeight: 28, weight: .semibold),
-        titleLarge: BocTextStyle(size: 20, lineHeight: 26, weight: .semibold),
-        titleMedium: BocTextStyle(size: 17, lineHeight: 23, weight: .semibold),
-        titleSmall: BocTextStyle(size: 15, lineHeight: 20, weight: .semibold),
-        bodyLarge: BocTextStyle(size: 16, lineHeight: 24, weight: .regular),
-        bodyMedium: BocTextStyle(size: 14, lineHeight: 21, weight: .regular),
-        bodySmall: BocTextStyle(size: 12, lineHeight: 18, weight: .regular),
-        labelLarge: BocTextStyle(size: 14, lineHeight: 20, weight: .semibold),
-        labelMedium: BocTextStyle(size: 12, lineHeight: 17, weight: .semibold),
-        labelSmall: BocTextStyle(size: 11, lineHeight: 15, weight: .semibold),
+        displayLarge: BocTextStyle(size: 56, lineHeight: 64, weight: .regular, relativeTo: .largeTitle),
+        displaySmall: BocTextStyle(size: 40, lineHeight: 48, weight: .regular, relativeTo: .largeTitle),
+        headlineLarge: BocTextStyle(size: 30, lineHeight: 38, weight: .semibold, relativeTo: .title),
+        headlineMedium: BocTextStyle(size: 26, lineHeight: 34, weight: .semibold, relativeTo: .title2),
+        headlineSmall: BocTextStyle(size: 22, lineHeight: 28, weight: .semibold, relativeTo: .title3),
+        titleLarge: BocTextStyle(size: 20, lineHeight: 26, weight: .semibold, relativeTo: .title3),
+        titleMedium: BocTextStyle(size: 17, lineHeight: 23, weight: .semibold, relativeTo: .headline),
+        titleSmall: BocTextStyle(size: 15, lineHeight: 20, weight: .semibold, relativeTo: .subheadline),
+        bodyLarge: BocTextStyle(size: 16, lineHeight: 24, weight: .regular, relativeTo: .body),
+        bodyMedium: BocTextStyle(size: 14, lineHeight: 21, weight: .regular, relativeTo: .body),
+        bodySmall: BocTextStyle(size: 12, lineHeight: 18, weight: .regular, relativeTo: .footnote),
+        labelLarge: BocTextStyle(size: 14, lineHeight: 20, weight: .semibold, relativeTo: .subheadline),
+        labelMedium: BocTextStyle(size: 12, lineHeight: 17, weight: .semibold, relativeTo: .caption),
+        labelSmall: BocTextStyle(size: 11, lineHeight: 15, weight: .semibold, relativeTo: .caption2),
         splash: BocSplashTypography(
             // El documento pide «tracking amplio» sin dar una cifra. Dos puntos sobre veinte es
             // un diez por ciento del cuerpo, que es lo que se ve en la imagen de referencia. Se
@@ -161,9 +185,12 @@ extension View {
     /// Se aplican los tres juntos a propósito. Poner solo la fuente deja el interlineado del
     /// sistema y el tracking de la fuente, que es exactamente el fallo silencioso que la nota de
     /// cabecera describe.
-    func bocTextStyle(_ style: BocTextStyle) -> some View {
+    /// - Parameter scales: si el texto crece con el ajuste de tamaño de letra del dispositivo.
+    ///   **Cierto salvo en la portada**, que es una composición fija verificada contra una imagen
+    ///   de referencia: si su denominación creciera, dejaría de ser esa imagen.
+    func bocTextStyle(_ style: BocTextStyle, scales: Bool = true) -> some View {
         self
-            .font(style.font)
+            .font(scales ? style.font : style.fixedFont)
             .tracking(style.tracking)
             .lineSpacing(style.lineSpacing)
     }

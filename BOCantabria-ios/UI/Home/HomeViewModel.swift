@@ -8,6 +8,7 @@
 //
 
 import Foundation
+import OSLog
 import Synchronization
 
 @MainActor
@@ -41,6 +42,8 @@ final class HomeViewModel {
     /// el estado vacío.
     private var latestItems: [Publication] = []
     private var hasSynced = false
+    /// El intervalo que mide SC-001: desde que la pantalla nace hasta que hay publicaciones.
+    private var timeToContent: OSSignpostIntervalState?
     private var lastSyncError: DomainError?
     private var isRefreshing = false
 
@@ -58,6 +61,7 @@ final class HomeViewModel {
         // otra vez al volver de segundo plano, y eso no es una visita nueva.
         analytics.trackScreenView(Self.screenName)
         state.sectionChips = Self.chips(for: BocSection.topLevel)
+        timeToContent = AppSignposts.timeToContent.beginInterval(AppSignposts.timeToContentName)
     }
 
     deinit {
@@ -170,6 +174,10 @@ final class HomeViewModel {
     private func renderContent() {
         if !latestItems.isEmpty {
             state.content = .publications(latestItems)
+            if let interval = timeToContent {
+                AppSignposts.timeToContent.endInterval(AppSignposts.timeToContentName, interval)
+                timeToContent = nil
+            }
         } else if let lastSyncError {
             state.content = .error(lastSyncError)
         } else {
