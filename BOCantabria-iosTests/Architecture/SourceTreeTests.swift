@@ -116,4 +116,36 @@ struct SourceTreeTests {
     private static func topLevelTypeNames(in code: String) -> [String] {
         topLevelTypes(in: code).map(\.name)
     }
+
+    @Test("`code` vacía las cadenas y `rawCode` las conserva, y las dos quitan los comentarios")
+    func rawCodeKeepsStringLiteralsAndCodeDoesNot() {
+        let source = """
+        // DELETE FROM publications
+        let sql = "DELETE FROM publications WHERE id = ?"
+        let name = Publication.self
+        """
+        let stripped = source.strippingCommentsAndStrings()
+        let raw = source.strippingComments()
+
+        // El comentario desaparece de las dos: sin eso, un comentario que explica por qué algo no
+        // debe pasar dispararía la regla que ese comentario documenta.
+        #expect(!stripped.contains("// DELETE"))
+        #expect(!raw.contains("// DELETE"))
+
+        // Y la diferencia que justifica que existan las dos: una sentencia SQL **es** una cadena.
+        #expect(!stripped.contains("DELETE FROM publications"))
+        #expect(raw.contains("DELETE FROM publications"))
+
+        // Lo que está fuera de la cadena sigue en las dos.
+        #expect(stripped.contains("Publication"))
+        #expect(raw.contains("Publication"))
+    }
+
+    @Test("Todo fichero del árbol tiene las dos vistas")
+    func everyFileHasBothViews() {
+        for file in SourceTree.appFiles.prefix(5) {
+            #expect(!file.rawCode.isEmpty)
+            #expect(file.rawCode.count >= file.code.count)
+        }
+    }
 }

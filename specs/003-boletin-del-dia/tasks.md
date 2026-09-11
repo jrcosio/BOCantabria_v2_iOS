@@ -154,27 +154,29 @@ nuevas y la retirada de la rodaja de relleno. ⚠️ **Bloquea las cuatro histor
 
 ### Reglas de arquitectura
 
-- [ ] T032 **D-323** `TEST/Architecture/SourceTree.swift`: añadir `rawCode` —comentarios fuera,
+- [X] T032 **D-323** `TEST/Architecture/SourceTree.swift`: añadir `rawCode` —comentarios fuera,
       **cadenas dentro**— junto al `code` actual, que no se toca. Sin esto, una regla que busque un
       borrado dentro de una sentencia SQL **no ve nada y pasa siempre**, que es exactamente el
       fallo que este proyecto ya cometió al traducir la regla de capas.
-- [ ] T033 `TEST/Architecture/SourceTreeTests.swift`: su caso propio. Añadir una regla obliga a
+- [X] T033 `TEST/Architecture/SourceTreeTests.swift`: su caso propio. Añadir una regla obliga a
       añadir su prueba, y aquí además se está tocando el lector, que tiene pruebas propias.
-- [ ] T034 **D-325** `TEST/Architecture/ArchitectureRulesTests.swift`: ampliar la **regla 6** a
+- [X] T034 **D-325** `TEST/Architecture/ArchitectureRulesTests.swift`: ampliar la **regla 6** a
       GRDB. Es una entrada en una lista que ya existe.
-- [ ] T035 **D-325** `TEST/Architecture/ArchitectureRulesTests.swift`: **regla 10** — nadie fuera de
+- [X] T035 **D-325** `TEST/Architecture/ArchitectureRulesTests.swift`: **regla 10** — nadie fuera de
       `Data/Source/Local/` **nombra** un tipo de GRDB. Es la que las importaciones no cubren:
       dentro de un módulo Swift, un `import` en un fichero hace nombrable el tipo en todos los
       demás. Lista explícita y corta: `DatabaseQueue`, `DatabasePool`, `DatabaseWriter`,
       `DatabaseReader`, `Database`, `ValueObservation`, `DatabaseMigrator`, `Row`.
-- [ ] T036 **D-325** `TEST/Architecture/ArchitectureRulesTests.swift`: **regla 11** — fuera de
+- [X] T036 **D-325** `TEST/Architecture/ArchitectureRulesTests.swift`: **regla 11** — fuera de
       `Core/Util` nadie construye `Date()` ni usa `Locale.current`, `Calendar.current`,
       `TimeZone.current` ni `DateFormatter(`. La constitución exige pruebas «sin reloj del sistema»
       y **hoy no lo comprueba nada**.
-- [ ] T037 **D-325** `TEST/Architecture/ArchitectureRulesTests.swift`: **regla 12** —
+- [X] T037 **D-325** `TEST/Architecture/ArchitectureRulesTests.swift`: **regla 12** —
       `Task.detached` prohibido. Un solo identificador. Es lo que se escribe cuando lo correcto es
-      `@concurrent`, y pierde la cancelación estructurada.
-- [ ] T038 **D-325** `TEST/Architecture/ArchitectureRulesTests.swift`: añadir a
+      `@concurrent`, y pierde la cancelación estructurada. Y **regla 13** — ninguna consulta
+      declara un borrado sobre `publications`, que es la única que mira `rawCode` y, separada de
+      las demás, dice **qué** invariante se rompió.
+- [X] T038 **D-325** `TEST/Architecture/ArchitectureRulesTests.swift`: añadir a
       `domainTypesWithoutBehaviour` **solo** `EditionType`, `IdSource`, `ParserWarning` y
       `SectionColorGroup` —**FR-085 y SC-012** son lo que esta regla hace verificable—.
       `Publication`, `BocDate`, `BocSection`, `HomeSelection` y `SyncSummary`
@@ -182,7 +184,7 @@ nuevas y la retirada de la rodaja de relleno. ⚠️ **Bloquea las cuatro histor
       Y **actualizar la cita del comentario**, que dice SC-002: en la 001 ése era el criterio de la
       cobertura de pruebas y **en esta feature SC-002 es el tiempo del boletín del día**. Aquí el
       criterio que la regla hace verificable es **SC-012**.
-- [ ] T039 **Paso 5 del quickstart**: provocar a mano una violación de cada regla nueva y comprobar
+- [X] T039 **Paso 5 del quickstart**: provocar a mano una violación de cada regla nueva y comprobar
       que se pone en rojo. **Una regla que no puede fallar no protege nada.** Revertir después.
 
 ### Retirada de la rodaja de relleno — bloque indivisible

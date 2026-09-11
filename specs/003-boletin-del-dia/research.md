@@ -689,23 +689,36 @@ añade un borrado, la prueba se pone roja aunque el código compile.
 
 ---
 
-## D-325 · Cuatro reglas: la 6 se amplía y entran la 10, la 11 y la 12
+## D-325 · Cinco cambios en la suite: la 6 se amplía y entran la 10, la 11, la 12 y la 13
 
-**Decisión**, manteniendo la lista corta como el proyecto exige:
+**Decisión**: la regla 6 se amplía y entran cuatro nuevas, manteniendo la lista corta como el
+proyecto exige. Las cinco se verificaron **provocando su violación a mano**, y una de ellas obligó a
+corregir el razonamiento con el que se había propuesto.
 
 - **Regla 6, ampliada**: «solo `Data` importa los módulos de Firebase **y GRDB**». Es una entrada en
   una lista que ya existe.
-- **Regla 10, nueva**: nadie fuera de `Data/Source/Local/` **nombra** un tipo de GRDB. Es la más
-  específica de esta plataforma y la que las importaciones no cubren: **dentro de un módulo Swift,
-  `import GRDB` en un fichero hace nombrable `DatabaseQueue` en todos los demás sin una sola línea de
-  importación**. Es la trampa número uno del port aplicada otra vez, y se implementa con la búsqueda
-  por referencias que ya existe, sobre una lista corta y explícita.
+- **Regla 10, nueva**: nadie fuera de `Data/Source/Local/` **nombra** un tipo de GRDB. Lo que añade
+  a la 6 es el **grano**: la 6 para en la capa y permite GRDB en cualquier punto de `Data`; ésta lo
+  encierra en la carpeta donde vive la base, que es lo que impide que un repositorio o el coordinador
+  de sincronización acaben hablando SQL.
+
+  **Corrección de lo que se creyó al proponerla, comprobada provocando la violación.** Se argumentó
+  que hacía falta porque «dentro de un módulo Swift, un `import` en un fichero hace nombrable el tipo
+  en todos los demás». Eso es cierto para los tipos **declarados en el propio módulo** —que es
+  exactamente lo que cazan las reglas 2 y 3, y la trampa número uno del port— y **falso para un
+  módulo externo**: sin `import GRDB` en el fichero, `DatabaseQueue` ni siquiera compila. La regla
+  sigue valiendo; el motivo era otro. Anotarlo importa porque el argumento equivocado habría viajado
+  a la siguiente regla que alguien escribiera.
 - **Regla 11, nueva**: nadie construye `Date()` ni usa el idioma, el calendario o la zona del
   dispositivo fuera de `Core/Util`. Es la de mayor valor por línea: la constitución exige pruebas «sin
   reloj del sistema» y **hoy no lo comprueba nada**. Tiene la misma forma que las reglas 7 y 8, que ya
   funcionan.
 - **Regla 12, nueva**: `Task.detached` está prohibido. Un solo identificador. Es lo que se escribe
   cuando lo correcto es `@concurrent` (D-300).
+- **Regla 13, nueva**: ninguna consulta declara un borrado sobre `publications`. Es la capa barata
+  de D-324 y **la única que mira `rawCode`**. Se separa de las demás para que, al fallar, diga qué
+  invariante se rompió; y se comprobó que muerde poniendo un `DELETE FROM publications` dentro de una
+  cadena, que es donde una regla sobre `code` no habría visto nada.
 
 **Alternativa descartada**: una sola regla que agrupe las tres nuevas. Al fallar no diría cuál de los
 tres invariantes se rompió, que es la mitad del valor de una regla.
