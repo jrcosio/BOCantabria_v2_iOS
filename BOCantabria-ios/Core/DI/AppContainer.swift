@@ -18,20 +18,25 @@ final class AppContainer {
     private let telemetry: TelemetryBundle
     private let clock: AppClock
 
-    /// Compartidos en todo el proceso: el origen local es una caché y tener dos sería tener dos
-    /// verdades.
-    private let localDataSource: ContentLocalDataSource
-    private let remoteDataSource: ContentRemoteDataSource
-    private let contentRepository: ContentRepository
-
     private let appConfigRepository: AppConfigRepository
     private let connectivityRepository: ConnectivityRepository
     private let installedVersion: AppVersion?
 
+    /// Compartidos en todo el proceso. **Construirlos no abre nada**: el proveedor de la base solo
+    /// guarda cómo abrirla, y quien la abre es la comprobación previa de la portada (D-305).
+    private let databaseProvider: BocDatabaseProvider
+    private let publicationRepository: PublicationRepository
+    private let sectionRepository: BocSectionRepository
+    private let selectionStore: HomeSelectionStore
+
     init(
         telemetry: TelemetryBundle,
         clock: AppClock = SystemClock(),
-        contentScenario: StubContentRemoteDataSource.Scenario = .items,
+        random: AppRandom = SystemRandom(),
+        databaseProvider: BocDatabaseProvider? = nil,
+        downloader: FeedDownloader? = nil,
+        selectionStore: HomeSelectionStore? = nil,
+        dataScenario: DataScenario = .live,
         remoteConfig: RemoteConfigDataSource = UnavailableRemoteConfigDataSource(),
         connectivity: ConnectivityDataSource = PathMonitorConnectivityDataSource(),
         startupScenario: StartupScenario = .ready,
@@ -40,11 +45,44 @@ final class AppContainer {
         self.telemetry = telemetry
         self.clock = clock
         self.installedVersion = installedVersion
-        self.localDataSource = InMemoryContentLocalDataSource()
-        self.remoteDataSource = StubContentRemoteDataSource(clock: clock, scenario: contentScenario)
-        self.contentRepository = ContentRepositoryImpl(
-            remote: remoteDataSource,
-            local: localDataSource
+
+        // El escenario de datos sustituye a la costura de la 001, y solo cambia **de dónde salen
+        // los datos**: todo lo que hay por encima —fuente local, repositorio, casos de uso, modelo
+        // de pantalla— es exactamente el de producción, que es lo que hace que la prueba de
+        // interfaz pruebe algo.
+        let provider = databaseProvider
+            ?? (dataScenario == .live
+                ? BocDatabaseProvider(crashReporter: telemetry.crashReporter)
+                : BocDatabaseProvider.inMemory(crashReporter: telemetry.crashReporter))
+        self.databaseProvider = provider
+        let local = PublicationLocalDataSource(
+            provider: provider, crashReporter: telemetry.crashReporter
+        )
+        if dataScenario.seedsContent {
+            _ = provider.database()
+            // **La antigüedad de la siembra es parte del escenario.** Sembrar «ahora» deja la
+            // caché fresca y la sincronización ni se intenta: con eso, el escenario «sin conexión»
+            // enseñaba el contenido y **nunca encendía el aviso**, porque no llegaba a fallar
+            // nada. Para que falle, lo sembrado tiene que estar caducado.
+            let seededAt = dataScenario == .offline
+                ? clock.now().addingTimeInterval(-3600)
+                : clock.now()
+            ScenarioDatabaseSeeder.seed(local, at: seededAt)
+        }
+        self.sectionRepository = BocSectionRepositoryImpl()
+        self.selectionStore = selectionStore ?? UserDefaultsSelectionStore()
+        self.publicationRepository = PublicationRepositoryImpl(
+            local: local,
+            coordinator: FeedSyncCoordinator(
+                local: local,
+                downloader: downloader
+                    ?? (dataScenario == .live
+                        ? HttpFeedDownloader(clock: clock, random: random)
+                        : ScenarioFeedDownloader(scenario: dataScenario, clock: clock)),
+                clock: clock,
+                crashReporter: telemetry.crashReporter
+            ),
+            clock: clock
         )
 
         // **Un solo punto de sustitución.** El escenario del arranque solo cambia de dónde salen
@@ -79,6 +117,7 @@ final class AppContainer {
             prepareStartup: PrepareStartupUseCase(
                 appConfig: appConfigRepository,
                 connectivity: connectivityRepository,
+                storage: databaseProvider,
                 installedVersion: installedVersion
             ),
             analytics: telemetry.analytics,
@@ -90,8 +129,19 @@ final class AppContainer {
     /// Nuevo en cada llamada: un modelo de pantalla tiene el ciclo de vida de su pantalla.
     func makeHomeViewModel() -> HomeViewModel {
         HomeViewModel(
-            getContentItems: GetContentItemsUseCase(repository: contentRepository),
+            observePublications: ObservePublicationsUseCase(repository: publicationRepository),
+            observeHeader: ObserveBulletinHeaderUseCase(repository: publicationRepository),
+            refreshPublications: RefreshPublicationsUseCase(repository: publicationRepository),
             analytics: telemetry.analytics
+        )
+    }
+
+    /// Nuevo en cada llamada, como los demás. El armazón lo posee la raíz de navegación, así que
+    /// la selección sobrevive al ciclo de segundo plano.
+    func makeMainViewModel() -> MainViewModel {
+        MainViewModel(
+            store: selectionStore,
+            sections: GetBocSectionsUseCase(repository: sectionRepository)()
         )
     }
 }

@@ -24,15 +24,24 @@ struct ArchitectureRulesTests {
     /// Tipos de dominio sin comportamiento que proteger, exentos de la regla del fichero de
     /// prueba.
     ///
-    /// **Mantén esta lista corta: cada entrada es un agujero en SC-002.** Hoy son dos portadores
-    /// de datos puros: `ContentItem` son dos cadenas y `DomainError` es un enumerado de dos casos
-    /// sin nada que ejecutar. Probarlos sería probar al compilador.
+    /// **Mantén esta lista corta: cada entrada es un agujero en SC-012**, el criterio que dice que
+    /// toda pieza de reglas de negocio y todo modelo de pantalla tiene su prueba. (En la feature
+    /// 001 ese criterio se numeraba SC-002; el número es de cada feature, el compromiso es el
+    /// mismo.)
+    ///
+    /// Los cuatro enumerados del boletín entraron aquí **en frío**, al planificar, y no cuando la
+    /// build estuviera roja y hubiera prisa: son vocabularios cerrados sin comportamiento y su
+    /// semántica se prueba donde vive, en `PublicationNormalizerTests` y en `BocSectionTests`.
+    /// `Publication`, `BocDate`, `BocSection`, `HomeSelection` y `SyncSummary` **no** se eximieron:
+    /// los cinco tienen comportamiento de verdad.
     static let domainTypesWithoutBehaviour: Set<String> = [
         "ContentItem", "DomainError",
         // Tres casos sin comportamiento. Lo único que podría afirmar un fichero propio es
         // que el compilador funciona; su semántica se prueba donde vive, en
         // `PrepareStartupUseCaseTests`. Declarado en el Complexity Tracking de la 002.
         "StartupStatus",
+        // Los cuatro del boletín (research.md D-325).
+        "EditionType", "IdSource", "ParserWarning", "SectionColorGroup",
     ]
 
     // MARK: - Regla de capas
@@ -109,10 +118,13 @@ struct ArchitectureRulesTests {
 
     // MARK: - Proveedores
 
-    @Test("6 · Solo Data importa los módulos de Firebase")
+    @Test("6 · Solo Data importa los módulos de proveedores: Firebase y GRDB")
     func onlyDataImportsFirebase() {
+        // GRDB entra aquí con la feature del boletín: es el segundo proveedor con SDK propio, y
+        // la razón de encerrarlo es la misma que con Firebase.
+        let providerModules = ["Firebase", "GRDB"]
         for file in SourceTree.appFiles where file.layer != .data {
-            for module in file.imports where module.hasPrefix("Firebase") {
+            for module in file.imports where providerModules.contains(where: module.hasPrefix) {
                 Issue.record(
                     "\(file.path) importa «\(module)». Los SDK del proveedor solo se tocan desde Data, detrás de AnalyticsTracker y CrashReporter."
                 )
@@ -149,6 +161,84 @@ struct ArchitectureRulesTests {
         }
     }
 
+    // MARK: - Persistencia y tiempo
+
+    @Test("10 · Nadie fuera de Data/Source/Local nombra un tipo de GRDB")
+    func onlyTheLocalSourceNamesGRDBTypes() {
+        // **Lo que esta regla añade a la 6, comprobado provocando las dos violaciones.** La 6
+        // para en la capa: permite GRDB en cualquier punto de `Data`. Ésta lo encierra en la
+        // carpeta donde vive la base, que es lo que impide que un repositorio o el coordinador de
+        // sincronización acaben hablando SQL.
+        //
+        // Y una corrección al razonamiento con el que se propuso: **no** es cierto que dentro de
+        // un módulo Swift baste un `import` en un fichero para nombrar el tipo en los demás. Eso
+        // vale para los tipos declarados en el propio módulo —que es lo que cazan las reglas 2 y
+        // 3— pero no para un módulo externo: sin `import GRDB` en el fichero, `DatabaseQueue` ni
+        // siquiera compila. Se comprobó intentándolo.
+        let grdbTypes = [
+            "DatabaseQueue", "DatabasePool", "DatabaseWriter", "DatabaseReader",
+            "Database", "ValueObservation", "DatabaseMigrator", "Row",
+        ]
+        let allowed = "Data/Source/Local/"
+        for file in SourceTree.appFiles where !file.path.hasPrefix(allowed) {
+            for type in grdbTypes where file.references(type) {
+                Issue.record(
+                    "\(file.path) nombra «\(type)», que es de GRDB. La persistencia vive encerrada en \(allowed)."
+                )
+            }
+        }
+    }
+
+    @Test("11 · Nadie construye el reloj, el idioma ni el calendario del dispositivo")
+    func nobodyReachesForTheDeviceClockOrLocale() {
+        // La constitución exige pruebas «sin reloj del sistema», y hasta esta feature **nada lo
+        // comprobaba**. Un `Date()` en un repositorio hace intermitente una prueba de caducidad y
+        // nadie se entera hasta que falla en otra máquina.
+        //
+        // Son las cuatro puertas por las que el dispositivo se cuela en un resultado: la hora, el
+        // idioma, el calendario y la zona. Todas viven encerradas en `Core/Util`, que es donde se
+        // inyectan.
+        let gateways = ["Date()", "Locale.current", "Calendar.current", "TimeZone.current", "DateFormatter("]
+        let allowed = "Core/Util/"
+        for file in SourceTree.appFiles where !file.path.hasPrefix(allowed) {
+            for gateway in gateways where file.code.contains(gateway) {
+                Issue.record(
+                    "\(file.path) usa «\(gateway)». El tiempo y el idioma se inyectan; su sitio es \(allowed)."
+                )
+            }
+        }
+    }
+
+    @Test("12 · Ninguna tarea se desprende de su padre")
+    func nobodyDetachesATask() {
+        // `Task.detached` pierde la prioridad, los valores de tarea y la cancelación estructurada.
+        // Es lo que se escribe cuando lo correcto es `@concurrent`, que sí salta al pool sin
+        // romper el árbol de tareas.
+        for file in SourceTree.appFiles where file.code.contains("Task.detached") {
+            Issue.record(
+                "\(file.path) usa «Task.detached». Para salir del actor principal, `@concurrent`; para vivir más que su llamante, un actor que la posea."
+            )
+        }
+    }
+
+    @Test("13 · Ninguna consulta declara un borrado sobre las publicaciones")
+    func noQueryDeletesAPublication() {
+        // Se mira `rawCode`, **con las cadenas dentro**: una sentencia SQL es una cadena, así que
+        // sobre `code` esta regla no vería nada y pasaría siempre (research.md D-323).
+        //
+        // Y es la capa barata, no la garantía: GRDB también borra con métodos de registro, sin
+        // que la palabra aparezca en ninguna cadena. Lo que de verdad lo demuestra es
+        // `NoDeleteRegressionTests`, que recoge las sentencias que se ejecutan.
+        for file in SourceTree.appFiles where file.rawCode.contains("publications") {
+            let sql = file.rawCode.uppercased()
+            if sql.contains("DELETE FROM PUBLICATIONS") || sql.contains("DELETEALL") {
+                Issue.record(
+                    "\(file.path) borra publicaciones. Nunca se borra una publicación guardada: una fuente solo publica sus últimos cien anuncios."
+                )
+            }
+        }
+    }
+
     // MARK: - Cobertura
 
     @Test("9 · Todo tipo de dominio y todo modelo de pantalla tiene fichero de prueba")
@@ -165,7 +255,7 @@ struct ArchitectureRulesTests {
                 guard isDomain || isViewModel else { continue }
                 #expect(
                     testFiles.contains("\(type.name)Tests"),
-                    "\(type.name) no tiene \(type.name)Tests. Es lo que hace verificable el criterio SC-002."
+                    "\(type.name) no tiene \(type.name)Tests. Es lo que hace verificable el criterio SC-012."
                 )
             }
         }

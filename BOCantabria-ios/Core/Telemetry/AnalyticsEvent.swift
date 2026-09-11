@@ -45,3 +45,37 @@ struct AnalyticsEvent: Equatable, Sendable {
         parameters.filter { !Self.sensitiveKeys.contains($0.key.lowercased()) }
     }
 }
+
+// MARK: - Los eventos del boletín
+
+extension AnalyticsEvent {
+    /// El resultado de una sincronización. **Solo recuentos** (FR-029).
+    ///
+    /// Ni un título, ni un organismo, ni una dirección: lo que una persona lee es asunto suyo.
+    /// Los recuentos dicen si el servicio responde, que es lo único que hace falta saber desde
+    /// fuera del dispositivo.
+    static func bulletinSync(_ summary: SyncSummary) -> AnalyticsEvent {
+        AnalyticsEvent(
+            name: "boc_sync",
+            parameters: [
+                "succeeded": String(summary.succeededFeeds),
+                "unchanged": String(summary.unchangedFeeds),
+                "failed": String(summary.failedFeeds),
+                "inserted": String(summary.inserted),
+                "updated": String(summary.updated),
+                "rejected": String(summary.rejected),
+            ]
+        )
+    }
+
+    /// Qué sección se está mirando.
+    ///
+    /// El código **sí** puede viajar: es un enumerado de veintitrés valores de un catálogo
+    /// público, no un texto libre. La línea está aquí, y conviene saber dónde: en la feature de
+    /// Avisos la misma pregunta llega con **palabras clave**, y entonces la respuesta es la
+    /// contraria, porque las palabras de una regla son un interés personal (research.md D-327).
+    static func sectionSelected(code: String) -> AnalyticsEvent {
+        AnalyticsEvent(name: "home_section_selected", parameters: ["section_code": code])
+    }
+}
+

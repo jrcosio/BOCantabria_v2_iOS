@@ -9,9 +9,12 @@
 //  Este es el ÚNICO fichero del proyecto que construye un color, y hay una regla de arquitectura
 //  que falla la build si alguien lo hace fuera de aquí.
 //
-//  Valores transcritos de `docs/diseno/especificaciones-diseno.md` §4.1. Si algo no coincide,
-//  manda el documento. Los cinco colores de sección del boletín quedan fuera a propósito
-//  (research.md D-111): dependen de una clasificación del dominio que aún no existe.
+//  Valores transcritos de `docs/diseno/especificaciones-diseno.md` §4.1 y §4.4. Si algo no
+//  coincide, manda el documento.
+//
+//  Los cinco colores de sección llegaron con la feature 003 (research.md D-326), que es la que creó
+//  la clasificación del dominio de la que dependían. Son **cinco para nueve secciones**: el color
+//  agrupa y el texto identifica, y por eso el indicador cromático nunca viaja solo.
 //
 
 import SwiftUI
@@ -46,6 +49,13 @@ struct BocColors: Sendable {
     let outline: Color
     let divider: Color
 
+    // Secciones del boletín. Cinco grupos para nueve secciones (D-326).
+    let sectionGeneral: Color
+    let sectionPersonnel: Color
+    let sectionContracting: Color
+    let sectionEconomy: Color
+    let sectionAnnouncements: Color
+
     // Estados
     let success: Color
     let warning: Color
@@ -54,6 +64,10 @@ struct BocColors: Sendable {
     // Sobre el azul institucional
     let onPrimaryAccent: Color
     let onPrimaryMuted: Color
+
+    /// Velo del panel lateral. No está en el documento de diseño porque allí el panel lo pintaba
+    /// un componente del sistema; aquí se construye a mano (D-319) y el velo es nuestro.
+    let scrim: Color
 }
 
 extension BocColors {
@@ -83,13 +97,22 @@ extension BocColors {
         outline: Color(hex: 0xB8C4CB),
         divider: Color(hex: 0xD9E0E4),
 
+        sectionGeneral: Color(hex: 0x1565C0),
+        sectionPersonnel: Color(hex: 0x6A4C93),
+        sectionContracting: Color(hex: 0x00838F),
+        sectionEconomy: Color(hex: 0x2E7D32),
+        sectionAnnouncements: Color(hex: 0xAD5B00),
+
         success: Color(hex: 0x2E7D32),
         warning: Color(hex: 0xED6C02),
         error: Color(hex: 0xBA1A1A),
 
         onPrimaryAccent: Color(hex: 0x8FD3EE),
         // Blanco con alfa 0xB3 = 179/255 = 70,2 %.
-        onPrimaryMuted: Color(hex: 0xFFFFFF, opacity: 179.0 / 255.0)
+        onPrimaryMuted: Color(hex: 0xFFFFFF, opacity: 179.0 / 255.0),
+
+        // Negro al 40 %: atenúa lo que queda detrás del panel sin llegar a ocultarlo.
+        scrim: Color(hex: 0x000000, opacity: 0.4)
     )
 }
 

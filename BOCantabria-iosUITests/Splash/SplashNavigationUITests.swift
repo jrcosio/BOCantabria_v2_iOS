@@ -47,14 +47,14 @@ final class SplashNavigationUITests: XCTestCase {
         let app = launch()
 
         XCTAssertTrue(
-            element("home_content", in: app).waitForExistence(timeout: 15),
+            element("home_root", in: app).waitForExistence(timeout: 15),
             "Al terminar la preparación se pasa solo al contenido principal (FR-004)."
         )
     }
 
     func testBackGestureDoesNotReturnToTheCover() {
         let app = launch()
-        XCTAssertTrue(element("home_content", in: app).waitForExistence(timeout: 15))
+        XCTAssertTrue(element("home_root", in: app).waitForExistence(timeout: 15))
 
         // El gesto de retroceso desde el borde izquierdo. La portada no está en la pila, así que
         // no hay nada a lo que volver (FR-007).
@@ -65,7 +65,7 @@ final class SplashNavigationUITests: XCTestCase {
             )
 
         XCTAssertTrue(
-            element("home_content", in: app).waitForExistence(timeout: 5),
+            element("home_root", in: app).waitForExistence(timeout: 5),
             "Se sigue en el contenido principal."
         )
         XCTAssertFalse(

@@ -5,28 +5,28 @@
 //  **Existe porque en iOS las pruebas de interfaz corren en otro proceso.** En el proyecto Android
 //  bastaba con sustituir módulos del grafo desde el propio test; aquí no hay forma de inyectar
 //  nada en la aplicación bajo prueba, así que el único mecanismo es pasarle argumentos al
-//  lanzarla. FR-025 exige comprobar los cuatro estados, y sin esta costura solo sería alcanzable
-//  uno.
+//  lanzarla.
 //
-//  La costura está **acotada a propósito**. Hoy tiene dos argumentos y no son lo mismo:
-//
-//  - `-boc-content-scenario=` elige entre escenarios del origen de ejemplo de la feature 001, que
-//    es material desechable. **Ese se sustituye, no se amplía**, cuando la feature del boletín
-//    traiga el origen real.
-//  - `-boc-startup-scenario=` elige el desenlace del arranque (feature 002). Se añadió a sabiendas
-//    de la frase anterior, porque FR-028 exige probar los cuatro estados del arranque y tres de
-//    ellos no son alcanzables de ninguna otra forma. La desviación está declarada en el
-//    *Complexity Tracking* de `specs/002-pantalla-arranque/plan.md`, no escondida aquí.
+//  **La costura está acotada, y la promesa se ha cumplido.** La feature 001 escribió que
+//  `-boc-content-scenario=` —el que elegía entre escenarios del origen de ejemplo— «se sustituye,
+//  no se amplía, cuando la feature del boletín traiga el origen real». La feature 003 es ésa, y
+//  ese argumento **ha desaparecido**: su sitio lo ocupa `-boc-data-scenario=`, que siembra la base
+//  con un conjunto determinista. Siguen siendo dos argumentos, los mismos que había.
 //
 //  Los dos son enumerados y no cadenas, y los dos respaldan en silencio al valor de producción
 //  cuando el argumento falta o no casa.
 //
-
 import Foundation
 
 enum LaunchConfiguration {
-    static let argumentPrefix = "-boc-content-scenario="
     static let startupArgumentPrefix = "-boc-startup-scenario="
+    static let dataArgumentPrefix = "-boc-data-scenario="
+
+    /// El desenlace de datos que pide la prueba de interfaz. Sin argumento, la aplicación de
+    /// verdad.
+    static var dataScenario: DataScenario {
+        value(for: dataArgumentPrefix).flatMap { DataScenario(rawValue: $0) } ?? .live
+    }
 
     /// El escenario de arranque que pide la prueba de interfaz.
     ///
@@ -47,12 +47,4 @@ enum LaunchConfiguration {
             .map { String($0.dropFirst(prefix.count)) }
     }
 
-    static var contentScenario: StubContentRemoteDataSource.Scenario {
-        let argument = ProcessInfo.processInfo.arguments
-            .first { $0.hasPrefix(argumentPrefix) }?
-            .dropFirst(argumentPrefix.count)
-        return argument
-            .flatMap { StubContentRemoteDataSource.Scenario(rawValue: String($0)) }
-            ?? .items
-    }
 }

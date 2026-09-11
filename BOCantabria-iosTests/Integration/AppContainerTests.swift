@@ -12,6 +12,7 @@
 //  ámbitos son los previstos.
 //
 
+import Foundation
 import Testing
 @testable import BOCantabria_ios
 
@@ -45,7 +46,40 @@ struct AppContainerTests {
 
         let viewModel = container.makeHomeViewModel()
 
-        #expect(viewModel.state == .loading)
+        // Arranca con marcadores, no con una pantalla en blanco.
+        #expect(viewModel.state.content == .skeleton)
+    }
+
+    @Test("Entrega también el armazón, con su árbol de secciones")
+    func itDeliversTheShell() {
+        // **El almacén se inyecta.** Con el de producción, esta prueba lee las preferencias reales
+        // del anfitrión y hereda la selección que dejó una ejecución anterior: la primera versión
+        // falló por eso, con «2.2» guardado de una tanda de pruebas de interfaz. Es exactamente la
+        // contaminación entre pruebas de la que avisa `UserDefaultsSelectionStore`.
+        let store = UserDefaultsSelectionStore(
+            defaults: UserDefaults(suiteName: "boc-container-\(UUID().uuidString)")!
+        )
+        let container = AppContainer(
+            telemetry: .noOp, clock: ImmediateClock(), selectionStore: store
+        )
+        let shell = container.makeMainViewModel()
+        #expect(shell.state.sections.count == 9)
+        #expect(shell.state.selection == .todaysBulletin)
+        #expect(container.makeMainViewModel() !== shell, "Un modelo por pantalla")
+    }
+
+    @Test("Construirlo no abre la base: eso es un paso del arranque, no un efecto del grafo")
+    func buildingDoesNotOpenTheDatabase() async {
+        // Si se abriera aquí, un fallo de migración no tendría dónde contarse: la portada es el
+        // único sitio con indicador, límite de espera y reintento (research.md D-305).
+        let crashReporter = RecordingCrashReporter()
+        _ = AppContainer(
+            telemetry: TelemetryBundle(
+                analytics: NoOpAnalyticsTracker(), crashReporter: crashReporter
+            ),
+            clock: ImmediateClock()
+        )
+        #expect(crashReporter.messages.isEmpty)
     }
 
     @Test("Construirlo no dispara ningún trabajo")
@@ -60,7 +94,7 @@ struct AppContainerTests {
         #expect(analytics.events.isEmpty, "El contenedor no puede registrar nada al nacer: aún no ha pasado nada.")
     }
 
-    @Test("Cada pantalla recibe su propio modelo, y todos comparten el mismo almacén")
+    @Test("Cada pantalla recibe su propio modelo")
     func scopesAreTheExpectedOnes() async {
         let container = AppContainer(telemetry: .noOp, clock: ImmediateClock())
 
@@ -70,10 +104,15 @@ struct AppContainerTests {
         // Modelos distintos: un modelo de pantalla tiene el ciclo de vida de su pantalla.
         #expect(first !== second)
 
-        // Pero el almacén es compartido: el segundo ve lo que trajo el primero sin volver a
-        // pedirlo. Si el repositorio se reconstruyera por pantalla, esto no se cumpliría.
-        await first.onAppear()
-        await second.onAppear()
-        #expect(first.state == second.state)
+        // Y los dos ven lo mismo, porque lo que comparten es el almacén.
+        //
+        // Se comparan el contenido y la selección, **no el estado entero**: la cabecera llega por
+        // una observación propia y a su ritmo, así que compararla sería una carrera y la prueba
+        // fallaría a veces por un motivo que no tiene nada que ver con lo que quiere comprobar.
+        await first.apply(.todaysBulletin)
+        await second.apply(.todaysBulletin)
+        #expect(first.state.content == second.state.content)
+        #expect(first.state.selection == second.state.selection)
+        #expect(first.state.sectionChips == second.state.sectionChips)
     }
 }

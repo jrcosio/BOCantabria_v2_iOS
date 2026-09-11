@@ -104,6 +104,42 @@ struct BocThemeTests {
                  BocTheme.elevation.level3, BocTheme.elevation.level4] == [0, 1, 3, 6, 8])
     }
 
+    @Test("Los cinco colores de sección son los del §4.4, y el velo es nuestro")
+    func sectionColoursMatchTheDocument() {
+        let environment = EnvironmentValues()
+        let expected: [(Color, UInt32)] = [
+            (BocTheme.colors.sectionGeneral, 0x1565C0),
+            (BocTheme.colors.sectionPersonnel, 0x6A4C93),
+            (BocTheme.colors.sectionContracting, 0x00838F),
+            (BocTheme.colors.sectionEconomy, 0x2E7D32),
+            (BocTheme.colors.sectionAnnouncements, 0xAD5B00),
+        ]
+        for (token, hex) in expected {
+            let resolved = token.resolve(in: environment)
+            let actual = (UInt32(round(resolved.red * 255)) << 16)
+                | (UInt32(round(resolved.green * 255)) << 8)
+                | UInt32(round(resolved.blue * 255))
+            #expect(actual == hex)
+        }
+
+        // El velo no está en el documento: allí el panel lo pintaba un componente del sistema.
+        // Aquí se construye a mano, así que el velo es una decisión nuestra (D-319).
+        #expect(BocTheme.colors.scrim.resolve(in: environment).opacity < 1)
+    }
+
+    @Test("Ningún token tiene variante oscura: la aplicación tiene un solo aspecto")
+    func noTokenHasADarkVariant() {
+        // FR-080. La regla 8 impide que alguien lea el ajuste del sistema; esto comprueba la otra
+        // mitad: que el valor resuelto no dependa del esquema en el que se resuelva.
+        var dark = EnvironmentValues()
+        dark.colorScheme = .dark
+        let light = EnvironmentValues()
+        for token in [BocTheme.colors.primary, BocTheme.colors.background, BocTheme.colors.surface,
+                      BocTheme.colors.textPrimary, BocTheme.colors.sectionGeneral] {
+            #expect(token.resolve(in: light) == token.resolve(in: dark))
+        }
+    }
+
     @Test("El color de acento del catálogo sigue siendo el institucional")
     func accentColourStaysInSync() {
         // `AccentColor` lo consume el sistema antes de que exista BocTheme, así que es una copia

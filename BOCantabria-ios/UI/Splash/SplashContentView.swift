@@ -59,7 +59,7 @@ struct SplashContentView: View {
                 .accessibilityLabel(Text(Strings.Splash.titleLineOne))
 
             Text(Strings.Splash.acronym)
-                .bocTextStyle(BocTheme.typography.displayLarge)
+                .bocTextStyle(BocTheme.typography.displayLarge, scales: false)
                 .foregroundStyle(BocTheme.colors.onPrimary)
                 .padding(.top, BocTheme.spacing.lg)
 
@@ -67,7 +67,7 @@ struct SplashContentView: View {
                 Text(Strings.Splash.titleLineOne)
                 Text(Strings.Splash.titleLineTwo)
             }
-            .bocTextStyle(BocTheme.typography.splash.subtitle)
+            .bocTextStyle(BocTheme.typography.splash.subtitle, scales: false)
             .foregroundStyle(BocTheme.colors.onPrimary)
             .multilineTextAlignment(.center)
 
@@ -82,10 +82,10 @@ struct SplashContentView: View {
     private var authorship: some View {
         VStack(spacing: BocTheme.spacing.xxs) {
             Text(Strings.Splash.authorshipLabel)
-                .bocTextStyle(BocTheme.typography.splash.authorshipLabel)
+                .bocTextStyle(BocTheme.typography.splash.authorshipLabel, scales: false)
                 .foregroundStyle(BocTheme.colors.onPrimaryMuted)
             Text(Strings.Splash.authorshipName)
-                .bocTextStyle(BocTheme.typography.splash.authorshipName)
+                .bocTextStyle(BocTheme.typography.splash.authorshipName, scales: false)
                 .foregroundStyle(BocTheme.colors.onPrimaryAccent)
         }
         .multilineTextAlignment(.center)

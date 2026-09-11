@@ -50,10 +50,22 @@ struct SourceFile: Sendable {
     let layer: Layer
     let imports: [String]
     let topLevelTypes: [TypeDeclaration]
-    /// El contenido **sin comentarios**, que es sobre lo que se comprueban las referencias.
-    /// Sin esto, un comentario que nombra un tipo de otra capa dispararía la regla, y la primera
-    /// reacción de cualquiera sería dejar de escribir comentarios.
+    /// El contenido **sin comentarios y sin el contenido de las cadenas**, que es sobre lo que se
+    /// comprueban las referencias. Sin esto, un comentario que nombra un tipo de otra capa
+    /// dispararía la regla, y la primera reacción de cualquiera sería dejar de escribir
+    /// comentarios.
     let code: String
+
+    /// El contenido **sin comentarios pero CON las cadenas**.
+    ///
+    /// Hace falta porque una sentencia SQL **es una cadena**: una regla que buscara un borrado
+    /// sobre `code` no vería absolutamente nada y pasaría siempre. Es exactamente el fallo que
+    /// este proyecto ya cometió al traducir la regla de capas de Konsist, y por el que añadió la
+    /// comprobación por referencias (research.md D-323).
+    ///
+    /// Los comentarios se siguen retirando en las dos vistas: `rawCode` **se añade**, no
+    /// sustituye. Cada regla elige cuál mira, y la elección tiene consecuencias.
+    let rawCode: String
 
     /// ¿Este fichero nombra ese tipo en su código?
     func references(_ typeName: String) -> Bool {
@@ -113,7 +125,8 @@ enum SourceTree {
                 layer: layer(ofRelativePath: relative),
                 imports: importedModules(in: code),
                 topLevelTypes: topLevelTypes(in: code),
-                code: code
+                code: code,
+                rawCode: raw.strippingComments()
             )
         }
     }
@@ -183,12 +196,23 @@ extension String {
     /// registro que mencione un tipo de otra capa no es una dependencia. Y se procesan juntos
     /// porque hay que saber si un `//` está dentro de una cadena antes de decidir que abre un
     /// comentario.
+    /// Retira los comentarios y **conserva** el contenido de las cadenas.
+    func strippingComments() -> String {
+        stripping(strings: false)
+    }
+
     func strippingCommentsAndStrings() -> String {
+        stripping(strings: true)
+    }
+
+    private func stripping(strings stripStrings: Bool) -> String {
         var result = ""
         var index = startIndex
         var inLineComment = false
         var blockDepth = 0
         var inString = false
+        // Cuando no se retiran, el contenido de la cadena se copia tal cual.
+        let blankStrings = stripStrings
 
         while index < endIndex {
             let character = self[index]
@@ -218,16 +242,31 @@ extension String {
             }
             if inString {
                 if character == "\\" {
+                    if !blankStrings, let escaped = self.index(index, offsetBy: 1, limitedBy: endIndex),
+                       escaped < endIndex {
+                        result.append(character)
+                        result.append(self[escaped])
+                    }
                     index = self.index(index, offsetBy: 2, limitedBy: endIndex) ?? endIndex
                     continue
                 }
-                if character == "\"" { inString = false }
+                if character == "\"" {
+                    inString = false
+                    if !blankStrings { result.append(character) }
+                } else if !blankStrings {
+                    result.append(character)
+                }
                 index = self.index(after: index)
                 continue
             }
             if character == "/", next == "/" { inLineComment = true; index = self.index(index, offsetBy: 2); continue }
             if character == "/", next == "*" { blockDepth = 1; index = self.index(index, offsetBy: 2); continue }
-            if character == "\"" { inString = true; index = self.index(after: index); continue }
+            if character == "\"" {
+                inString = true
+                if !blankStrings { result.append(character) }
+                index = self.index(after: index)
+                continue
+            }
 
             result.append(character)
             index = self.index(after: index)

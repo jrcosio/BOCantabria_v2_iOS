@@ -45,13 +45,16 @@ pruebas que fallan si alguien la rompe.**
 | | |
 |---|---|
 | **Versión** | 1.0.0 |
-| **Fase** | Esqueleto de arquitectura: capas, contenedor, sistema de diseño, telemetría y reglas |
+| **Fase** | Boletín del día: las diecinueve fuentes, analizador, GRDB, Inicio y panel de secciones |
 | **Plataforma** | iOS 18.0 o superior, solo iPhone |
 | **Orientación** | Solo vertical |
 | **Tema** | Solo claro, sin seguir el ajuste del sistema |
 | **Recursos** | Los 51 iconos y el escudo, convertidos desde los vectores de Android |
-| **Pruebas** | 58 sin interfaz en 0,1 s · 6 de interfaz en 28 s |
-| **Arranque** | 815 ms medidos *(objetivo: < 2 s)* |
+| **Pruebas** | 275 sin interfaz en 0,5 s · 34 de interfaz en 246 s |
+| **Arquitectura** | 13 reglas que fallan la build, verificadas provocando cada violación |
+| **Arranque** | 810 ms medidos *(objetivo: < 2 s)* |
+| **Contenido a la vista** | 126 ms desde que Inicio aparece *(objetivo: < 1 s)* |
+| **Contraste real** | 19 de 19 fuentes · 1.709 publicaciones · 0 rechazadas |
 
 ---
 
