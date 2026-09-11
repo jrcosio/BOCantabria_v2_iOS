@@ -82,8 +82,35 @@ actor SequencedContentRepository: ContentRepository {
 // MARK: - Transversales
 
 /// No espera de verdad. Es lo que mantiene la suite por debajo de los dos minutos (SC-003).
+/// No espera nunca, y **su «ahora» no se mueve**.
+///
+/// La fecha es un valor del inicializador y no `Date()` a propósito: un doble que devolviera la
+/// hora del sistema sería el reloj del sistema disfrazado, y la prueba volvería a depender de
+/// cuándo se ejecuta.
 struct ImmediateClock: AppClock {
+    /// Un instante fijo y reconocible: 1 de enero de 2026, 00:00 UTC.
+    static let fixedNow = Date(timeIntervalSince1970: 1_767_225_600)
+
+    let instant: Date
+
+    init(now instant: Date = ImmediateClock.fixedNow) {
+        self.instant = instant
+    }
+
     func sleep(seconds: Double) async throws {}
+    func now() -> Date { instant }
+}
+
+/// Aleatoriedad que no lo es. `FixedRandom(0.5)` deja el jitter en el centro del intervalo, así
+/// que la espera resultante es exactamente la nominal y se puede afirmar.
+struct FixedRandom: AppRandom {
+    let value: Double
+
+    init(_ value: Double = 0.5) {
+        self.value = value
+    }
+
+    func fraction() -> Double { value }
 }
 
 final class RecordingAnalyticsTracker: AnalyticsTracker {
@@ -125,31 +152,50 @@ final class RecordingCrashReporter: CrashReporter {
 }
 
 /// Un reloj que **no avanza solo**: cada espera queda suspendida hasta que la prueba adelanta el
-/// tiempo a mano.
+/// tiempo a mano, y su «ahora» solo se mueve cuando la prueba lo mueve.
 ///
 /// **Por qué no basta `ImmediateClock`.** El arranque enfrenta el trabajo real contra una espera
 /// de ocho segundos, y gana el primero que termine. Con un reloj que devuelve al instante, *esa
 /// espera gana siempre*: toda prueba del arranque acabaría en «se agotó el tiempo», las del camino
 /// feliz fallarían por un motivo que no tiene nada que ver con lo que quieren comprobar, y la del
 /// propio límite pasaría en verde **sin haber comprobado nada**, porque también habría ganado si
-/// el límite estuviera mal escrito. Lo mismo vale para el mínimo en pantalla: con un reloj que no
-/// espera no se distingue «esperó en paralelo» de «no esperó».
+/// el límite estuviera mal escrito. Lo mismo vale para la caducidad de la caché: con un reloj que
+/// no se mueve no se distingue «no había caducado» de «no se miró».
 ///
-/// Espera girando en vez de con continuaciones, a propósito: `Task.yield()` cede el actor para que
+/// **Por qué es una clase con cerrojo y no un `actor`.** Porque `AppClock.now()` es síncrono, y un
+/// actor no puede ofrecer un método síncrono que lea su estado. El `Mutex` envuelto en una clase
+/// es el patrón que el proyecto ya usa en `RecordingAnalyticsTracker` (research.md D-317).
+///
+/// Espera girando en vez de con continuaciones, a propósito: `Task.yield()` cede el hilo para que
 /// `advance(by:)` pueda entrar, y `Task.checkCancellation()` hace que una espera cancelada muera
 /// en el acto —que es justo lo que tiene que pasar cuando el trabajo gana la carrera—. Es código
 /// de prueba y el bucle está acotado por lo que la prueba adelante.
-actor ManualClock: AppClock {
-    private var now: Double = 0
-    private var requested: [Double] = []
+final class ManualClock: AppClock, @unchecked Sendable {
+    private struct State {
+        var elapsed: Double = 0
+        var requested: [Double] = []
+    }
+
+    private let state = Mutex(State())
+    private let origin: Date
+
+    init(now origin: Date = ImmediateClock.fixedNow) {
+        self.origin = origin
+    }
 
     /// Lo que se ha pedido esperar, en orden. Sirve para afirmar *qué* se esperó, no solo cuánto.
-    var requestedSleeps: [Double] { requested }
+    var requestedSleeps: [Double] { state.withLock { $0.requested } }
+
+    func now() -> Date {
+        origin.addingTimeInterval(state.withLock { $0.elapsed })
+    }
 
     func sleep(seconds: Double) async throws {
-        requested.append(seconds)
-        let deadline = now + seconds
-        while now < deadline {
+        let deadline = state.withLock { state -> Double in
+            state.requested.append(seconds)
+            return state.elapsed + seconds
+        }
+        while state.withLock({ $0.elapsed }) < deadline {
             try Task.checkCancellation()
             await Task.yield()
         }
@@ -157,7 +203,7 @@ actor ManualClock: AppClock {
 
     /// Adelanta el tiempo virtual. Las esperas cuyo plazo se cumpla se reanudan.
     func advance(by seconds: Double) async {
-        now += seconds
+        state.withLock { $0.elapsed += seconds }
         await Task.yield()
     }
 
@@ -166,7 +212,7 @@ actor ManualClock: AppClock {
     /// Sin esto, adelantar el reloj antes de que el trabajo haya llegado a pedir su espera hace
     /// que el adelanto se pierda y la prueba se cuelgue, que es la forma más cara de fallar.
     func waitUntilSleeping(count: Int = 1) async {
-        while requested.count < count {
+        while state.withLock({ $0.requested.count }) < count {
             await Task.yield()
         }
     }
@@ -262,4 +308,88 @@ func contentItemDTO(id: String = "1", label: String = "Un título") -> ContentIt
 
 func contentItemRecord(id: String = "1", title: String = "Un título") -> ContentItemRecord {
     ContentItemRecord(id: id, title: title)
+}
+
+// MARK: - Boletín
+
+/// Repositorio de publicaciones con respuestas fijas. Los flujos emiten **una vez y terminan**,
+/// que es lo que hace afirmables las pruebas de los casos de uso sin montar una base.
+///
+/// Es una clase con cerrojo y no un `actor` porque `observePublications` es síncrona —devuelve un
+/// flujo, no lo espera— y tiene que poder anotar la selección **en el acto**. Con un actor habría
+/// que anotarla desde una tarea, y la prueba afirmaría antes de que esa tarea llegara a correr:
+/// se pondría roja por la forma del doble y no por lo que quiere comprobar.
+final class FakePublicationRepository: PublicationRepository, @unchecked Sendable {
+    private let publications: AppResult<[Publication]>
+    private let header: AppResult<BulletinHeader>
+    private let refreshResult: AppResult<SyncSummary>
+    private let stale: Bool
+
+    private let calls = Mutex<[Bool]>([])
+    private let selections = Mutex<[HomeSelection]>([])
+
+    var refreshCalls: [Bool] { calls.withLock { $0 } }
+    var observedSelections: [HomeSelection] { selections.withLock { $0 } }
+
+    init(
+        publications: AppResult<[Publication]> = .success([]),
+        header: AppResult<BulletinHeader> = .success(.empty),
+        refreshResult: AppResult<SyncSummary> = .success(SyncSummary(succeededFeeds: 19)),
+        stale: Bool = true
+    ) {
+        self.publications = publications
+        self.header = header
+        self.refreshResult = refreshResult
+        self.stale = stale
+    }
+
+    func observePublications(_ selection: HomeSelection) -> AsyncStream<AppResult<[Publication]>> {
+        selections.withLock { $0.append(selection) }
+        let value = publications
+        return AsyncStream { continuation in
+            continuation.yield(value)
+            continuation.finish()
+        }
+    }
+
+    func observeHeader(_ selection: HomeSelection) -> AsyncStream<AppResult<BulletinHeader>> {
+        let value = header
+        return AsyncStream { continuation in
+            continuation.yield(value)
+            continuation.finish()
+        }
+    }
+
+    func isCacheStale() async -> Bool { stale }
+
+    func refresh(force: Bool) async -> AppResult<SyncSummary> {
+        calls.withLock { $0.append(force) }
+        return refreshResult
+    }
+}
+
+func publication(
+    externalKey: String = "boc:439765",
+    title: String = "AYUNTAMIENTO DE PIÉLAGOS: Aprobación definitiva",
+    sectionCode: String = "1",
+    subsectionCode: String? = nil,
+    date: String = "2026-08-26",
+    warnings: Set<ParserWarning> = []
+) -> Publication {
+    Publication(
+        externalKey: externalKey,
+        blobId: "439765",
+        idSource: .blobId,
+        feedId: "6802081",
+        sectionCode: sectionCode,
+        subsectionCode: subsectionCode,
+        title: title,
+        issuer: "Ayuntamiento de Piélagos",
+        organizationPath: ["Ayuntamiento de Piélagos"],
+        editionType: .ordinary,
+        publicationDate: BocDate(iso: date)!,
+        documentUrl: URL(string: "https://boc.cantabria.es/boces/verAnuncioAction.do?idAnuBlob=439765")!,
+        rawCategories: "1.Disposiciones Generales|Ayuntamiento de Piélagos|ORD",
+        warnings: warnings
+    )
 }

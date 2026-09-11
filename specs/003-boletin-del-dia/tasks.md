@@ -70,83 +70,83 @@ nuevas y la retirada de la rodaja de relleno. ⚠️ **Bloquea las cuatro histor
 
 ### Dominio
 
-- [ ] T008 [P] **D-314** `APP/Domain/Model/BocDate.swift`: `struct BocDate: Sendable, Hashable,`
+- [X] T008 [P] **D-314** `APP/Domain/Model/BocDate.swift`: `struct BocDate: Sendable, Hashable,`
       `Comparable, Codable` con año, mes y día, `init?(iso:)` estricto y `var iso`. Swift no tiene
       `LocalDate` y `Date` es un instante: ésta es una de las decisiones que **no se heredan** de
       Android.
-- [ ] T009 `TEST/Domain/BocDateTests.swift`: la tabla de entradas malas —`+2026-08-26`, `2026-8-26`,
+- [X] T009 `TEST/Domain/BocDateTests.swift`: la tabla de entradas malas —`+2026-08-26`, `2026-8-26`,
       `26-08-26`, `2026-13-01`, `2026-02-30`, vacía—, el ida y vuelta con `iso`, y el orden. **La
       del signo es la que importa**: `Int("+1")` vale 1, y es la misma trampa que ya cazó
       `AppVersion`. La cazó una prueba, no una revisión.
-- [ ] T010 [P] `APP/Domain/Model/PublicationFacets.swift`: `EditionType`, `IdSource` y
+- [X] T010 [P] `APP/Domain/Model/PublicationFacets.swift`: `EditionType`, `IdSource` y
       `ParserWarning`. **FR-014, FR-015 y FR-017.**
-- [ ] T011 [P] `APP/Domain/Model/Publication.swift`: los catorce campos de `data-model.md`.
-- [ ] T012 `TEST/Domain/PublicationTests.swift`: los cuatro invariantes —clave externa no vacía,
+- [X] T011 [P] `APP/Domain/Model/Publication.swift`: los catorce campos de `data-model.md`.
+- [X] T012 `TEST/Domain/PublicationTests.swift`: los cuatro invariantes —clave externa no vacía,
       título no vacío, esquema HTTPS, ruta sin elementos vacíos— y que **tener advertencias no es
       un invariante roto** (**FR-015**).
-- [ ] T013 [P] `APP/Domain/Model/BocSection.swift`: `BocSection` y `SectionColorGroup`, con el
+- [X] T013 [P] `APP/Domain/Model/BocSection.swift`: `BocSection` y `SectionColorGroup`, con el
       catálogo de las **veintitrés** filas —nueve secciones y catorce subsecciones—.
-- [ ] T014 `TEST/Domain/BocSectionTests.swift`: **SC-006**. Veintitrés filas; las cuatro secciones
+- [X] T014 `TEST/Domain/BocSectionTests.swift`: **SC-006**. Veintitrés filas; las cuatro secciones
       sin fuente propia (2, 4, 7 y 8) tienen hijas; cada sección mapea a uno de los cinco grupos
       cromáticos y **ninguna se queda sin color** (**D-326**); el orden es el oficial.
-- [ ] T015 [P] `APP/Domain/Model/HomeSelection.swift`: `todaysBulletin` y `section(code:,`
+- [X] T015 [P] `APP/Domain/Model/HomeSelection.swift`: `todaysBulletin` y `section(code:,`
       `subsectionCode:)`, con el código como cadena. **Nunca un índice** (**D-318**).
-- [ ] T016 `TEST/Domain/HomeSelectionTests.swift`: la tabla de cuatro filas de `data-model.md`
+- [X] T016 `TEST/Domain/HomeSelectionTests.swift`: la tabla de cuatro filas de `data-model.md`
       —qué lista, qué rótulo y si hay segunda fila— y que un código desconocido se resuelve a
       `todaysBulletin`.
-- [ ] T017 [P] `APP/Domain/Model/BulletinHeader.swift`: título, `date: BocDate?` y recuento. **La
+- [X] T017 [P] `APP/Domain/Model/BulletinHeader.swift`: título, `date: BocDate?` y recuento. **La
       fecha es opcional a propósito**: sin fecha no se pinta rótulo (**FR-035**).
-- [ ] T018 [P] `APP/Domain/Model/SyncSummary.swift`: los seis recuentos y las derivadas `allFailed`
+- [X] T018 [P] `APP/Domain/Model/SyncSummary.swift`: los seis recuentos y las derivadas `allFailed`
       e `isComplete`.
-- [ ] T019 `TEST/Domain/SyncSummaryTests.swift`: las dos derivadas, incluido el caso de cero
+- [X] T019 `TEST/Domain/SyncSummaryTests.swift`: las dos derivadas, incluido el caso de cero
       fuentes.
-- [ ] T020 **D-331** `APP/Domain/Model/DomainError.swift`: añadir `storage` y `cancelled`. Es un
+- [X] T020 **D-331** `APP/Domain/Model/DomainError.swift`: añadir `storage` y `cancelled`. Es un
       enumerado cerrado, así que **el compilador va a señalar los `switch` de la portada y de
       Inicio**: eso es la característica, no el coste.
-- [ ] T021 [P] `APP/Domain/Repository/PublicationRepository.swift`,
+- [X] T021 [P] `APP/Domain/Repository/PublicationRepository.swift`,
       `BocSectionRepository.swift` y `HomeSelectionStore.swift`: los tres protocolos de
       `contracts/internal-contracts.md` §1. **Ninguno lanza**; el error viaja en `AppResult`.
-- [ ] T022 [P] `APP/Domain/UseCase/`: `ObservePublicationsUseCase`, `ObserveBulletinHeaderUseCase`,
+- [X] T022 [P] `APP/Domain/UseCase/`: `ObservePublicationsUseCase`, `ObserveBulletinHeaderUseCase`,
       `RefreshPublicationsUseCase` y `GetBocSectionsUseCase`, `struct … : Sendable` con un único
       `callAsFunction`.
 
 ### Catálogo de fuentes
 
-- [ ] T023 **FR-001, FR-002** `APP/Data/Source/Remote/BocFeedCatalog.swift`: las diecinueve
+- [X] T023 **FR-001, FR-002** `APP/Data/Source/Remote/BocFeedCatalog.swift`: las diecinueve
       definiciones con **la dirección escrita entera**. Prohibido componerla por cálculo, y no es
       un capricho: los identificadores no son correlativos y dos pertenecen a otro rango.
-- [ ] T024 `TEST/Data/BocFeedCatalogTests.swift`: **SC-006**. Diecinueve entradas; todas HTTPS;
+- [X] T024 `TEST/Data/BocFeedCatalogTests.swift`: **SC-006**. Diecinueve entradas; todas HTTPS;
       todas apuntan al servicio oficial; cada una casa con una sección o subsección del catálogo de
       dominio; y **ninguna dirección se construye concatenando**. **FR-003**: desactivar una entrada
       la retira de la lista que se consulta **sin tocar el proceso de lectura**, y una entrada nueva
       entra sin tocarlo tampoco.
-- [ ] T025 [P] `APP/Data/Repository/BocSectionRepositoryImpl.swift` y su prueba en
+- [X] T025 [P] `APP/Data/Repository/BocSectionRepositoryImpl.swift` y su prueba en
       `TEST/Data/BocSectionRepositoryImplTests.swift`: devuelve el árbol ordenado. No lee de la
       base: es catálogo.
 
 ### Costuras transversales
 
-- [ ] T026 **D-317** `APP/Core/Util/AppClock.swift`: añadir `nonisolated func now() -> Date`. La
+- [X] T026 **D-317** `APP/Core/Util/AppClock.swift`: añadir `nonisolated func now() -> Date`. La
       caducidad de treinta minutos lo necesita **síncrono**: comparar dos fechas no puede contagiar
       `await` a media aplicación.
-- [ ] T027 **D-317** `TEST/Fakes/Fakes.swift`: reescribir `ManualClock` de `actor` a
+- [X] T027 **D-317** `TEST/Fakes/Fakes.swift`: reescribir `ManualClock` de `actor` a
       `final class … @unchecked Sendable` con `Mutex`, **conservando `waitUntilSleeping(count:)`**.
       La trampa sigue viva palabra por palabra: adelantar el reloj antes de que la espera esté
       registrada hace que el adelanto se pierda y la prueba **se cuelgue en vez de fallar**. Y
       `ImmediateClock` recibe una fecha fija por inicializador, **no `Date()`**, o vuelve a ser el
       reloj del sistema disfrazado.
-- [ ] T028 `TEST/Core/ManualClockTests.swift`: que `now()` no avanza solo, que `advance(by:)` lo
+- [X] T028 `TEST/Core/ManualClockTests.swift`: que `now()` no avanza solo, que `advance(by:)` lo
       mueve, y que `waitUntilSleeping` espera de verdad.
-- [ ] T029 [P] **D-310** `APP/Core/Util/AppRandom.swift`: `protocol AppRandom: Sendable { func`
+- [X] T029 [P] **D-310** `APP/Core/Util/AppRandom.swift`: `protocol AppRandom: Sendable { func`
       `fraction() -> Double }` con `SystemRandom`, y `FixedRandom` en `TEST/Fakes/Fakes.swift`. La
       constitución exige que la aleatoriedad se inyecte y hoy no existe la costura; un
       `RandomNumberGenerator` no sirve porque su `next()` es `mutating` y el protocolo no es
       `Sendable`.
-- [ ] T030 [P] **D-316** `APP/Core/Util/BocDateFormatting.swift`: función pura sobre `BocDate` que
+- [X] T030 [P] **D-316** `APP/Core/Util/BocDateFormatting.swift`: función pura sobre `BocDate` que
       compone el formato largo español desde el catálogo de cadenas. **Sin `Date`, sin `Calendar`,
       sin `TimeZone` y sin `DateFormatter`**, y la zona `Europe/Madrid` fijada en un solo sitio para
       decidir qué es «hoy».
-- [ ] T031 **SC-011, FR-087** `TEST/Core/BocDateFormattingTests.swift`: las doce fechas con la
+- [X] T031 **SC-011, FR-087** `TEST/Core/BocDateFormattingTests.swift`: las doce fechas con la
       cadena exacta; los
       **dos** rótulos distintos (**FR-034**); que sin fecha **no se compone ningún rótulo**
       (**FR-035**); el plural en uno y en cero; y una prueba que cambia la zona del entorno y

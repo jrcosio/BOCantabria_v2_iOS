@@ -86,7 +86,7 @@ struct SplashViewModelTests {
         await appeared
 
         #expect(viewModel.state == .ready)
-        let sleeps = await clock.requestedSleeps
+        let sleeps = clock.requestedSleeps
         #expect(sleeps.contains(1.2), "El mínimo se pide como una espera propia.")
         #expect(sleeps.contains(8.0), "Y el límite también, en la misma tanda.")
     }

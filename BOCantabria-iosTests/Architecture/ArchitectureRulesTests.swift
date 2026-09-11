@@ -24,15 +24,24 @@ struct ArchitectureRulesTests {
     /// Tipos de dominio sin comportamiento que proteger, exentos de la regla del fichero de
     /// prueba.
     ///
-    /// **Mantén esta lista corta: cada entrada es un agujero en SC-002.** Hoy son dos portadores
-    /// de datos puros: `ContentItem` son dos cadenas y `DomainError` es un enumerado de dos casos
-    /// sin nada que ejecutar. Probarlos sería probar al compilador.
+    /// **Mantén esta lista corta: cada entrada es un agujero en SC-012**, el criterio que dice que
+    /// toda pieza de reglas de negocio y todo modelo de pantalla tiene su prueba. (En la feature
+    /// 001 ese criterio se numeraba SC-002; el número es de cada feature, el compromiso es el
+    /// mismo.)
+    ///
+    /// Los cuatro enumerados del boletín entraron aquí **en frío**, al planificar, y no cuando la
+    /// build estuviera roja y hubiera prisa: son vocabularios cerrados sin comportamiento y su
+    /// semántica se prueba donde vive, en `PublicationNormalizerTests` y en `BocSectionTests`.
+    /// `Publication`, `BocDate`, `BocSection`, `HomeSelection` y `SyncSummary` **no** se eximieron:
+    /// los cinco tienen comportamiento de verdad.
     static let domainTypesWithoutBehaviour: Set<String> = [
         "ContentItem", "DomainError",
         // Tres casos sin comportamiento. Lo único que podría afirmar un fichero propio es
         // que el compilador funciona; su semántica se prueba donde vive, en
         // `PrepareStartupUseCaseTests`. Declarado en el Complexity Tracking de la 002.
         "StartupStatus",
+        // Los cuatro del boletín (research.md D-325).
+        "EditionType", "IdSource", "ParserWarning", "SectionColorGroup",
     ]
 
     // MARK: - Regla de capas
@@ -165,7 +174,7 @@ struct ArchitectureRulesTests {
                 guard isDomain || isViewModel else { continue }
                 #expect(
                     testFiles.contains("\(type.name)Tests"),
-                    "\(type.name) no tiene \(type.name)Tests. Es lo que hace verificable el criterio SC-002."
+                    "\(type.name) no tiene \(type.name)Tests. Es lo que hace verificable el criterio SC-012."
                 )
             }
         }
