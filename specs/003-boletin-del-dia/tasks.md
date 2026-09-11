@@ -192,33 +192,41 @@ nuevas y la retirada de la rodaja de relleno. ⚠️ **Bloquea las cuatro histor
 > Las siete tareas siguientes van juntas. Entre T040 y T046 el árbol no compila, y eso es normal:
 > el punto de control es T047. Alcanza a **veinticinco ficheros**.
 
-- [ ] T040 Retirar de `APP/Domain/`: `Model/ContentItem.swift`,
+- [X] T040 Retirar de `APP/Domain/`: `Model/ContentItem.swift`,
       `Repository/ContentRepository.swift` y `UseCase/GetContentItemsUseCase.swift`.
-- [ ] T041 Retirar de `APP/Data/`: `Source/Remote/ContentItemDTO.swift`,
+- [X] T041 Retirar de `APP/Data/`: `Source/Remote/ContentItemDTO.swift`,
       `Source/Remote/ContentRemoteDataSource.swift`, `Source/Local/ContentItemRecord.swift`,
       `Source/Local/ContentLocalDataSource.swift` y `Repository/ContentRepositoryImpl.swift`.
-- [ ] T042 **D-322** `APP/Core/Util/LaunchConfiguration.swift`: retirar `contentScenario` y
+- [X] T042 **D-322** `APP/Core/Util/LaunchConfiguration.swift`: retirar `contentScenario` y
       `argumentPrefix`. Su cabecera prometía que la costura «se sustituye, no se amplía, cuando la
       feature del boletín traiga el origen real»: **ésta es esa feature**.
-- [ ] T043 `APP/Core/DI/AppContainer.swift`: retirar el origen local, el origen de ejemplo, el
+- [X] T043 `APP/Core/DI/AppContainer.swift`: retirar el origen local, el origen de ejemplo, el
       repositorio de contenido y la fábrica que los usaba.
-- [ ] T044 `APP/UI/Home/`: reducir `HomeUiState` a su estado de carga y `HomeViewModel` a lo mínimo
+- [X] T044 `APP/UI/Home/`: reducir `HomeUiState` a su estado de carga y `HomeViewModel` a lo mínimo
       que compila. **Es provisional y dura una fase**: la US1 lo reescribe entero contra la cadena
       real.
-- [ ] T045 Retirar `TEST/Data/ContentRepositoryImplTests.swift`,
+- [X] T045 Retirar `TEST/Data/ContentRepositoryImplTests.swift`,
       `TEST/Domain/GetContentItemsUseCaseTests.swift` e
       `TEST/Integration/ContentFlowIntegrationTests.swift`, y de `TEST/Fakes/Fakes.swift` los cuatro
       dobles del relleno y sus constructores. **No se borra ninguna prueba de comportamiento
       vigente**: se borra lo que probaba una pieza que ya no existe.
-- [ ] T046 `UITEST/Home/HomeStatesUITests.swift` y `HomeBackgroundUITests.swift`: reescribir contra
+- [X] T046 `UITEST/Home/HomeStatesUITests.swift` y `HomeBackgroundUITests.swift`: reescribir contra
       el estado de carga, **sin `.disabled` y sin comentar nada**. La US1 les devuelve los cinco
       escenarios.
-- [ ] T047 `TEST/Integration/AppContainerTests.swift`: que el contenedor se siga construyendo entero
+- [X] T047 `TEST/Integration/AppContainerTests.swift`: que el contenedor se siga construyendo entero
       sin el relleno.
 
-**Checkpoint**: el árbol **compila sin la rodaja de relleno**, las **trece** reglas de arquitectura
-—nueve más las cuatro de esta feature— están en verde, y toda la suite pasa. A partir de aquí, las
-cuatro historias pueden empezar.
+**Checkpoint**: ✅ el árbol **compila sin la rodaja de relleno**, las **trece** reglas de
+arquitectura —nueve más las cuatro de esta feature— están en verde y se comprobó que las cinco
+nuevas muerden provocando su violación, y las dos suites pasan: **172 pruebas sin interfaz en 30
+suites, 0,262 s** y **13 de interfaz en 63,5 s**. A partir de aquí, las cuatro historias pueden
+empezar.
+
+> **Trampa encontrada aquí, y va a `CLAUDE.md`.** Anidar dos
+> `.accessibilityElement(children: .contain)` **hace desaparecer el identificador del de dentro**.
+> La guía ya decía que un contenedor necesita `.contain` para entrar en el árbol; faltaba la otra
+> mitad: si su padre ya es un contenedor declarado, el hijo no aparece. Costó cuatro pruebas de
+> interfaz en rojo con la pantalla correcta delante.
 
 ---
 

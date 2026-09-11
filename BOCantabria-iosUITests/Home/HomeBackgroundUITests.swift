@@ -1,6 +1,6 @@
 //
 //  HomeBackgroundUITests.swift
-//  The state survives a background/foreground cycle without reloading (FR-005).
+//  The state survives a background/foreground cycle without reloading (FR-044).
 //
 //  Es la traducción a iOS del requisito que en Android hablaba de «cambio de configuración del
 //  dispositivo». Allí la pantalla se recreaba y había algo real que proteger; aquí el objeto de
@@ -12,20 +12,20 @@ import XCTest
 
 final class HomeBackgroundUITests: XCTestCase {
 
-    func testContentSurvivesBackgroundAndForeground() {
+    func testTheListingSurvivesBackgroundAndForeground() {
         let app = XCUIApplication()
-        app.launchArguments = ["-boc-content-scenario=items"]
+        app.launchArguments = ["-AppleLanguages", "(es)", "-AppleLocale", "es_ES"]
         app.launch()
 
-        let content = app.descendants(matching: .any).matching(identifier: "home_content").firstMatch
-        XCTAssertTrue(content.waitForExistence(timeout: 10))
+        let listing = app.descendants(matching: .any).matching(identifier: "home_empty").firstMatch
+        XCTAssertTrue(listing.waitForExistence(timeout: 10))
 
         XCUIDevice.shared.press(.home)
         app.activate()
 
-        XCTAssertTrue(content.waitForExistence(timeout: 5), "El contenido tiene que seguir ahí.")
+        XCTAssertTrue(listing.waitForExistence(timeout: 5), "Lo que se veía tiene que seguir ahí.")
         XCTAssertFalse(
-            app.descendants(matching: .any).matching(identifier: "home_loading").firstMatch.exists,
+            app.descendants(matching: .any).matching(identifier: "home_skeleton").firstMatch.exists,
             "Volver de segundo plano no puede recargar: el estado vive en el modelo de pantalla."
         )
     }

@@ -1,13 +1,15 @@
 //
 //  HomeStatesUITests.swift
-//  The four states of the initial screen, and the retry (FR-025).
+//  The states of the listing.
 //
 //  Los identificadores son un contrato con estas pruebas: están fijados en
-//  `contracts/internal-contracts.md` §6 y se conservan literales del proyecto Android, para que
+//  `contracts/internal-contracts.md` §5 y se conservan literales del proyecto Android, para que
 //  las dos plataformas se prueben con los mismos nombres. **Cambiarlos es romper un contrato.**
 //
-//  El escenario se elige por argumento de lanzamiento porque una prueba de interfaz corre en otro
-//  proceso y no puede sustituir nada por dentro. Ver `LaunchConfiguration`.
+//  **Nota de la fase en curso.** La costura de contenido de la feature 001 se ha retirado y la
+//  cadena real llega con la historia 1, así que ahora mismo Inicio llega siempre al estado vacío.
+//  Lo que estas pruebas afirman entretanto es lo que ya es cierto; los cinco escenarios vuelven
+//  con `-boc-data-scenario=`.
 //
 
 import XCTest
@@ -27,31 +29,18 @@ final class HomeStatesUITests: XCTestCase {
         app.descendants(matching: .any).matching(identifier: identifier).firstMatch
     }
 
-    private func launch(scenario: String) -> XCUIApplication {
+    private func launch() -> XCUIApplication {
         let app = XCUIApplication()
-        app.launchArguments = ["-boc-content-scenario=\(scenario)"]
+        // Idioma y región fijos: el texto que estas pruebas leen es español, y el simulador puede
+        // estar en cualquier idioma. No toca una línea de producción — las preferencias leen el
+        // dominio de argumentos por su cuenta (research.md D-316).
+        app.launchArguments = ["-AppleLanguages", "(es)", "-AppleLocale", "es_ES"]
         app.launch()
         return app
     }
 
-    func testLoadingStateIsShownFirst() {
-        let app = launch(scenario: "slow")
-
-        XCTAssertTrue(
-            element("home_loading", in: app).waitForExistence(timeout: 5),
-            "El estado de carga tiene que verse mientras llega el contenido, no una pantalla en blanco."
-        )
-    }
-
-    func testContentStateShowsTheItems() {
-        let app = launch(scenario: "items")
-
-        XCTAssertTrue(element("home_content", in: app).waitForExistence(timeout: 10))
-        XCTAssertTrue(app.staticTexts["Disposiciones generales"].exists)
-    }
-
     func testEmptyStateIsNotAnError() {
-        let app = launch(scenario: "empty")
+        let app = launch()
 
         XCTAssertTrue(element("home_empty", in: app).waitForExistence(timeout: 10))
         XCTAssertFalse(
@@ -60,21 +49,11 @@ final class HomeStatesUITests: XCTestCase {
         )
     }
 
-    func testErrorStateOffersRetry() {
-        let app = launch(scenario: "failing")
+    func testTheListingIsReachedFromTheSplash() {
+        let app = launch()
 
-        XCTAssertTrue(element("home_error", in: app).waitForExistence(timeout: 10))
-        XCTAssertTrue(app.buttons["Reintentar"].exists, "Un error sin salida es una pantalla sin salida.")
-    }
-
-    func testRetryFromErrorReloads() {
-        let app = launch(scenario: "failing")
-        XCTAssertTrue(element("home_error", in: app).waitForExistence(timeout: 10))
-
-        app.buttons["Reintentar"].tap()
-
-        // El origen sigue fallando, así que lo que se comprueba es que la acción **vuelve a
-        // pedir**: la pantalla pasa por carga antes de volver al error.
-        XCTAssertTrue(element("home_error", in: app).waitForExistence(timeout: 10))
+        // La portada es un conmutador y no entra en la pila: al terminar, lo que queda es Inicio.
+        XCTAssertTrue(element("home_empty", in: app).waitForExistence(timeout: 10))
+        XCTAssertFalse(element("splash_root", in: app).exists)
     }
 }

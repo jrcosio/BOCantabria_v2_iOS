@@ -70,7 +70,7 @@ final class SplashStatesUITests: XCTestCase {
         element("splash_continue_offline", in: app).tap()
 
         XCTAssertTrue(
-            element("home_content", in: app).waitForExistence(timeout: 15),
+            element("home_root", in: app).waitForExistence(timeout: 15),
             "Continuar sin conexión tiene que llevar al contenido principal."
         )
     }
@@ -88,7 +88,7 @@ final class SplashStatesUITests: XCTestCase {
             element("splash_continue_offline", in: app).exists,
             "El bloqueo no ofrece continuar: saltárselo anula su propósito."
         )
-        XCTAssertFalse(element("home_content", in: app).exists)
+        XCTAssertFalse(element("home_root", in: app).exists)
     }
 
     func testMaintenanceInformsAndHasNoWayIn() {
@@ -99,7 +99,7 @@ final class SplashStatesUITests: XCTestCase {
             "El mensaje de mantenimiento publicado tiene que verse (FR-013)."
         )
         XCTAssertFalse(element("splash_continue_offline", in: app).exists)
-        XCTAssertFalse(element("home_content", in: app).exists)
+        XCTAssertFalse(element("home_root", in: app).exists)
     }
 
     func testBlockedAccessSurvivesBackgroundAndForeground() {
@@ -116,7 +116,7 @@ final class SplashStatesUITests: XCTestCase {
             element("splash_blocked", in: app).waitForExistence(timeout: 10),
             "Volver de segundo plano no puede abrir la puerta."
         )
-        XCTAssertFalse(element("home_content", in: app).exists)
+        XCTAssertFalse(element("home_root", in: app).exists)
     }
 
     func testRetryIsOfferedAndKeepsTheCoverWhenItFailsAgain() {
@@ -132,7 +132,7 @@ final class SplashStatesUITests: XCTestCase {
             "Reintentar sin conexión vuelve al error, nunca a una pantalla muerta."
         )
         XCTAssertFalse(
-            element("home_content", in: app).exists,
+            element("home_root", in: app).exists,
             "Reintentar no es continuar: no puede colarse al contenido principal."
         )
     }

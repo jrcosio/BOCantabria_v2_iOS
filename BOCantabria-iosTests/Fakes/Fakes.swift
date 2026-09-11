@@ -14,74 +14,8 @@ import Foundation
 import Synchronization
 @testable import BOCantabria_ios
 
-// MARK: - Orígenes de contenido
-
-actor FakeContentRemoteDataSource: ContentRemoteDataSource {
-    enum Behaviour: Sendable {
-        case responds([ContentItemDTO])
-        case fails
-        /// Falla la primera vez y responde después. Es lo que hace comprobable el reintento.
-        case failsThenResponds([ContentItemDTO])
-    }
-
-    struct Failure: Error {}
-
-    private let behaviour: Behaviour
-    private(set) var callCount = 0
-
-    init(_ behaviour: Behaviour) { self.behaviour = behaviour }
-
-    func fetchContentItems() async throws -> [ContentItemDTO] {
-        callCount += 1
-        switch behaviour {
-        case .responds(let items):
-            return items
-        case .fails:
-            throw Failure()
-        case .failsThenResponds(let items):
-            if callCount == 1 { throw Failure() }
-            return items
-        }
-    }
-}
-
-actor FakeContentLocalDataSource: ContentLocalDataSource {
-    private(set) var stored: [ContentItemRecord]
-    private(set) var writeCount = 0
-
-    init(stored: [ContentItemRecord] = []) { self.stored = stored }
-
-    func readContentItems() async -> [ContentItemRecord] { stored }
-
-    func writeContentItems(_ items: [ContentItemRecord]) async {
-        stored = items
-        writeCount += 1
-    }
-}
-
-/// Un repositorio falseable, para las pruebas del caso de uso y del modelo de pantalla.
-struct FakeContentRepository: ContentRepository {
-    let result: AppResult<[ContentItem]>
-    func contentItems() async -> AppResult<[ContentItem]> { result }
-}
-
-/// Devuelve resultados distintos en cada llamada: el primero, el segundo, y así. Es lo que permite
-/// comprobar que reintentar desde un error llega a contenido.
-actor SequencedContentRepository: ContentRepository {
-    private let results: [AppResult<[ContentItem]>]
-    private(set) var callCount = 0
-
-    init(_ results: [AppResult<[ContentItem]>]) { self.results = results }
-
-    func contentItems() async -> AppResult<[ContentItem]> {
-        defer { callCount += 1 }
-        return results[min(callCount, results.count - 1)]
-    }
-}
-
 // MARK: - Transversales
 
-/// No espera de verdad. Es lo que mantiene la suite por debajo de los dos minutos (SC-003).
 /// No espera nunca, y **su «ahora» no se mueve**.
 ///
 /// La fecha es un valor del inicializador y no `Date()` a propósito: un doble que devolviera la
@@ -294,20 +228,6 @@ func appConfig(
     maintenance: String? = nil
 ) -> AppConfig {
     AppConfig(minSupportedVersion: AppVersion(minimum)!, maintenanceMessage: maintenance)
-}
-
-// MARK: - Constructores
-
-func contentItem(id: String = "1", title: String = "Un título") -> ContentItem {
-    ContentItem(id: id, title: title)
-}
-
-func contentItemDTO(id: String = "1", label: String = "Un título") -> ContentItemDTO {
-    ContentItemDTO(id: id, label: label)
-}
-
-func contentItemRecord(id: String = "1", title: String = "Un título") -> ContentItemRecord {
-    ContentItemRecord(id: id, title: title)
 }
 
 // MARK: - Boletín

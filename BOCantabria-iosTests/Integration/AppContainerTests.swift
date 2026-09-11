@@ -45,7 +45,8 @@ struct AppContainerTests {
 
         let viewModel = container.makeHomeViewModel()
 
-        #expect(viewModel.state == .loading)
+        // Arranca con marcadores, no con una pantalla en blanco.
+        #expect(viewModel.state.content == .skeleton)
     }
 
     @Test("Construirlo no dispara ningún trabajo")
@@ -60,7 +61,7 @@ struct AppContainerTests {
         #expect(analytics.events.isEmpty, "El contenedor no puede registrar nada al nacer: aún no ha pasado nada.")
     }
 
-    @Test("Cada pantalla recibe su propio modelo, y todos comparten el mismo almacén")
+    @Test("Cada pantalla recibe su propio modelo")
     func scopesAreTheExpectedOnes() async {
         let container = AppContainer(telemetry: .noOp, clock: ImmediateClock())
 
@@ -70,10 +71,9 @@ struct AppContainerTests {
         // Modelos distintos: un modelo de pantalla tiene el ciclo de vida de su pantalla.
         #expect(first !== second)
 
-        // Pero el almacén es compartido: el segundo ve lo que trajo el primero sin volver a
-        // pedirlo. Si el repositorio se reconstruyera por pantalla, esto no se cumpliría.
-        await first.onAppear()
-        await second.onAppear()
+        // Y los dos empiezan igual, porque lo que comparten es el almacén y no el estado.
+        await first.apply(.todaysBulletin)
+        await second.apply(.todaysBulletin)
         #expect(first.state == second.state)
     }
 }

@@ -8,57 +8,50 @@ import Foundation
 @MainActor
 @Observable
 final class HomeViewModel {
-    /// El identificador de pantalla que viaja a analítica. Un enumerado sería más seguro, pero
-    /// hoy hay una sola pantalla y adivinar su forma futura es peor que esperar.
+    /// El identificador de pantalla que viaja a analítica.
     static let screenName = "home"
 
-    private(set) var state: HomeUiState = .loading
+    private(set) var state = HomeUiState()
 
-    private let getContentItems: GetContentItemsUseCase
     private let analytics: AnalyticsTracker
-    private var hasLoaded = false
-    private var isLoading = false
 
-    init(getContentItems: GetContentItemsUseCase, analytics: AnalyticsTracker) {
-        self.getContentItems = getContentItems
+    init(analytics: AnalyticsTracker) {
         self.analytics = analytics
         // Exactamente una vez por instancia, no una por aparición de la vista: la vista aparece
         // otra vez al volver de segundo plano, y eso no es una visita nueva.
         analytics.trackScreenView(Self.screenName)
+        state.sectionChips = Self.chips(for: BocSection.topLevel)
     }
 
-    /// La carga inicial. **Se dispara una sola vez**: volver de segundo plano no recarga, que es
-    /// lo que FR-005 pide.
-    func onAppear() async {
-        guard !hasLoaded else { return }
-        await load()
+    /// Aplica una selección. **No retorna hasta publicar el primer estado**, para que la prueba
+    /// pueda afirmar en la línea siguiente.
+    ///
+    /// Todavía no hay de dónde leer: la cadena real llega con la historia 1. Lo que ya está puesto
+    /// es la forma —los chips y el estado vacío—, que es lo que permite que la pantalla y sus
+    /// pruebas no se reescriban cuando llegue.
+    func apply(_ selection: HomeSelection) async {
+        state.selection = selection
+        state.subsectionChips = Self.subsectionChips(for: selection)
+        state.content = .empty
+        state.header = nil
     }
 
-    /// Reintentar. **No hace nada si ya hay una carga en curso**, de modo que pulsar repetidamente
-    /// no lanza cargas simultáneas.
     func onRetry() async {
-        guard !isLoading else { return }
-        await load()
+        await apply(state.selection)
     }
 
-    private func load() async {
-        isLoading = true
-        state = .loading
-        defer { isLoading = false }
+    private static func chips(for sections: [BocSection]) -> [SectionChip] {
+        [SectionChip(code: SectionChip.todayCode, title: String(localized: Strings.Chip.todaysBulletin))]
+            + sections.map { SectionChip(code: $0.code, title: $0.shortName) }
+    }
 
-        let result = await getContentItems()
-
-        // Si la tarea se canceló mientras esperábamos, quien la canceló ya no está mirando esta
-        // pantalla. Publicar aquí un estado sería pintar sobre algo que ya no existe, y en el
-        // caso del fallo además mentiría: diría «no hay conexión» de una cancelación.
-        guard !Task.isCancelled else { return }
-
-        hasLoaded = true
-        switch result {
-        case .success(let items):
-            state = items.isEmpty ? .empty : .content(items)
-        case .failure(let error):
-            state = .error(error)
-        }
+    /// La segunda fila: `Toda la sección` más las subsecciones. **Vacía** con el boletín del día y
+    /// con una sección que no las tiene (FR-052).
+    private static func subsectionChips(for selection: HomeSelection) -> [SectionChip] {
+        guard let code = selection.topLevelCode else { return [] }
+        let children = BocSection.children(of: code)
+        guard !children.isEmpty else { return [] }
+        return [SectionChip(code: code, title: String(localized: Strings.Chip.wholeSection))]
+            + children.map { SectionChip(code: $0.code, title: $0.shortName) }
     }
 }

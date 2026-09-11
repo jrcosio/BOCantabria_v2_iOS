@@ -217,6 +217,7 @@ esas cadenas existe por duplicado incluso con el panel cerrado.
 
 | Identificador | Qué marca |
 |---|---|
+| `home_root` | La pantalla de Inicio **en cualquiera de sus estados**. Es lo que permite que las pruebas del arranque afirmen «se llegó al contenido principal» sin atarse a qué está mostrando el listado |
 | `home_skeleton` | Los marcadores de la primera carga |
 | `home_content` | El listado con publicaciones |
 | `home_empty` | El estado vacío |

@@ -28,7 +28,6 @@ private extension AppContainer {
         let provider = ProviderBundle.resolved()
         return AppContainer(
             telemetry: provider.telemetry,
-            contentScenario: LaunchConfiguration.contentScenario,
             remoteConfig: provider.remoteConfig,
             startupScenario: LaunchConfiguration.startupScenario
         )

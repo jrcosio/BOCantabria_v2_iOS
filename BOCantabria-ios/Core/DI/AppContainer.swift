@@ -18,12 +18,6 @@ final class AppContainer {
     private let telemetry: TelemetryBundle
     private let clock: AppClock
 
-    /// Compartidos en todo el proceso: el origen local es una caché y tener dos sería tener dos
-    /// verdades.
-    private let localDataSource: ContentLocalDataSource
-    private let remoteDataSource: ContentRemoteDataSource
-    private let contentRepository: ContentRepository
-
     private let appConfigRepository: AppConfigRepository
     private let connectivityRepository: ConnectivityRepository
     private let installedVersion: AppVersion?
@@ -31,7 +25,6 @@ final class AppContainer {
     init(
         telemetry: TelemetryBundle,
         clock: AppClock = SystemClock(),
-        contentScenario: StubContentRemoteDataSource.Scenario = .items,
         remoteConfig: RemoteConfigDataSource = UnavailableRemoteConfigDataSource(),
         connectivity: ConnectivityDataSource = PathMonitorConnectivityDataSource(),
         startupScenario: StartupScenario = .ready,
@@ -40,12 +33,6 @@ final class AppContainer {
         self.telemetry = telemetry
         self.clock = clock
         self.installedVersion = installedVersion
-        self.localDataSource = InMemoryContentLocalDataSource()
-        self.remoteDataSource = StubContentRemoteDataSource(clock: clock, scenario: contentScenario)
-        self.contentRepository = ContentRepositoryImpl(
-            remote: remoteDataSource,
-            local: localDataSource
-        )
 
         // **Un solo punto de sustitución.** El escenario del arranque solo cambia de dónde salen
         // los datos; todo lo que hay por encima —repositorio, caso de uso, modelo de pantalla— es
@@ -89,9 +76,6 @@ final class AppContainer {
 
     /// Nuevo en cada llamada: un modelo de pantalla tiene el ciclo de vida de su pantalla.
     func makeHomeViewModel() -> HomeViewModel {
-        HomeViewModel(
-            getContentItems: GetContentItemsUseCase(repository: contentRepository),
-            analytics: telemetry.analytics
-        )
+        HomeViewModel(analytics: telemetry.analytics)
     }
 }
