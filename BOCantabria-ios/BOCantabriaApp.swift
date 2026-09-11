@@ -10,10 +10,8 @@ import SwiftUI
 
 @main
 struct BOCantabriaApp: App {
-    // Sin telemetría por ahora: la historia 3 sustituye esto por la resolución que decide entre
-    // el proveedor y la no operación según exista su fichero de configuración.
     @State private var container = AppContainer(
-        telemetry: .noOp,
+        telemetry: .resolved(),
         contentScenario: LaunchConfiguration.contentScenario
     )
 

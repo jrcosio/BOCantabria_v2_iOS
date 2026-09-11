@@ -155,12 +155,12 @@ forzando el origen.
 
 **Depende de US1**: sus pruebas necesitan código real que inspeccionar.
 
-- [ ] T042 [US2] `TEST/Integration/AppContainerTests.swift` (**FR-023**): construye el contenedor
+- [x] T042 [US2] `TEST/Integration/AppContainerTests.swift` (**FR-023**): construye el contenedor
       entero, obtiene todas las pantallas, y afirma que **no toca servicios externos al
       construirse**.
-- [ ] T043 [US2] Verificación a mano de que las reglas muerden: los tres recorridos de
+- [x] T043 [US2] Verificación a mano de que las reglas muerden: los tres recorridos de
       `quickstart.md` §2 —capas, aspecto y fichero de prueba ausente—. Anotar el resultado.
-- [ ] T044 [US2] Revisar que la lista de exenciones de la regla del fichero de prueba está vacía o
+- [x] T044 [US2] Revisar que la lista de exenciones de la regla del fichero de prueba está vacía o
       justificada al lado, con el recordatorio de que **cada entrada es un agujero en SC-002**.
 
 **Checkpoint**: la arquitectura está protegida por algo que se ha visto fallar.
@@ -177,21 +177,21 @@ cierre inesperado y ver su traza.
 **Puede hacerse en paralelo con US2**: solo sustituye implementaciones detrás de contratos que ya
 existen.
 
-- [ ] T045 [P] [US3] `TEST/Data/FirebaseAnalyticsTrackerTests.swift`: envía el nombre y sus
+- [x] T045 [P] [US3] `TEST/Data/FirebaseAnalyticsTrackerTests.swift`: envía el nombre y sus
       parámetros · una pantalla vista lleva su nombre · **nunca envía parámetros personales** · un
       fallo del cliente **no llega a quien llama**.
-- [ ] T046 [P] [US3] `TEST/Data/FirebaseCrashReporterTests.swift`: delega no fatales y mensajes ·
+- [x] T046 [P] [US3] `TEST/Data/FirebaseCrashReporterTests.swift`: delega no fatales y mensajes ·
       un fallo del cliente no llega a quien llama · de un no fatal escribe **el tipo del error y
       no su mensaje**.
-- [ ] T047 [P] [US3] `TEST/Data/TelemetryBundleTests.swift` (**FR-021**): sin fichero de
+- [x] T047 [P] [US3] `TEST/Data/TelemetryBundleTests.swift` (**FR-021**): sin fichero de
       configuración, la resolución devuelve las implementaciones de no operación.
-- [ ] T048 [US3] `APP/Data/Telemetry/FirebaseAnalyticsTracker.swift`.
-- [ ] T049 [US3] `APP/Data/Telemetry/FirebaseCrashReporter.swift`, con eco al registro **solo en
+- [x] T048 [US3] `APP/Data/Telemetry/FirebaseAnalyticsTracker.swift`.
+- [x] T049 [US3] `APP/Data/Telemetry/FirebaseCrashReporter.swift`, con eco al registro **solo en
       depuración**.
-- [ ] T050 [US3] Completar `TelemetryBundle.resolved()`: decide entre Firebase y no operación
+- [x] T050 [US3] Completar `TelemetryBundle.resolved()`: decide entre Firebase y no operación
       según exista el fichero. **Único sitio que toma esa decisión**, y fuera del contenedor para
       que el contenedor no importe Firebase.
-- [ ] T051 [US3] Registrar la pantalla vista de Inicio desde `HomeViewModel`.
+- [x] T051 [US3] Registrar la pantalla vista de Inicio desde `HomeViewModel`.
 
 **Checkpoint**: las tres historias funcionan de forma independiente.
 
@@ -199,14 +199,14 @@ existen.
 
 ## Phase 6: Polish & Cross-Cutting
 
-- [ ] T052 **SC-008**: apartar `GoogleService-Info.plist` y `Config/Secrets.xcconfig`, y
+- [x] T052 **SC-008**: apartar `GoogleService-Info.plist` y `Config/Secrets.xcconfig`, y
       comprobar que construye, arranca y pasa las pruebas. `quickstart.md` §3.
-- [ ] T053 **SC-001**: medir el arranque hasta la pantalla inicial. Objetivo: menos de 2 s. **Se
+- [x] T053 **SC-001**: medir el arranque hasta la pantalla inicial. Objetivo: menos de 2 s. **Se
       mide, no se estima**; anotar la cifra.
-- [ ] T054 Recorrido manual de `quickstart.md` §4: los cuatro estados, el reintento y la vuelta de
+- [x] T054 Recorrido manual de `quickstart.md` §4: los cuatro estados, el reintento y la vuelta de
       segundo plano.
-- [ ] T055 [P] Actualizar `CLAUDE.md` y `README.md` con lo que esta feature deja en pie.
-- [ ] T056 Las cuatro puertas de calidad en verde, en orden.
+- [x] T055 [P] Actualizar `CLAUDE.md` y `README.md` con lo que esta feature deja en pie.
+- [x] T056 Las cuatro puertas de calidad en verde, en orden.
 
 ---
 
@@ -254,3 +254,31 @@ anteriores.
 - Verificar que las pruebas fallan antes de implementar.
 - Commit por tarea o por grupo lógico.
 - **56 tareas.**
+
+---
+
+## Resultado
+
+Cerrada el 11 de septiembre de 2026. Cincuenta y seis tareas.
+
+| Puerta | Resultado |
+|---|---|
+| Construcción | Verde |
+| Pruebas sin interfaz | **58 en 10 suites, 0,10 s** (objetivo SC-003: menos de 2 min) |
+| Pruebas de interfaz | **6 en 28,8 s** |
+| Avisos propios | **0** sobre construcción limpia |
+
+**Las reglas muerden, comprobado a mano** (T043). Las tres violaciones deliberadas cayeron en la
+regla correcta y el árbol volvió a verde al revertirlas:
+
+| Violación provocada | Regla que la cazó |
+|---|---|
+| `Domain` nombra `ContentItemRecord` | 2 · Domain no nombra ningún tipo de Data ni de UI |
+| Una vista construye `Color(red:green:blue:)` | 7 · Solo el tema construye colores |
+| Un tipo de dominio sin fichero de prueba | 9 · Todo tipo de dominio tiene fichero de prueba |
+
+**Sin ningún secreto en el puesto** (T052, SC-008): apartados el `GoogleService-Info.plist` y el
+`Secrets.xcconfig`, la aplicación **construye, pasa las 58 pruebas y arranca**.
+
+**Arranque** (T053, SC-001): **815 ms** de media en cinco tomas con `XCTApplicationLaunchMetric`,
+desviación relativa del 0,5 %. El objetivo era menos de 2 s. Se mide, no se estima.
