@@ -241,27 +241,27 @@ con el recuento. Es el paso 6 del quickstart.
 
 ### El analizador
 
-- [ ] T048 [US1] **D-300, D-312, FR-008** `APP/Data/Source/Remote/RssDTO.swift` y
+- [X] T048 [US1] **D-300, D-312, FR-008** `APP/Data/Source/Remote/RssDTO.swift` y
       `BocRssParser.swift`: `@concurrent func parseFeed(_:limit:) throws -> RssChannelDTO`, con
       `XMLParser`. **`XMLDocument` no existe en iOS.** El delegado es una subclase de `NSObject`
       creada dentro de la función y sostenida en un `let`: **no se declara `@unchecked Sendable`**;
       si nada escapa, el compilador no pide nada.
-- [ ] T049 [US1] **D-313** `APP/Data/Source/Remote/BocRssParser.swift`: la guarda contra
+- [X] T049 [US1] **D-313** `APP/Data/Source/Remote/BocRssParser.swift`: la guarda contra
       `<!DOCTYPE` y `<!ENTITY` **sobre bytes**, no sobre texto decodificado —la codificación
       declarada puede no ser UTF-8, y una decodificación fallida convertiría la guarda en un pase
       libre—, más `shouldResolveExternalEntities = false` y
       `externalEntityResolvingPolicy = .never`. Dos capas.
-- [ ] T050 [US1] **FR-082** `TEST/Data/BocRssParserTests.swift`: las diez muestras de
+- [X] T050 [US1] **FR-082** `TEST/Data/BocRssParserTests.swift`: las diez muestras de
       `TEST/Fixtures/`. `feed_1_disposiciones` normal; `feed_8_1_vacio` **es un resultado válido**
       (**FR-009**); `feed_size_incorrecto` manda el recuento real; `feed_campos_desconocidos` se
       ignora sin fallar; `feed_con_doctype` y `feed_con_entidad_externa` se rechazan, y la segunda
       **además** afirma que no se hizo ninguna petición de red.
-- [ ] T051 [US1] **D-312** `TEST/Data/BocRssParserTests.swift`: las tres trampas, una prueba cada
+- [X] T051 [US1] **D-312** `TEST/Data/BocRssParserTests.swift`: las tres trampas, una prueba cada
       una. **El delegado es débil** —se pone roja si alguien «simplifica» la asignación—; **el
       texto llega troceado**, con una muestra de título largo con entidades; y **el booleano de
       `parse()`**, con un XML truncado, porque ignorarlo convierte un XML roto en «cero anuncios»,
       indistinguible de un feed vacío legítimo.
-- [ ] T052 [US1] **D-309** `TEST/Data/BocRssParserTests.swift`: cancelar a mitad de una muestra
+- [X] T052 [US1] **D-309** `TEST/Data/BocRssParserTests.swift`: cancelar a mitad de una muestra
       grande devuelve menos items y propaga la cancelación. `XMLParser.parse()` es síncrono y no
       comprueba cancelación: cambiar de hilo no hace cancelable un trabajo bloqueante.
 
@@ -410,7 +410,7 @@ con el recuento. Es el paso 6 del quickstart.
       `OSLog` de categoría `sync` dice fase, número de fuentes, bytes y motivo. La prueba, sobre
       `RecordingAnalyticsTracker`, afirma que **ningún parámetro lleva texto libre**: ni un título,
       ni un organismo, ni una dirección.
-- [ ] T089 [US1] **D-300** `TEST/Data/BocRssParserTests.swift`: la prueba que afirma, **dentro** de
+- [X] T089 [US1] **D-300** `TEST/Data/BocRssParserTests.swift`: la prueba que afirma, **dentro** de
       la función analizadora, que no se está en el hilo principal. Se pone roja si alguien quita
       `@concurrent`. Sin ella, el atributo es una convención.
 
