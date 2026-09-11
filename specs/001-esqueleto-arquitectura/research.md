@@ -62,16 +62,32 @@ de 2026 en el simulador leyó el directorio de fuentes del anfitrión y enumeró
 algún día dejara de funcionar, la salida es inyectar `SRCROOT` en el `Info.plist` del bundle de
 pruebas.
 
-**Las seis reglas**, que son las que tuvo la 001 del Android. Su fichero actual tiene nueve, pero
-las otras tres las añadieron features posteriores y copiarlas sería importar requisitos que no son
-de esta feature:
+**Una diferencia con Kotlin que obliga a partir la primera regla en dos, y que casi se cuela.** En
+Kotlin, cruzar de paquete exige un `import`, así que comprobar la lista de importaciones basta
+para hacer cumplir la regla de capas. **En Swift, dentro de un mismo módulo no hace falta importar
+nada**: un fichero de `Domain` puede nombrar un tipo de `Data` sin que aparezca una sola línea de
+`import`. Traducir la regla de Konsist tal cual habría dado una regla que pasa siempre. Por eso
+hay dos comprobaciones: las importaciones cazan los marcos y los SDK, y las **referencias a
+tipos** —el nombre de un tipo declarado en otra capa, buscado como palabra completa sobre el
+código sin comentarios ni cadenas— cazan los cruces entre capas.
 
-1. `Domain` no importa SwiftUI, UIKit, GRDB, Firebase, PDFKit, `Data` ni `UI`.
-2. `UI` no importa nada de `Data`.
-3. Todo tipo que acabe en `UseCase` vive en `Domain/UseCase`.
-4. Todo tipo que acabe en `ViewModel` vive en `UI`, y es `@MainActor @Observable`.
-5. Solo `Data` importa los módulos de Firebase.
-6. Todo tipo de dominio de nivel superior y todo modelo de pantalla tiene fichero de prueba.
+**Las nueve reglas**: las seis de la 001 del Android, con la primera partida en dos por lo
+anterior, más las dos que protegen el aspecto, que aquí entra en esta feature (D-111).
+
+1. `Domain` no importa SwiftUI, UIKit, GRDB, Firebase ni PDFKit.
+2. `Domain` no nombra ningún tipo declarado en `Data` ni en `UI`.
+3. `UI` no nombra ningún tipo declarado en `Data`.
+4. Todo tipo que acabe en `UseCase` vive en `Domain/UseCase`.
+5. Todo tipo que acabe en `ViewModel` vive en `UI`, y es `@MainActor @Observable`.
+6. Solo `Data` importa los módulos de Firebase.
+7. Solo `Core/UI/Theme` construye colores.
+8. Nada hace depender la apariencia del ajuste claro/oscuro del dispositivo (FR-015).
+9. Todo tipo de dominio de nivel superior y todo modelo de pantalla tiene fichero de prueba.
+
+**Quitar los comentarios y las cadenas antes de buscar referencias no es un detalle**: sin eso, un
+comentario que explica por qué `Domain` no debe conocer `ContentRepositoryImpl` dispararía la
+regla que ese comentario documenta, y la primera reacción de cualquiera sería dejar de escribir
+comentarios.
 
 Dos detalles de la regla 6 que se replican del Android porque están bien pensados: solo cuenta lo
 declarado **al nivel superior del fichero** —los casos de un enumerado pertenecen al fichero de su
@@ -178,17 +194,29 @@ pero el mecanismo queda montado para que añadir el siguiente no obligue a redis
 ## D-108 · Concurrencia y determinismo
 
 **Decisión**: el trabajo de `Data` va en tipos `actor`; el reloj se inyecta a través de un
-protocolo propio; los modelos de pantalla son `@MainActor`.
+protocolo propio; los modelos de pantalla se marcan `@MainActor` **explícitamente**, y el
+aislamiento por defecto del proyecto es `nonisolated`.
 
 **Se reutiliza el principio de D-007 del Android**, no su encarnación. Allí el problema era que
 referenciar `Dispatchers.IO` estáticamente hace imposible controlar el tiempo virtual y produce
-pruebas intermitentes, y la solución fue inyectar un `DispatcherProvider`.
+pruebas intermitentes, y la solución fue inyectar un `DispatcherProvider`. En Swift 6 no hay un
+«despachador» que elegir ni que inyectar. Lo que **sí** sigue haciendo falta inyectar es todo lo
+que hace una prueba no determinista, y en esta feature eso es el reloj: la latencia simulada del
+origen remoto se pide a un `AppClock` propio, de modo que la prueba no espera de verdad.
 
-En Swift 6 la mitad de eso ya no hace falta: con `SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor` el
-aislamiento por defecto es el actor principal, y lo que debe salir de él se marca a propósito. No
-hay un «despachador» que elegir ni que inyectar. Lo que **sí** sigue haciendo falta inyectar es
-todo lo que hace una prueba no determinista, y en esta feature eso es el reloj: la latencia
-simulada del origen remoto se pide a un `Clock` propio, de modo que la prueba no espera de verdad.
+**Sobre el aislamiento por defecto, que se decidió dos veces.** La plantilla de Xcode deja
+`SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor`, y esta decisión lo dio por bueno al redactarse: todo
+queda en el actor principal y lo que deba salir se marca a propósito. **Al implementar se vio que
+era al revés de lo que esta arquitectura necesita.** Con ese ajuste, los tipos de `Domain` y de
+`Core/Telemetry` nacen aislados al actor principal, y en cuanto un `actor` de `Data` o un espía de
+pruebas los toca, no compila: el primer doble de analítica lo destapó con tres errores seguidos.
+La consecuencia sería sembrar `nonisolated` por las dos capas que **nunca** deben estar en el
+actor principal, que además son donde vivirá la mayor parte de las catorce features siguientes.
+
+Puesto en `nonisolated`, la anotación cae donde tiene sentido —el modelo de pantalla se marca
+`@MainActor`, y eso ya lo exige la regla de arquitectura 5— y las vistas de SwiftUI lo son por su
+propio protocolo. **La regla general que deja escrita**: el ajuste por defecto de una plantilla
+describe la aplicación que la plantilla imagina, que es una sin capa de datos.
 
 **Regla que se escribe ahora porque luego cuesta más**: ninguna `Task` sin dueño. Toda tarea de un
 modelo de pantalla vive en el `.task` de la vista o en una propiedad que se cancela en su sitio.

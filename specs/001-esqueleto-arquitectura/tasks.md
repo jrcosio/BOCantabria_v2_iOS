@@ -26,17 +26,17 @@ demostrarse por separado.
 
 **Purpose**: dejar el proyecto vacío de plantilla y con el árbol de carpetas en su sitio.
 
-- [ ] T001 Crear el árbol de carpetas de producción en `APP/`: `Core/DI`, `Core/Telemetry`,
+- [x] T001 Crear el árbol de carpetas de producción en `APP/`: `Core/DI`, `Core/Telemetry`,
       `Core/UI/Theme`, `Core/UI/Component`, `Core/Util`, `Domain/Model`, `Domain/Repository`,
       `Domain/UseCase`, `Data/Repository`, `Data/Source/Local`, `Data/Source/Remote`,
       `Data/Telemetry`, `UI/Home`, `UI/Navigation`. Los grupos sincronizados los recogen solos:
       **no se toca `project.pbxproj`**.
-- [ ] T002 Crear el árbol de pruebas: `TEST/Architecture`, `TEST/Core`, `TEST/Domain`,
+- [x] T002 Crear el árbol de pruebas: `TEST/Architecture`, `TEST/Core`, `TEST/Domain`,
       `TEST/Data`, `TEST/UI`, `TEST/Integration`, `TEST/Fakes` y `UITEST/Home`.
-- [ ] T003 **FR-028**: eliminar las plantillas del generador —`TEST/BOCantabria_iosTests.swift`,
+- [x] T003 **FR-028**: eliminar las plantillas del generador —`TEST/BOCantabria_iosTests.swift`,
       `UITEST/BOCantabria_iosUITests.swift`, `UITEST/BOCantabria_iosUITestsLaunchTests.swift`— y
       el andamiaje provisional `APP/ContentView.swift`.
-- [ ] T004 [P] Crear el catálogo de cadenas `APP/Localizable.xcstrings` con los textos de la
+- [x] T004 [P] Crear el catálogo de cadenas `APP/Localizable.xcstrings` con los textos de la
       pantalla inicial, en español.
 
 **Checkpoint**: el proyecto compila sin plantillas y con las carpetas creadas.
@@ -50,40 +50,39 @@ fase.**
 
 ### El aspecto
 
-- [ ] T005 [P] `APP/Core/UI/Theme/BocColors.swift`: los 26 tokens de `data-model.md` §4.1.
-- [ ] T006 [P] `APP/Core/UI/Theme/BocTypography.swift`: los 14 estilos de §4.2, con **espaciado
+- [x] T005 [P] `APP/Core/UI/Theme/BocColors.swift`: los 26 tokens de `data-model.md` §4.1.
+- [x] T006 [P] `APP/Core/UI/Theme/BocTypography.swift`: los 14 estilos de §4.2, con **espaciado
       entre letras a cero** y el interlineado convertido a espaciado aditivo.
-- [ ] T007 [P] `APP/Core/UI/Theme/BocSpacing.swift`: los 9 tokens + `screenMargin`.
-- [ ] T008 [P] `APP/Core/UI/Theme/BocShape.swift`: 5 radios + 3 formas con nombre + cápsula.
-- [ ] T009 [P] `APP/Core/UI/Theme/BocElevation.swift`: los 5 niveles.
-- [ ] T010 `APP/Core/UI/Theme/BocTheme.swift`: el espacio de nombres que agrupa los cinco.
+- [x] T007 [P] `APP/Core/UI/Theme/BocSpacing.swift`: los 9 tokens + `screenMargin`.
+- [x] T008 [P] `APP/Core/UI/Theme/BocShape.swift`: 5 radios + 3 formas con nombre + cápsula.
+- [x] T009 [P] `APP/Core/UI/Theme/BocElevation.swift`: los 5 niveles.
+- [x] T010 `APP/Core/UI/Theme/BocTheme.swift`: el espacio de nombres que agrupa los cinco.
       Depende de T005–T009.
-- [ ] T011 `TEST/Core/BocThemeTests.swift`: que los valores son los del documento de diseño.
+- [x] T011 `TEST/Core/BocThemeTests.swift`: que los valores son los del documento de diseño.
       Comprueba al menos los 26 colores y que **ningún estilo tipográfico lleva tracking**.
 
 ### Tipos nucleares
 
-- [ ] T012 [P] `APP/Domain/Model/AppResult.swift` y `APP/Domain/Model/DomainError.swift`.
-- [ ] T013 [P] `APP/Core/Util/AppClock.swift`: el protocolo del reloj y su implementación real
+- [x] T012 [P] `APP/Domain/Model/AppResult.swift` y `APP/Domain/Model/DomainError.swift`.
+- [x] T013 [P] `APP/Core/Util/AppClock.swift`: el protocolo del reloj y su implementación real
       (D-108).
-- [ ] T014 [P] `APP/Core/Telemetry/AnalyticsEvent.swift` con el patrón del nombre y
+- [x] T014 [P] `APP/Core/Telemetry/AnalyticsEvent.swift` con el patrón del nombre y
       `sanitizedParameters()`.
-- [ ] T015 [P] `TEST/Core/AnalyticsEventTests.swift`: el patrón del nombre, que las 15 claves
+- [x] T015 [P] `TEST/Core/AnalyticsEventTests.swift`: el patrón del nombre, que las 15 claves
       sensibles se descartan, que la coincidencia es exacta y en minúsculas, y que **una clave no
       sensible sí viaja**.
-- [ ] T016 [P] `APP/Core/Telemetry/AnalyticsTracker.swift` y
+- [x] T016 [P] `APP/Core/Telemetry/AnalyticsTracker.swift` y
       `APP/Core/Telemetry/CrashReporter.swift`, con sus implementaciones de no operación.
-- [ ] T017 [P] `APP/Core/UI/Component/`: `LoadingIndicator`, `ErrorMessage` (con acción de
+- [x] T017 [P] `APP/Core/UI/Component/`: `LoadingIndicator`, `ErrorMessage` (con acción de
       reintento) y `EmptyMessage`. Sin estado, consumiendo solo tokens del tema.
-- [ ] T018 [P] `APP/UI/Navigation/Route.swift`: el enumerado de destinos.
+- [x] T018 [P] `APP/UI/Navigation/Route.swift`: el enumerado de destinos.
 
 ### Las reglas de arquitectura
 
-- [ ] T019 `TEST/Architecture/SourceTree.swift`: localiza el árbol con `#filePath` y devuelve, por
+- [x] T019 `TEST/Architecture/SourceTree.swift`: localiza el árbol con `#filePath` y devuelve, por
       fichero, su ruta relativa, sus `import` y los tipos declarados al nivel superior.
-- [ ] T020 `TEST/Architecture/ArchitectureRulesTests.swift`: las **siete** reglas de `research.md`
-      D-102 (las seis del Android más la del aspecto). Depende de T019.
-- [ ] T021 `TEST/Architecture/SourceTreeTests.swift`: que el propio lector funciona —que encuentra
+- [x] T020 `TEST/Architecture/ArchitectureRulesTests.swift`: las **nueve** reglas de `research.md` D-102. Depende de T019.
+- [x] T021 `TEST/Architecture/SourceTreeTests.swift`: que el propio lector funciona —que encuentra
       ficheros, que extrae los `import` y que distingue un tipo de nivel superior de uno anidado—.
       **Una regla que no puede fallar es una regla que no protege nada.**
 
@@ -103,45 +102,45 @@ forzando el origen.
 
 > Se escriben antes y **deben fallar** antes de implementarlas.
 
-- [ ] T022 [P] [US1] `TEST/Domain/GetContentItemsUseCaseTests.swift`: propaga el éxito sin
+- [x] T022 [P] [US1] `TEST/Domain/GetContentItemsUseCaseTests.swift`: propaga el éxito sin
       alterarlo, propaga el éxito vacío **como éxito y no como fallo**, y propaga el fallo.
-- [ ] T023 [P] [US1] `TEST/Data/ContentRepositoryImplTests.swift`: los **cuatro casos** de la
+- [x] T023 [P] [US1] `TEST/Data/ContentRepositoryImplTests.swift`: los **cuatro casos** de la
       tabla de `contracts/` §2, más que ningún error escapa del repositorio.
-- [ ] T024 [P] [US1] `TEST/UI/HomeViewModelTests.swift`: arranca en carga y llega a contenido · un
+- [x] T024 [P] [US1] `TEST/UI/HomeViewModelTests.swift`: arranca en carga y llega a contenido · un
       resultado vacío es «sin contenido» y no error · un fallo llega a error con su error de
       dominio · reintentar desde error llega a contenido · **reintentar durante una carga no lanza
       una segunda** · registra la pantalla vista **exactamente una vez por instancia**.
-- [ ] T025 [P] [US1] `TEST/Integration/ContentFlowIntegrationTests.swift`: el contenido viaja del
+- [x] T025 [P] [US1] `TEST/Integration/ContentFlowIntegrationTests.swift`: el contenido viaja del
       origen remoto hasta el estado de la pantalla con el cableado real, y un fallo en la frontera
       aflora como estado de error.
-- [ ] T026 [P] [US1] `UITEST/Home/HomeStatesUITests.swift`: los cuatro estados y que pulsar
+- [x] T026 [P] [US1] `UITEST/Home/HomeStatesUITests.swift`: los cuatro estados y que pulsar
       reintentar recupera. Usa los identificadores de `contracts/` §6.
-- [ ] T027 [P] [US1] `UITEST/Home/HomeBackgroundUITests.swift` (**FR-005**): con contenido en
+- [x] T027 [P] [US1] `UITEST/Home/HomeBackgroundUITests.swift` (**FR-005**): con contenido en
       pantalla, segundo plano y vuelta; el contenido sigue y **no** reaparece el indicador.
 
 ### Implementación
 
-- [ ] T028 [P] [US1] `APP/Domain/Model/ContentItem.swift`.
-- [ ] T029 [P] [US1] `APP/Data/Source/Remote/ContentItemDTO.swift` (campo **`label`**) y
+- [x] T028 [P] [US1] `APP/Domain/Model/ContentItem.swift`.
+- [x] T029 [P] [US1] `APP/Data/Source/Remote/ContentItemDTO.swift` (campo **`label`**) y
       `APP/Data/Source/Local/ContentItemRecord.swift` (campo `title`).
-- [ ] T030 [US1] `APP/Domain/Repository/ContentRepository.swift`.
-- [ ] T031 [P] [US1] `APP/Data/Source/Remote/ContentRemoteDataSource.swift` +
+- [x] T030 [US1] `APP/Domain/Repository/ContentRepository.swift`.
+- [x] T031 [P] [US1] `APP/Data/Source/Remote/ContentRemoteDataSource.swift` +
       `StubContentRemoteDataSource`, con latencia pedida al reloj inyectado.
-- [ ] T032 [P] [US1] `APP/Data/Source/Local/ContentLocalDataSource.swift` +
+- [x] T032 [P] [US1] `APP/Data/Source/Local/ContentLocalDataSource.swift` +
       `InMemoryContentLocalDataSource` (un `actor`).
-- [ ] T033 [US1] `APP/Data/Repository/ContentRepositoryImpl.swift`: la política de cuatro casos.
+- [x] T033 [US1] `APP/Data/Repository/ContentRepositoryImpl.swift`: la política de cuatro casos.
       Depende de T030–T032.
-- [ ] T034 [US1] `APP/Domain/UseCase/GetContentItemsUseCase.swift`.
-- [ ] T035 [P] [US1] `APP/UI/Home/HomeUiState.swift`.
-- [ ] T036 [US1] `APP/UI/Home/HomeViewModel.swift`. Depende de T034 y T035.
-- [ ] T037 [P] [US1] `APP/UI/Home/HomeContentView.swift`: **sin estado**, los cuatro estados y el
+- [x] T034 [US1] `APP/Domain/UseCase/GetContentItemsUseCase.swift`.
+- [x] T035 [P] [US1] `APP/UI/Home/HomeUiState.swift`.
+- [x] T036 [US1] `APP/UI/Home/HomeViewModel.swift`. Depende de T034 y T035.
+- [x] T037 [P] [US1] `APP/UI/Home/HomeContentView.swift`: **sin estado**, los cuatro estados y el
       reintento, con sus identificadores de accesibilidad.
-- [ ] T038 [US1] `APP/UI/Home/HomeView.swift` y `APP/UI/Navigation/RootView.swift`.
-- [ ] T039 [US1] `APP/Core/DI/AppContainer.swift` y `APP/Data/Telemetry/TelemetryBundle.swift`
+- [x] T038 [US1] `APP/UI/Home/HomeView.swift` y `APP/UI/Navigation/RootView.swift`.
+- [x] T039 [US1] `APP/Core/DI/AppContainer.swift` y `APP/Data/Telemetry/TelemetryBundle.swift`
       con no operación por ahora. **El cableado va al final de la historia**, cuando ya existen
       las clases que registra.
-- [ ] T040 [US1] `APP/BOCantabriaApp.swift`: construye el contenedor y monta la raíz.
-- [ ] T041 [P] [US1] `TEST/Fakes/`: los dobles compartidos —origen remoto falseable, reloj fijo y
+- [x] T040 [US1] `APP/BOCantabriaApp.swift`: construye el contenedor y monta la raíz.
+- [x] T041 [P] [US1] `TEST/Fakes/`: los dobles compartidos —origen remoto falseable, reloj fijo y
       espía de analítica—, `Sendable` como exige la concurrencia estricta.
 
 **Checkpoint**: hay aplicación. Instálala y recorre los cuatro estados antes de seguir.
