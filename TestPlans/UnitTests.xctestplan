@@ -1,0 +1,28 @@
+{
+  "configurations" : [
+    {
+      "id" : "A1B2C3D4-0001-4000-8000-000000000001",
+      "name" : "Configuration 1",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "targetForVariableExpansion" : {
+      "containerPath" : "container:BOCantabria-ios.xcodeproj",
+      "identifier" : "409C5240305359D00014B83A",
+      "name" : "BOCantabria-ios"
+    }
+  },
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:BOCantabria-ios.xcodeproj",
+        "identifier" : "409C524F305359D10014B83A",
+        "name" : "BOCantabria-iosTests"
+      }
+    }
+  ],
+  "version" : 1
+}

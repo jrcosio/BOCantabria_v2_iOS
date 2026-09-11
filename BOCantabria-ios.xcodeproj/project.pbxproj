@@ -123,6 +123,7 @@
 				409C523D305359D00014B83A /* Sources */,
 				409C523E305359D00014B83A /* Frameworks */,
 				409C523F305359D00014B83A /* Resources */,
+				BC0100000000000000000041 /* Símbolos de Crashlytics */,
 			);
 			buildRules = (
 			);
@@ -259,6 +260,26 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		BC0100000000000000000041 /* Símbolos de Crashlytics */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			alwaysOutOfDate = 1;
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Símbolos de Crashlytics";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# Sube a Crashlytics los símbolos de depuración, sin los cuales un informe de fallo\n# llega sin simbolizar. Se salta en silencio en los dos casos en que no hay nada que\n# hacer, y el segundo es deliberado: la aplicación tiene que poder compilarse sin\n# secretos, así que la falta del fichero de Firebase avisa pero no rompe la build.\nif [ \"${DEBUG_INFORMATION_FORMAT}\" != \"dwarf-with-dsym\" ]; then\n  echo \"note: sin dSYM en esta configuración; no hay símbolos que subir.\"\n  exit 0\nfi\nPLIST=\"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/GoogleService-Info.plist\"\nif [ ! -f \"${PLIST}\" ]; then\n  echo \"warning: sin GoogleService-Info.plist; no se suben símbolos a Crashlytics.\"\n  exit 0\nfi\n\"${BUILD_DIR%/Build/*}/SourcePackages/checkouts/firebase-ios-sdk/Crashlytics/run\"\n";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		409C523D305359D00014B83A /* Sources */ = {
