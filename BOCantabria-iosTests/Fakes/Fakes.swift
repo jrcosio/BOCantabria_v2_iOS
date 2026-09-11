@@ -298,8 +298,11 @@ func publication(
 ) -> Publication {
     Publication(
         externalKey: externalKey,
-        blobId: "439765",
-        idSource: .blobId,
+        // Se deriva de la clave: `blob_id` es **único** en la base, así que un doble que lo fijara
+        // siempre igual haría fallar la transacción entera al guardar más de una publicación —y la
+        // prueba vería una lista vacía sin saber por qué—.
+        blobId: externalKey.hasPrefix("boc:") ? String(externalKey.dropFirst(4)) : nil,
+        idSource: externalKey.hasPrefix("boc:") ? .blobId : .canonicalUrl,
         feedId: "6802081",
         sectionCode: sectionCode,
         subsectionCode: subsectionCode,
@@ -308,7 +311,10 @@ func publication(
         organizationPath: ["Ayuntamiento de Piélagos"],
         editionType: .ordinary,
         publicationDate: BocDate(iso: date)!,
-        documentUrl: URL(string: "https://boc.cantabria.es/boces/verAnuncioAction.do?idAnuBlob=439765")!,
+        documentUrl: URL(
+            string: "https://boc.cantabria.es/boces/verAnuncioAction.do?idAnuBlob="
+                + (externalKey.hasPrefix("boc:") ? String(externalKey.dropFirst(4)) : "0")
+        )!,
         rawCategories: "1.Disposiciones Generales|Ayuntamiento de Piélagos|ORD",
         warnings: warnings
     )
@@ -324,4 +330,70 @@ struct FakeStorage: StoragePreparing {
     }
 
     func prepare() async -> AppResult<Void> { result }
+}
+
+/// Descargador que **cuenta cuántas descargas hay en vuelo y guarda el máximo**, y que se queda
+/// suspendido hasta que la prueba lo libera.
+///
+/// La retención es imprescindible: sin ella, la prueba del tope de cuatro mediría la velocidad de
+/// la máquina en lugar del tope, y pasaría en verde aunque el tope estuviera mal escrito.
+actor CountingFeedDownloader: FeedDownloader {
+    private let body: Data
+    private let failing: Set<String>
+    private var inFlight = 0
+    private(set) var maxInFlight = 0
+    private(set) var calls: [String] = []
+    private var gate: CheckedContinuation<Void, Never>?
+    private var held = false
+
+    init(body: Data, failing: Set<String> = [], holdUntilReleased: Bool = false) {
+        self.body = body
+        self.failing = failing
+        self.held = holdUntilReleased
+    }
+
+    func fetch(_ definition: BocFeedDefinition, knownBodyHash: String?) async -> FeedFetchResult {
+        calls.append(definition.feedId)
+        inFlight += 1
+        maxInFlight = max(maxInFlight, inFlight)
+        if held { await waitForRelease() }
+        inFlight -= 1
+
+        if failing.contains(definition.feedId) { return .failed(.serverError) }
+        let hash = HttpFeedDownloader.sha256(of: body)
+        if knownBodyHash == hash { return .notModified }
+        return .fetched(body: body, bodyHash: hash)
+    }
+
+    /// Deja pasar a todas las que están esperando.
+    func release() {
+        held = false
+        gate?.resume()
+        gate = nil
+    }
+
+    /// Espera a que haya al menos `count` descargas en vuelo. Sin esto, liberar antes de que
+    /// lleguen haría que la prueba midiera otra cosa.
+    func waitUntilInFlight(_ count: Int) async {
+        while inFlight < count { await Task.yield() }
+    }
+
+    private func waitForRelease() async {
+        while held {
+            await Task.yield()
+        }
+    }
+}
+
+/// Descargador que siempre falla. Es el camino de «ninguna fuente responde».
+struct FailingFeedDownloader: FeedDownloader {
+    let failure: FeedFailure
+
+    init(_ failure: FeedFailure = .offline) {
+        self.failure = failure
+    }
+
+    func fetch(_ definition: BocFeedDefinition, knownBodyHash: String?) async -> FeedFetchResult {
+        .failed(failure)
+    }
 }

@@ -293,7 +293,7 @@ con el recuento. Es el paso 6 del quickstart.
 - [X] T058 [US1] **FR-006** `APP/Data/Source/Remote/HttpFeedDownloader.swift`: tres intentos con
       espera creciente **más jitter inyectado**, solo ante agotamiento de tiempo, error de
       conexión, 408, 429 y 5xx; **nunca** ante 400, 401, 403, 404 ni cuerpo inválido.
-- [ ] T059 [US1] `TEST/Data/HttpFeedDownloaderTests.swift`: con un `URLProtocol` de prueba
+- [X] T059 [US1] `TEST/Data/HttpFeedDownloaderTests.swift`: con un `URLProtocol` de prueba
       **declarado en el target de pruebas, no en producción**. Tope de tamaño, redirección a otro
       host, tipo de contenido incorrecto, cuerpo truncado, y la lista exacta de esperas con
       `FixedRandom` y `ManualClock` (**D-310**).
@@ -319,11 +319,11 @@ con el recuento. Es el paso 6 del quickstart.
       `APP/Data/Source/Local/PublicationQueries.swift`: el upsert por clave externa con **lista
       blanca de columnas** —`first_seen_at` no está en ella—, las cuatro consultas de
       `data-model.md` y el orden estable de tres criterios. **Ni un borrado.**
-- [ ] T065 [US1] `TEST/Data/BocDatabaseTests.swift`: base en memoria. Migración v1; upsert que
+- [X] T065 [US1] `TEST/Data/BocDatabaseTests.swift`: base en memoria. Migración v1; upsert que
       actualiza y no duplica; `first_seen_at` que no se mueve y `last_seen_at` que sí; y el modo de
       diario comprobado sobre un fichero temporal real, **declarando que la base en memoria lo
       ignora** (**D-301**).
-- [ ] T066 [US1] **FR-037, FR-038** `TEST/Data/PublicationQueriesTests.swift`: el boletín del día es
+- [X] T066 [US1] **FR-037, FR-038** `TEST/Data/PublicationQueriesTests.swift`: el boletín del día es
       la fecha máxima **de todas las secciones**;
       una sección principal **recoge a sus subsecciones**; una subsección no recoge a su hermana; el
       recuento casa con la lista; y el desempate determinista con dos publicaciones de la misma
@@ -340,11 +340,11 @@ con el recuento. Es el paso 6 del quickstart.
 - [X] T069 [US1] **D-307, D-308, FR-004, FR-005** `APP/Data/Sync/FeedSyncCoordinator.swift`:
       `actor` con la tarea guardada; ventana explícita de cuatro simultáneas; **escribe el padre**,
       una transacción por fuente conforme terminan. Un solo escritor.
-- [ ] T070 [US1] `TEST/Data/FeedSyncCoordinatorTests.swift`: el tope de cuatro con un descargador
+- [X] T070 [US1] `TEST/Data/FeedSyncCoordinatorTests.swift`: el tope de cuatro con un descargador
       falso que es un `actor`, cuenta las que hay en vuelo, guarda el máximo y **se queda suspendido
       hasta que la prueba lo libera**. Sin ese mecanismo la prueba mide la velocidad de la máquina,
       no el tope.
-- [ ] T071 [US1] **FR-004** `TEST/Data/FeedSyncCoordinatorTests.swift`: una fuente que falla no
+- [X] T071 [US1] **FR-004** `TEST/Data/FeedSyncCoordinatorTests.swift`: una fuente que falla no
       impide las demás, y todas las que respondieron se escriben.
 - [X] T072 [US1] `APP/Data/Repository/PublicationRepositoryImpl.swift`: las **cinco filas** de la
       política de `refresh(force:)` de `contracts/internal-contracts.md` §1.
@@ -448,12 +448,12 @@ inmediato, con el aviso. Pasos 7 y 8 del quickstart.
 - [ ] T096 [US2] **SC-003** `TEST/UI/HomeViewModelTests.swift`: las dos ramas anteriores —en ninguna
       de las dos se llega a una pantalla vacía sin explicación—, más que una
       actualización sin novedades **deja el contenido intacto y no muestra ningún error**.
-- [ ] T097 [US2] **FR-021, FR-084, SC-005, D-324** `TEST/Integration/NoDeleteRegressionTests.swift`:
+- [X] T097 [US2] **FR-021, FR-084, SC-005, D-324** `TEST/Integration/NoDeleteRegressionTests.swift`:
       configurar la base para **recoger cada sentencia que se ejecuta**, correr una sincronización
       completa y afirmar que ninguna borra de `publications`. Es la garantía de verdad: GRDB borra
       sin que la palabra aparezca en ninguna cadena del fuente, así que la regla textual **no puede
       verlo**.
-- [ ] T098 [US2] `TEST/Integration/NoDeleteRegressionTests.swift`: con la misma traza, que la
+- [X] T098 [US2] `TEST/Integration/NoDeleteRegressionTests.swift`: con la misma traza, que la
       actualización de la sincronización es una **lista blanca de columnas** y no menciona
       `first_seen_at`. Es la infraestructura que Guardados y Avisos van a necesitar tal cual.
 - [ ] T099 [US2] **SC-004** `TEST/Integration/SyncFlowIntegrationTests.swift`: cinco
