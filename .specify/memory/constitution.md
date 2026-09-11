@@ -2,6 +2,38 @@
 Sync Impact Report
 ==================
 
+--- Enmienda 1.1.0 (2026-09-11) ---
+Version change: 1.0.0 → 1.1.0
+Motivo del bump: MINOR. Cambia materialmente tres restricciones vinculantes de la sección
+«Flujo de Trabajo y Puertas de Calidad» sin eliminar ni redefinir ningún principio.
+
+Principios modificados: ninguno.
+Secciones añadidas: ninguna.
+Secciones eliminadas: ninguna.
+
+Tres cambios, todos en «Flujo de Trabajo y Puertas de Calidad»:
+
+1. **Se retira la exigencia de integración continua.** La versión 1.0.0 la heredó de la
+   constitución de Android sin comprobar que el propietario la quisiera aquí, y no la quiere.
+   El proyecto no tiene CI y no se va a montar. Las cuatro puertas de calidad **siguen siendo
+   obligatorias**; lo que cambia es dónde corren: en local, a mano.
+   Coste aceptado y escrito a propósito: una puerta que se ejecuta a mano depende de que
+   alguien la ejecute. La mitigación es que el resultado se anote con cifras en el `tasks.md`
+   de cada feature —«58 pruebas en 0,10 s», no «pasa»—, de modo que se vea si se ejecutó.
+
+2. **La integración en `main` es merge directo y solo a petición del propietario.** Quedan
+   prohibidos los *pull requests* e integrar por iniciativa propia. La 1.0.0 no decía cómo se
+   integraba y mencionaba los *pull requests* solo de pasada, dentro del apartado de CI.
+
+3. **Las ramas de feature se conservan tras integrarlas.** No estaba dicho en ninguna parte.
+
+Requisitos de la enmienda, los tres cumplidos en este mismo cambio:
+(a) aprobación explícita del propietario — dada;
+(b) `CLAUDE.md` actualizado para que la guía operativa no contradiga a la norma;
+(c) este registro.
+
+Follow-up TODOs: ninguno.
+
 --- Ratificación inicial 1.0.0 (2026-09-11) ---
 Version change: (ninguna) → 1.0.0
 Motivo del bump: ratificación inicial de la constitución del proyecto iOS.
@@ -232,8 +264,18 @@ Estas decisiones son vinculantes; cambiarlas requiere una enmienda de esta const
   2. `xcodebuild test` con el plan de pruebas unitarias y de integración
   3. `xcodebuild test` con el plan de pruebas de interfaz
   4. Análisis estático: compilación sin avisos nuevos
-- **CI**: GitHub Actions ejecuta build, pruebas unitarias y análisis estático en cada push y
-  cada pull request. Una feature con CI en rojo NO se integra en `main`.
+- **Sin integración continua.** Este proyecto NO tiene CI y no se va a montar. Las cuatro puertas
+  se ejecutan en local, y son igual de obligatorias por ejecutarse a mano: una feature no se da
+  por terminada sin las cuatro en verde. La consecuencia aceptada es que **la puerta depende de
+  que se ejecute**, y por eso el resultado se anota en el `tasks.md` de cada feature con sus
+  cifras, no con un «pasa».
+- **Integración en `main`: merge directo, y solo cuando el propietario lo pida.** PROHIBIDO abrir
+  *pull requests* y PROHIBIDO integrar por iniciativa propia, aunque las cuatro puertas estén en
+  verde. Terminar una feature y integrarla son dos actos distintos, y el segundo es del
+  propietario. El merge se hace con `--no-ff`, para que la rama de la feature siga siendo legible
+  como unidad.
+- **Las ramas de feature se conservan.** No se borran tras integrarlas: son el rastro de la
+  feature y acompañan a su carpeta en `specs/`.
 - **Revisión**: toda integración en `main` DEBE verificar el cumplimiento de esta
   constitución. Cualquier desviación se documenta y se justifica de forma explícita en el
   `plan.md` de la feature, en su sección de complejidad.
@@ -261,4 +303,4 @@ discrepen, manda esta.
 - **Guía operativa**: `CLAUDE.md` en la raíz del repositorio traduce estos principios a
   comandos y convenciones del día a día.
 
-**Version**: 1.0.0 | **Ratified**: 2026-09-11 | **Last Amended**: 2026-09-11
+**Version**: 1.1.0 | **Ratified**: 2026-09-11 | **Last Amended**: 2026-09-11

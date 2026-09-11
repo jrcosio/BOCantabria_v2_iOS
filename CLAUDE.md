@@ -589,6 +589,21 @@ defensa está actuando, y es un enumerado de tres valores que no puede filtrar n
   `refactor:`, `chore:`, `docs:`).
 - Remoto: `https://github.com/jrcosio/BOCantabria_v2_iOS.git`.
 
+**Cómo se integra una feature, y qué no hay que proponer.** Está en la constitución 1.1.0 y aquí
+se repite porque es donde se mira:
+
+- **No hay CI y no se va a montar.** No propongas añadirla. Las cuatro puertas se ejecutan en
+  local y son igual de obligatorias; lo que cambia es que **dependen de que las ejecutes**. Anota
+  su resultado con cifras en el `tasks.md` de la feature —«58 pruebas en 0,10 s»—, nunca con un
+  «pasa»: es lo único que después permite saber si se ejecutaron.
+- **Nada de *pull requests*.** La integración es un `git merge --no-ff` de la rama sobre `main`.
+- **Y solo cuando el propietario lo pida.** Terminar una feature y integrarla son dos actos
+  distintos; el segundo no es tuyo. Aunque las cuatro puertas estén en verde, se espera.
+- **La rama de la feature se conserva.** No la borres tras integrarla: es su rastro, y acompaña a
+  su carpeta en `specs/`.
+- Trampa del intérprete de órdenes: **`git merge -F -` no lee de la entrada estándar** —falla con
+  `could not read file '-'`, al revés que `git commit -F -`—. El mensaje va en un fichero.
+
 Antes de dar una feature por terminada, en este orden:
 
 ```bash
