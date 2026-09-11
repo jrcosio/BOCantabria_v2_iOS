@@ -22,9 +22,18 @@ final class AppContainer {
     private let connectivityRepository: ConnectivityRepository
     private let installedVersion: AppVersion?
 
+    /// Compartidos en todo el proceso. **Construirlos no abre nada**: el proveedor de la base solo
+    /// guarda cómo abrirla, y quien la abre es la comprobación previa de la portada (D-305).
+    private let databaseProvider: BocDatabaseProvider
+    private let publicationRepository: PublicationRepository
+    private let sectionRepository: BocSectionRepository
+
     init(
         telemetry: TelemetryBundle,
         clock: AppClock = SystemClock(),
+        random: AppRandom = SystemRandom(),
+        databaseProvider: BocDatabaseProvider? = nil,
+        downloader: FeedDownloader? = nil,
         remoteConfig: RemoteConfigDataSource = UnavailableRemoteConfigDataSource(),
         connectivity: ConnectivityDataSource = PathMonitorConnectivityDataSource(),
         startupScenario: StartupScenario = .ready,
@@ -33,6 +42,24 @@ final class AppContainer {
         self.telemetry = telemetry
         self.clock = clock
         self.installedVersion = installedVersion
+
+        let provider = databaseProvider
+            ?? BocDatabaseProvider(crashReporter: telemetry.crashReporter)
+        self.databaseProvider = provider
+        let local = PublicationLocalDataSource(
+            provider: provider, crashReporter: telemetry.crashReporter
+        )
+        self.sectionRepository = BocSectionRepositoryImpl()
+        self.publicationRepository = PublicationRepositoryImpl(
+            local: local,
+            coordinator: FeedSyncCoordinator(
+                local: local,
+                downloader: downloader ?? HttpFeedDownloader(clock: clock, random: random),
+                clock: clock,
+                crashReporter: telemetry.crashReporter
+            ),
+            clock: clock
+        )
 
         // **Un solo punto de sustitución.** El escenario del arranque solo cambia de dónde salen
         // los datos; todo lo que hay por encima —repositorio, caso de uso, modelo de pantalla— es
@@ -66,6 +93,7 @@ final class AppContainer {
             prepareStartup: PrepareStartupUseCase(
                 appConfig: appConfigRepository,
                 connectivity: connectivityRepository,
+                storage: databaseProvider,
                 installedVersion: installedVersion
             ),
             analytics: telemetry.analytics,

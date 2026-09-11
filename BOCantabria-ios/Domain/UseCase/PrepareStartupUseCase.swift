@@ -14,20 +14,28 @@
 struct PrepareStartupUseCase: Sendable {
     private let appConfig: AppConfigRepository
     private let connectivity: ConnectivityRepository
+    private let storage: StoragePreparing
     private let installedVersion: AppVersion?
 
     init(
         appConfig: AppConfigRepository,
         connectivity: ConnectivityRepository,
+        storage: StoragePreparing,
         installedVersion: AppVersion?
     ) {
         self.appConfig = appConfig
         self.connectivity = connectivity
+        self.storage = storage
         self.installedVersion = installedVersion
     }
 
     /// **Nunca lanza.** La tabla completa está en `data-model.md` y cada fila tiene su prueba.
     func callAsFunction() async -> AppResult<StartupStatus> {
+        // **El almacén, primero.** Si no se puede abrir o migrar, no hay aplicación que enseñar:
+        // lo guardado es la procedencia de todo lo que la pantalla muestra. Falla aquí, con
+        // mensaje y reintento, en vez de con Inicio ya pintado (research.md D-305).
+        if case .failure = await storage.prepare() { return .failure(.storage) }
+
         switch await appConfig.loadConfig() {
         case let .failure(error):
             return .failure(error)

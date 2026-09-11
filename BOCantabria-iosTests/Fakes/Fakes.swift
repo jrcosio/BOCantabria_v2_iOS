@@ -313,3 +313,15 @@ func publication(
         warnings: warnings
     )
 }
+
+/// Almacén que se abre o no se abre, según le digan. Es lo que permite probar el desenlace de la
+/// portada cuando la base no se puede migrar, sin tener que corromper un fichero.
+struct FakeStorage: StoragePreparing {
+    let result: AppResult<Void>
+
+    init(opens: Bool = true) {
+        result = opens ? .success(()) : .failure(.storage)
+    }
+
+    func prepare() async -> AppResult<Void> { result }
+}

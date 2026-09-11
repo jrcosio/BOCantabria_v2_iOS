@@ -26,6 +26,7 @@ struct SplashViewModelTests {
             prepareStartup: PrepareStartupUseCase(
                 appConfig: FakeAppConfigRepository(behaviour),
                 connectivity: FakeConnectivityRepository(online: online),
+                storage: FakeStorage(),
                 installedVersion: installed.flatMap { AppVersion($0) }
             ),
             analytics: analytics,
@@ -99,6 +100,7 @@ struct SplashViewModelTests {
             prepareStartup: PrepareStartupUseCase(
                 appConfig: repository,
                 connectivity: FakeConnectivityRepository(),
+                storage: FakeStorage(),
                 installedVersion: AppVersion("1.0.0")
             ),
             analytics: NoOpAnalyticsTracker(),
@@ -159,6 +161,7 @@ struct SplashViewModelTests {
             prepareStartup: PrepareStartupUseCase(
                 appConfig: repository,
                 connectivity: FakeConnectivityRepository(),
+                storage: FakeStorage(),
                 installedVersion: AppVersion("1.0.0")
             ),
             analytics: NoOpAnalyticsTracker(),
@@ -292,6 +295,7 @@ struct SplashViewModelTests {
             prepareStartup: PrepareStartupUseCase(
                 appConfig: repository,
                 connectivity: FakeConnectivityRepository(),
+                storage: FakeStorage(),
                 installedVersion: AppVersion("1.0.0")
             ),
             analytics: NoOpAnalyticsTracker(),

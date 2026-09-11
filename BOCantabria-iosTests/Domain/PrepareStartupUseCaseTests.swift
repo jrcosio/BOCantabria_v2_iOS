@@ -18,6 +18,7 @@ struct PrepareStartupUseCaseTests {
         PrepareStartupUseCase(
             appConfig: FakeAppConfigRepository(config),
             connectivity: FakeConnectivityRepository(online: online),
+            storage: FakeStorage(),
             installedVersion: installed.flatMap { AppVersion($0) }
         )
     }

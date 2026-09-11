@@ -267,55 +267,55 @@ con el recuento. Es el paso 6 del quickstart.
 
 ### El normalizador
 
-- [ ] T053 [US1] **FR-011 … FR-018** `APP/Data/Source/Remote/PublicationNormalizer.swift`: las once
+- [X] T053 [US1] **FR-011 … FR-018** `APP/Data/Source/Remote/PublicationNormalizer.swift`: las once
       reglas de `contracts/internal-contracts.md` §2. **La sección la manda la fuente**; el campo de
       clasificación se conserva íntegro y solo enriquece y verifica.
-- [ ] T054 [US1] **FR-082** `TEST/Data/PublicationNormalizerTests.swift`: la matriz completa. Tres,
+- [X] T054 [US1] **FR-082** `TEST/Data/PublicationNormalizerTests.swift`: la matriz completa. Tres,
       cuatro y cinco componentes; tipo de edición al principio, en medio, al final y ausente;
       clasificación que no corresponde a la fuente; componentes vacíos y barra final; **el
       desorden real del feed 4.3**, que ni rompe ni descarta; enlace sin identificador, con los tres
       escalones de la cascada; y título muy largo, que se guarda entero.
-- [ ] T055 [US1] **FR-010** `TEST/Data/PublicationNormalizerTests.swift`: los rechazos individuales
+- [X] T055 [US1] **FR-010** `TEST/Data/PublicationNormalizerTests.swift`: los rechazos individuales
       —título vacío, enlace no HTTPS, fecha ilegible— **con su motivo** y sin detener el resto de la
       fuente. Muestra: `feed_fecha_invalida.xml`.
 
 ### La descarga
 
-- [ ] T056 [US1] `APP/Data/Source/Remote/FeedDownloader.swift`: el protocolo y `FeedFetchResult`.
+- [X] T056 [US1] `APP/Data/Source/Remote/FeedDownloader.swift`: el protocolo y `FeedFetchResult`.
       **Es la única interfaz del proyecto que puede fallar sin lanzar**, y es deliberado: devuelve
       el fallo como valor para que el orquestador siga con las demás (**FR-004**).
-- [ ] T057 [US1] **D-311, FR-005 … FR-008** `APP/Data/Source/Remote/HttpFeedDownloader.swift`:
+- [X] T057 [US1] **D-311, FR-005 … FR-008** `APP/Data/Source/Remote/HttpFeedDownloader.swift`:
       `URLSession.bytes(for:)` **contando bytes mientras llegan** —`data(for:)` bufea antes de que
       puedas comprobar nada—, rechazo previo por longitud declarada, tope de 5 MB, validación del
       esquema y del host **sobre la dirección final** porque las redirecciones se siguen solas,
       `waitsForConnectivity = false` —con `true` el estado «sin conexión» no llega nunca— y
       `User-Agent` y `Accept` en la configuración.
-- [ ] T058 [US1] **FR-006** `APP/Data/Source/Remote/HttpFeedDownloader.swift`: tres intentos con
+- [X] T058 [US1] **FR-006** `APP/Data/Source/Remote/HttpFeedDownloader.swift`: tres intentos con
       espera creciente **más jitter inyectado**, solo ante agotamiento de tiempo, error de
       conexión, 408, 429 y 5xx; **nunca** ante 400, 401, 403, 404 ni cuerpo inválido.
 - [ ] T059 [US1] `TEST/Data/HttpFeedDownloaderTests.swift`: con un `URLProtocol` de prueba
       **declarado en el target de pruebas, no en producción**. Tope de tamaño, redirección a otro
       host, tipo de contenido incorrecto, cuerpo truncado, y la lista exacta de esperas con
       `FixedRandom` y `ManualClock` (**D-310**).
-- [ ] T060 [US1] **FR-022** `APP/Data/Source/Remote/HttpFeedDownloader.swift`: la huella SHA-256 del
+- [X] T060 [US1] **FR-022** `APP/Data/Source/Remote/HttpFeedDownloader.swift`: la huella SHA-256 del
       cuerpo y la respuesta «sin cambios» cuando coincide con la conocida. Es lo que evita analizar
       cien anuncios idénticos diecinueve veces al día.
 
 ### La base
 
-- [ ] T061 [US1] **D-301, D-306** `APP/Data/Source/Local/BocDatabase.swift`: `DatabaseQueue` con
+- [X] T061 [US1] **D-301, D-306** `APP/Data/Source/Local/BocDatabase.swift`: `DatabaseQueue` con
       `journalMode = .wal`, en Application Support —**no en cachés**: el sistema puede vaciarlas y
       ésta es la procedencia de lo que la pantalla muestra— y con protección
       `.completeUntilFirstUserAuthentication`, pensando en la sincronización en segundo plano de la
       feature de Avisos. Es el **único** fichero que abre la base.
-- [ ] T062 [US1] `APP/Data/Source/Local/BocMigrations.swift`: la v1 con las dos tablas y sus
+- [X] T062 [US1] `APP/Data/Source/Local/BocMigrations.swift`: la v1 con las dos tablas y sus
       índices de `data-model.md`. `eraseDatabaseOnSchemaChange` se queda en `false` **y merece su
       aserción**: es la bandera que uno enciende en desarrollo y se deja puesta.
-- [ ] T063 [US1] [P] `APP/Data/Source/Local/PublicationRecord.swift` y `FeedSyncStateRecord.swift`,
+- [X] T063 [US1] [P] `APP/Data/Source/Local/PublicationRecord.swift` y `FeedSyncStateRecord.swift`,
       con el mapeo a dominio. **La conversión de `BocDate` vive aquí** (**D-315**): el registro
       guarda texto ISO y el mapeo convierte, para no ponerle a un tipo de dominio una capacidad que
       solo existe por la capa de datos.
-- [ ] T064 [US1] **FR-019, FR-020, FR-021, FR-028**
+- [X] T064 [US1] **FR-019, FR-020, FR-021, FR-028**
       `APP/Data/Source/Local/PublicationQueries.swift`: el upsert por clave externa con **lista
       blanca de columnas** —`first_seen_at` no está en ella—, las cuatro consultas de
       `data-model.md` y el orden estable de tres criterios. **Ni un borrado.**
@@ -328,7 +328,7 @@ con el recuento. Es el paso 6 del quickstart.
       una sección principal **recoge a sus subsecciones**; una subsección no recoge a su hermana; el
       recuento casa con la lista; y el desempate determinista con dos publicaciones de la misma
       fecha (**FR-028**).
-- [ ] T067 [US1] **D-305** `APP/Domain/UseCase/PrepareStartupUseCase.swift` y
+- [X] T067 [US1] **D-305** `APP/Domain/UseCase/PrepareStartupUseCase.swift` y
       `APP/Core/DI/AppContainer.swift`: abrir y migrar la base como un paso más de la comprobación
       previa. Un fallo de migración es un desenlace de la portada, **no un cierre inesperado**;
       hoy la portada es el único sitio con indicador, límite de espera y reintento.
@@ -337,7 +337,7 @@ con el recuento. Es el paso 6 del quickstart.
 
 ### El coordinador y el repositorio
 
-- [ ] T069 [US1] **D-307, D-308, FR-004, FR-005** `APP/Data/Sync/FeedSyncCoordinator.swift`:
+- [X] T069 [US1] **D-307, D-308, FR-004, FR-005** `APP/Data/Sync/FeedSyncCoordinator.swift`:
       `actor` con la tarea guardada; ventana explícita de cuatro simultáneas; **escribe el padre**,
       una transacción por fuente conforme terminan. Un solo escritor.
 - [ ] T070 [US1] `TEST/Data/FeedSyncCoordinatorTests.swift`: el tope de cuatro con un descargador
@@ -346,9 +346,9 @@ con el recuento. Es el paso 6 del quickstart.
       no el tope.
 - [ ] T071 [US1] **FR-004** `TEST/Data/FeedSyncCoordinatorTests.swift`: una fuente que falla no
       impide las demás, y todas las que respondieron se escriben.
-- [ ] T072 [US1] `APP/Data/Repository/PublicationRepositoryImpl.swift`: las **cinco filas** de la
+- [X] T072 [US1] `APP/Data/Repository/PublicationRepositoryImpl.swift`: las **cinco filas** de la
       política de `refresh(force:)` de `contracts/internal-contracts.md` §1.
-- [ ] T073 [US1] **D-302, D-303, D-304** `APP/Data/Repository/PublicationRepositoryImpl.swift`: la
+- [X] T073 [US1] **D-302, D-303, D-304** `APP/Data/Repository/PublicationRepositoryImpl.swift`: la
       observación como `AsyncStream<AppResult<[Publication]>>` sobre `values(in:scheduling: .task)`
       —**nunca `.immediate`**, que hace una lectura síncrona de SQLite en el actor principal—, con
       el mapeo registro→dominio **dentro del cierre de lectura** y la tarea que bombea cancelada

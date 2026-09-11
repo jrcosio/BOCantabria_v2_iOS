@@ -32,6 +32,7 @@ struct StartupFlowIntegrationTests {
                     crashReporter: NoOpCrashReporter()
                 ),
                 connectivity: connectivity,
+                storage: FakeStorage(),
                 installedVersion: AppVersion(installed)
             ),
             analytics: NoOpAnalyticsTracker(),
@@ -70,6 +71,7 @@ struct StartupFlowIntegrationTests {
                     crashReporter: NoOpCrashReporter()
                 ),
                 connectivity: connectivity,
+                storage: FakeStorage(),
                 installedVersion: AppVersion("1.0.0")
             ),
             analytics: NoOpAnalyticsTracker(),
