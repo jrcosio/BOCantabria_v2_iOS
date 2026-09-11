@@ -27,7 +27,13 @@ struct ArchitectureRulesTests {
     /// **Mantén esta lista corta: cada entrada es un agujero en SC-002.** Hoy son dos portadores
     /// de datos puros: `ContentItem` son dos cadenas y `DomainError` es un enumerado de dos casos
     /// sin nada que ejecutar. Probarlos sería probar al compilador.
-    static let domainTypesWithoutBehaviour: Set<String> = ["ContentItem", "DomainError"]
+    static let domainTypesWithoutBehaviour: Set<String> = [
+        "ContentItem", "DomainError",
+        // Tres casos sin comportamiento. Lo único que podría afirmar un fichero propio es
+        // que el compilador funciona; su semántica se prueba donde vive, en
+        // `PrepareStartupUseCaseTests`. Declarado en el Complexity Tracking de la 002.
+        "StartupStatus",
+    ]
 
     // MARK: - Regla de capas
 

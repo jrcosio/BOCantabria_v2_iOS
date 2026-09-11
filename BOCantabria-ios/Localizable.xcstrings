@@ -29,6 +29,97 @@
         "es" : { "stringUnit" : { "state" : "translated", "value" : "BOC Cantabria" } }
       }
     },
+    "splash_acronym" : {
+      "comment" : "Siglas del boletín en la portada de arranque.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "BOC" } }
+      }
+    },
+    "splash_title_line_one" : {
+      "comment" : "Primera línea de la denominación del boletín en la portada.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "BOLETÍN OFICIAL" } }
+      }
+    },
+    "splash_title_line_two" : {
+      "comment" : "Segunda línea de la denominación del boletín en la portada.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "DE CANTABRIA" } }
+      }
+    },
+    "splash_authorship_label" : {
+      "comment" : "Etiqueta de la autoría en la portada. Va sobre el nombre y en otro color.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Diseñada y desarrollada por" } }
+      }
+    },
+    "splash_authorship_name" : {
+      "comment" : "Nombre del autor en la portada. Destacado sobre la etiqueta.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "José Ramón Blanco Gutiérrez" } }
+      }
+    },
+    "splash_loading_description" : {
+      "comment" : "Descripción de accesibilidad del indicador de progreso de la portada.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Preparando la aplicación" } }
+      }
+    },
+    "splash_error_title" : {
+      "comment" : "Título del error recuperable del arranque.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "No hemos podido preparar la aplicación" } }
+      }
+    },
+    "splash_error_network" : {
+      "comment" : "Mensaje del error de arranque cuando no hay conexión.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Comprueba tu conexión e inténtalo de nuevo." } }
+      }
+    },
+    "splash_error_unknown" : {
+      "comment" : "Mensaje del error de arranque cuando el fallo no es de red.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Se ha producido un error inesperado." } }
+      }
+    },
+    "splash_continue_offline" : {
+      "comment" : "Acción que entra al contenido principal pese al fallo del arranque.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Continuar sin conexión" } }
+      }
+    },
+    "splash_update_required_title" : {
+      "comment" : "Título del acceso bloqueado por versión obsoleta.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Actualiza la aplicación" } }
+      }
+    },
+    "splash_update_required_message" : {
+      "comment" : "Mensaje del acceso bloqueado por versión obsoleta.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Esta versión ha dejado de estar soportada. Instala la última versión para seguir consultando el boletín." } }
+      }
+    },
+    "splash_maintenance_title" : {
+      "comment" : "Título del acceso bloqueado por mantenimiento. El mensaje lo publica el servicio.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Servicio en mantenimiento" } }
+      }
+    },
     "action_retry" : {
       "comment" : "Acción de reintentar, común a toda la aplicación.",
       "extractionState" : "manual",

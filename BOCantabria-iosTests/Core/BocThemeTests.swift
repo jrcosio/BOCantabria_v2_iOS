@@ -13,13 +13,50 @@ import Testing
 @Suite("Sistema de diseño")
 struct BocThemeTests {
 
-    @Test("Ningún estilo tipográfico lleva espaciado entre letras")
-    func noTextStyleHasTracking() {
+    @Test("Ninguno de los catorce estilos del §6.2 lleva espaciado entre letras")
+    func noScaleTextStyleHasTracking() {
         // Es la trampa número uno del port: SwiftUI aplica el tracking de la fuente del sistema, y
         // si no se anula la tipografía se parece pero no es la misma. Nadie sabría decir por qué.
+        //
+        // La afirmación es ahora sobre la escala del §6.2, no sobre todos los estilos: el §13.2
+        // declara espaciado para la denominación de la portada, y esa excepción se comprueba
+        // abajo. Debilitar esta prueba a «casi ninguno» habría dejado pasar el caso contrario.
         for style in BocTheme.typography.all {
             #expect(style.tracking == 0)
         }
+    }
+
+    @Test("La denominación de la portada es el único estilo con espaciado, y el §13.2 lo pide")
+    func onlyTheSplashSubtitleHasTracking() {
+        let splash = BocTheme.typography.splash
+        #expect(splash.subtitle.tracking > 0, "El §13.2 pide espaciado amplio en la denominación.")
+        #expect(splash.authorshipLabel.tracking == 0)
+        #expect(splash.authorshipName.tracking == 0)
+    }
+
+    @Test("Los tres estilos de la portada son los del §13.2")
+    func splashStylesMatchTheDesignDocument() {
+        let splash = BocTheme.typography.splash
+        #expect(splash.all.count == 3)
+        #expect(splash.subtitle.size == 20)
+        #expect(splash.subtitle.weight == .medium)
+        #expect(splash.authorshipLabel.size == 13)
+        #expect(splash.authorshipLabel.weight == .regular)
+        #expect(splash.authorshipName.size == 15)
+        #expect(splash.authorshipName.weight == .semibold)
+    }
+
+    @Test("Los estilos de la portada no entran en la escala de catorce")
+    func splashStylesAreNotPartOfTheScale() {
+        // Si alguien los añadiera a `all`, la prueba de los catorce y la de los pesos empezarían
+        // a hablar de una tabla que el documento no tiene.
+        //
+        // No vale comprobarlo por identidad de valores: el nombre del autor es 15/20 semibold,
+        // exactamente igual que `titleSmall`, y `BocTextStyle` compara por valor. Lo que sí
+        // distingue a la escala es que **ningún** estilo suyo lleva espaciado, y que son catorce.
+        #expect(BocTheme.typography.all.count == 14)
+        #expect(BocTheme.typography.all.allSatisfy { $0.tracking == 0 })
+        #expect(!BocTheme.typography.all.contains(BocTheme.typography.splash.subtitle))
     }
 
     @Test("Son catorce estilos, con los tamaños del documento")

@@ -14,5 +14,49 @@
 	-->
 	<key>GEMINI_API_KEY</key>
 	<string>$(GEMINI_API_KEY)</string>
+
+	<!--
+	  Pantalla de lanzamiento del sistema (feature 002, research.md D-202).
+
+	  Se declara a mano, con `INFOPLIST_KEY_UILaunchScreen_Generation = NO` en el
+	  proyecto, porque la generación automática produce un lanzamiento en blanco y
+	  ese destello es justo lo que FR-002 prohíbe. Sin Storyboard: la constitución
+	  lo prohíbe y el diccionario cubre fondo e imagen, que es todo lo que hace
+	  falta.
+
+	  `UIColorName` apunta a AccentColor y no a un colorset propio: ya vale
+	  #063B5C, que es el azul institucional, y ya hay una prueba que falla si se
+	  separa del token del tema. Un tercer sitio con el mismo color sería un tercer
+	  sitio que mantener sincronizado.
+
+	  `UIImageName` es el escudo con el desplazamiento dentro del lienzo, para que
+	  al centrarlo el sistema caiga donde la portada lo dibuja (D-203).
+	-->
+	<key>UILaunchScreen</key>
+	<dict>
+		<key>UIColorName</key>
+		<string>AccentColor</string>
+		<key>UIImageName</key>
+		<string>ic_launch_emblem</string>
+		<!--
+		  Por defecto el sistema centra la imagen en el **área segura**, no en la
+		  pantalla, y eso la sube 17 pt en este dispositivo: la mitad del hueco del
+		  indicador de inicio. Compensarlo dentro del lienzo del recurso sería peor
+		  que el fallo, porque ese hueco cambia de un modelo a otro y el recurso es
+		  uno solo. Se centra en la pantalla y se acabó.
+		-->
+		<key>UIImageRespectsSafeAreaInsets</key>
+		<false/>
+	</dict>
+
+	<!--
+	  La barra de estado no se ve durante el arranque (FR-022 enmendado, D-213).
+	  Aquí se oculta la del lanzamiento; la portada la mantiene oculta con
+	  `.statusBarHidden(true)`. Tiene que ser la misma decisión en los dos sitios o
+	  habría un cambio visible justo en la transición. Vuelve en el contenido
+	  principal, que no la oculta.
+	-->
+	<key>UIStatusBarHidden</key>
+	<true/>
 </dict>
 </plist>

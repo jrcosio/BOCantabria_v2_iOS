@@ -92,7 +92,7 @@ y colócalo en `BOCantabria-ios/`.
 |---|---|
 | Compilar | `xcodebuild -scheme BOCantabria-ios -destination 'platform=iOS Simulator,name=iPhone 17 Pro' -quiet build` |
 | Pruebas unitarias y de integración | `xcodebuild ... -only-testing:BOCantabria-iosTests -quiet test` |
-| Pruebas de interfaz | `xcodebuild ... -only-testing:BOCantabria-iosUITests -quiet test` |
+| Pruebas de interfaz | `xcodebuild ... -testPlan UITests -quiet test` |
 | Resolver paquetes | `xcodebuild -resolvePackageDependencies` |
 
 > [!TIP]

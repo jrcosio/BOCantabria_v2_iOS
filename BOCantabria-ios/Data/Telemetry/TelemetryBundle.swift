@@ -31,11 +31,43 @@ struct TelemetryBundle: Sendable {
     static func resolved(
         configurationURL: URL? = Bundle.main.url(forResource: "GoogleService-Info", withExtension: "plist")
     ) -> TelemetryBundle {
-        guard configurationURL != nil else { return .noOp }
-        FirebaseApp.configure()
-        return TelemetryBundle(
-            analytics: FirebaseAnalyticsTracker(sink: FirebaseAnalyticsSink()),
-            crashReporter: FirebaseCrashReporter(sink: FirebaseCrashSink())
+        ProviderBundle.resolved(configurationURL: configurationURL).telemetry
+    }
+}
+
+/// Todo lo que el proveedor aporta cuando está configurado: la telemetría y la configuración
+/// remota.
+///
+/// **Existe porque la decisión tiene que tomarse una sola vez.** Las dos cosas necesitan que la
+/// aplicación del proveedor esté arrancada, y arrancarla dos veces es un error. Si la telemetría y
+/// la configuración comprobaran cada una por su cuenta si existe el fichero, serían dos sitios
+/// decidiendo lo mismo y nada garantizaría que deciden igual (research.md D-209).
+struct ProviderBundle: Sendable {
+    let telemetry: TelemetryBundle
+    let remoteConfig: RemoteConfigDataSource
+
+    /// Sin proveedor: telemetría que no hace nada y configuración que devuelve vacío. La
+    /// aplicación arranca **hasta el contenido principal** (SC-010).
+    static let unavailable = ProviderBundle(
+        telemetry: .noOp,
+        remoteConfig: UnavailableRemoteConfigDataSource()
+    )
+
+    static func resolved(
+        configurationURL: URL? = Bundle.main.url(forResource: "GoogleService-Info", withExtension: "plist")
+    ) -> ProviderBundle {
+        guard configurationURL != nil else { return .unavailable }
+        // Idempotente a propósito: `configure()` lanza si ya se llamó, y este tipo tiene dos
+        // puertas de entrada.
+        if FirebaseApp.app() == nil {
+            FirebaseApp.configure()
+        }
+        return ProviderBundle(
+            telemetry: TelemetryBundle(
+                analytics: FirebaseAnalyticsTracker(sink: FirebaseAnalyticsSink()),
+                crashReporter: FirebaseCrashReporter(sink: FirebaseCrashSink())
+            ),
+            remoteConfig: FirebaseRemoteConfigDataSource()
         )
     }
 }

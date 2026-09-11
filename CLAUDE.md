@@ -87,7 +87,7 @@ El esquema es `BOCantabria-ios` y el simulador de referencia, un iPhone 17 Pro.
 |---|---|
 | Compilar | `xcodebuild -project BOCantabria-ios.xcodeproj -scheme BOCantabria-ios -destination 'platform=iOS Simulator,name=iPhone 17 Pro' build` |
 | Pruebas unitarias + integración | `xcodebuild ... -only-testing:BOCantabria-iosTests test` |
-| Pruebas de interfaz | `xcodebuild ... -only-testing:BOCantabria-iosUITests test` |
+| Pruebas de interfaz | `xcodebuild ... -testPlan UITests test` |
 | Una sola prueba | `xcodebuild ... -only-testing:BOCantabria-iosTests/HomeViewModelTests/loadsPublications test` |
 | Limpiar | `xcodebuild -project BOCantabria-ios.xcodeproj -scheme BOCantabria-ios clean` |
 | Resolver paquetes | `xcodebuild -resolvePackageDependencies -project BOCantabria-ios.xcodeproj` |
@@ -517,6 +517,35 @@ siendo posible aquí; las demás son propias de esta plataforma.
   La fase se declara siempre desactualizada y se queda sin lista. Comprobado que la subida corre en
   Release **sin** desactivar `ENABLE_USER_SCRIPT_SANDBOXING`, que la documentación de Firebase da
   por necesario.
+- **Un reloj que devuelve al instante gana toda carrera contra un límite de espera.** `ImmediateClock`
+  vale para una latencia simulada, pero no para el arranque: allí el trabajo real corre contra un
+  `sleep` de ocho segundos y con ese doble **gana siempre el límite**. Las pruebas del camino feliz
+  fallarían por un motivo que no tienen, y la del propio límite pasaría en verde aunque el límite
+  estuviera mal escrito. Hace falta un reloj que suspenda hasta que la prueba adelante el tiempo
+  —`ManualClock` en `Fakes.swift`— y **esperar a que la espera esté registrada** antes de adelantar,
+  o el adelanto se pierde y la prueba se cuelga en vez de fallar.
+- **Un contenedor de SwiftUI no entra en el árbol de accesibilidad por llevar identificador.** A la
+  regla ya anotada de «busca sin fijar el tipo» le falta la otra mitad: un `ZStack` con un color y
+  dos pilas dentro **no es una hoja**, así que no aparece. Se declara con
+  `.accessibilityElement(children: .contain)` **antes** del identificador. `splash_root` no se
+  encontraba con la portada delante de los ojos.
+- **`Int("+1")` vale 1 y `Int("-1")` vale −1.** Validar un número con `Int(_:)` a secas da por buena
+  una versión «+1.0.0». Si lo que se espera son dígitos, se comprueba que lo sean:
+  `part.allSatisfy { $0.isASCII && $0.isNumber }`. Lo cazó la prueba, no la revisión.
+- **`Mutex` no es copiable, así que no puede capturarse en un closure.** El manejador de
+  `NWPathMonitor` necesita escribir el último valor conocido; el cerrojo se envuelve en un `final
+  class` y se captura la referencia.
+- **La pantalla de lanzamiento del sistema solo se ve dentro de la animación de apertura**, que
+  escala y desplaza la ventana. Medirla sobre una captura da cifras falsas: hay que **grabar el
+  arranque** y comparar el escudo **relativo a la ventana**, no a la pantalla. Y por defecto centra
+  su imagen en el **área segura**, no en la pantalla: `UIImageRespectsSafeAreaInsets` a `false`, o el
+  escudo sube media altura del indicador de inicio —y esa altura cambia de un modelo a otro—.
+- **`BocPrimaryButtonStyle` es invisible sobre el azul institucional**: pinta el fondo con
+  `primary`, que es el fondo de la portada. Sobre azul va `BocOnPrimaryButtonStyle`. Se vio mirando
+  la pantalla con el texto al 200 %, no leyendo el código.
+- **Las pruebas de interfaz se lanzan con `-testPlan UITests`, no con `-only-testing`.** El esquema
+  usa planes de prueba y el plan por defecto solo lleva el target unitario: `-only-testing` sobre el
+  de interfaz falla con «isn't a member of the specified test plan or scheme».
 - *(heredada)* **Con el reloj congelado, un filtro por fechas es inerte y no se comprueba
   nada.** Las pruebas de integración de los avisos almacenan y activan en el mismo instante:
   las que quieren ver actuar el filtro tienen que **avanzar el reloj** entre ciclos.
@@ -610,7 +639,7 @@ Antes de dar una feature por terminada, en este orden:
 xcodebuild -project BOCantabria-ios.xcodeproj -scheme BOCantabria-ios \
   -destination 'platform=iOS Simulator,name=iPhone 17 Pro' -quiet build
 xcodebuild ... -only-testing:BOCantabria-iosTests -quiet test
-xcodebuild ... -only-testing:BOCantabria-iosUITests -quiet test
+xcodebuild ... -testPlan UITests -quiet test
 ```
 
 ---
