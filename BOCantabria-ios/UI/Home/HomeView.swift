@@ -26,6 +26,9 @@ struct HomeView: View {
         self.onOpenSections = onOpenSections
     }
 
+    /// Lo que todavía no existe **lo dice**, en vez de no responder (FR-073, FR-076).
+    @State private var comingSoon: String?
+
     var body: some View {
         HomeContentView(
             state: viewModel.state,
@@ -34,8 +37,18 @@ struct HomeView: View {
             // sobrevive a la pantalla y escribe en un estado que ya no se ve.
             onRetry: { Task { await viewModel.onRetry() } },
             onSelect: { chip in onSelect(Self.selection(for: chip)) },
-            onOpenSections: onOpenSections
+            onOpenSections: onOpenSections,
+            onSearch: { comingSoon = String(localized: Strings.Nav.search) },
+            onSave: { _ in comingSoon = String(localized: Strings.Card.save) }
         )
+        .alert(
+            Text(Strings.Common.comingSoon),
+            isPresented: Binding(get: { comingSoon != nil }, set: { if !$0 { comingSoon = nil } })
+        ) {
+            Button("OK") { comingSoon = nil }
+        } message: {
+            if let comingSoon { Text(comingSoon) }
+        }
         // Marca la pantalla entera, **en cualquiera de sus estados**. Es lo que permite que las
         // pruebas del arranque afirmen «se llegó al contenido principal» sin atarse a si el
         // listado está vacío, con publicaciones o en error.

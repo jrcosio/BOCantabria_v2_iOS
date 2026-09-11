@@ -353,7 +353,7 @@ con el recuento. Es el paso 6 del quickstart.
       —**nunca `.immediate`**, que hace una lectura síncrona de SQLite en el actor principal—, con
       el mapeo registro→dominio **dentro del cierre de lectura** y la tarea que bombea cancelada
       desde `onTermination`.
-- [ ] T074 [US1] `TEST/Data/PublicationRepositoryImplTests.swift`: las cinco filas de la política,
+- [X] T074 [US1] `TEST/Data/PublicationRepositoryImplTests.swift`: las cinco filas de la política,
       una prueba por fila. Y la de la observación: arrancar, **cancelar**, escribir, y afirmar que
       no llega otro valor. Contando suscripciones dentro del propio flujo, porque tomar el primer
       valor no permite ver que un flujo termina.
@@ -426,14 +426,14 @@ con cabecera rotulada y recuento. **US1 es el MVP y ya es demostrable.**
 **Independent Test**: abrir con conexión, cerrar, modo avión, volver a abrir. Mismo contenido, de
 inmediato, con el aviso. Pasos 7 y 8 del quickstart.
 
-- [ ] T090 [US2] **FR-023, D-317** `APP/Data/Repository/PublicationRepositoryImpl.swift`:
+- [X] T090 [US2] **FR-023, D-317** `APP/Data/Repository/PublicationRepositoryImpl.swift`:
       `isCacheStale()` contra `last_success_at` y el `now()` inyectado. **Un transcurrido negativo o
       una marca en el futuro se tratan como caducado**, no como recién sincronizado: si no, la
       caché se congela hasta que el reloj del dispositivo alcance ese valor.
 - [X] T091 [US2] `TEST/Data/PublicationRepositoryImplTests.swift`: a los veintinueve minutos no
       sincroniza, a los treinta y uno sí, y con la marca en el futuro sí. Con `ManualClock`, las
       tres en microsegundos. **`ImmediateClock` no vale aquí**: gana toda carrera contra un límite.
-- [ ] T092 [US2] **FR-024, FR-025, FR-026** `APP/UI/Home/HomeViewModel.swift`: `onRefresh()` con
+- [X] T092 [US2] **FR-024, FR-025, FR-026** `APP/UI/Home/HomeViewModel.swift`: `onRefresh()` con
       `force: true`, que **siempre** sale a la red; `isRefreshing` mientras dura; y el contenido
       existente **intacto** durante toda la actualización.
 - [X] T093 [US2] **FR-025, D-307** `TEST/Data/FeedSyncCoordinatorTests.swift`: dos llamadas
@@ -456,7 +456,7 @@ inmediato, con el aviso. Pasos 7 y 8 del quickstart.
 - [X] T098 [US2] `TEST/Integration/NoDeleteRegressionTests.swift`: con la misma traza, que la
       actualización de la sincronización es una **lista blanca de columnas** y no menciona
       `first_seen_at`. Es la infraestructura que Guardados y Avisos van a necesitar tal cual.
-- [ ] T099 [US2] **SC-004** `TEST/Integration/SyncFlowIntegrationTests.swift`: cinco
+- [X] T099 [US2] **SC-004** `TEST/Integration/SyncFlowIntegrationTests.swift`: cinco
       sincronizaciones seguidas no duplican nada y **el recuento no baja**, ni siquiera cuando una
       publicación deja de aparecer en la fuente.
 - [X] T100 [US2] **FR-083** `TEST/Integration/SyncFlowIntegrationTests.swift`: **la matriz completa
@@ -531,13 +531,13 @@ la cabecera y las dos filas cambian. Pasos 9, 10 y 11 del quickstart.
       panel produce el mismo resultado que llegar desde los chips.
 - [X] T114 [US3] `TEST/UI/HomeViewModelTests.swift`: las seis reglas anteriores, una aserción cada
       una, incluida la de que pasar a una sección sin subsecciones **retira** la segunda fila.
-- [ ] T115 [US3] **FR-038** `APP/UI/Home/`: con sección elegida, el listado **no se limita a una
+- [X] T115 [US3] **FR-038** `APP/UI/Home/`: con sección elegida, el listado **no se limita a una
       fecha** y el rótulo de la cabecera pasa a «Última publicación: …». Es lo que evita que una
       fecha de 2021 se lea como un fallo.
 - [X] T116 [US3] **FR-056, FR-086** `UITEST/Home/HomeFiltersUITests.swift`: las dos filas, con
       `home_subsection_chips` **que no existe** cuando no procede; que ambas se desplazan
       horizontalmente; y que **el resto de la pantalla no se desplaza** con ellas.
-- [ ] T117 [US3] **SC-007** `TEST/Integration/SyncFlowIntegrationTests.swift`: elegir 8.1 da estado
+- [X] T117 [US3] **SC-007** `TEST/Integration/SyncFlowIntegrationTests.swift`: elegir 8.1 da estado
       vacío **con mensaje propio y ningún error**; elegir 4.3 da sus publicaciones antiguas con su
       advertencia registrada y **ninguna descartada**.
 - [X] T118 [US3] `APP/UI/Home/HomeView.swift`: la selección llega de `MainView` como `let` y se
@@ -573,9 +573,9 @@ del quickstart.
       aplicación.
 - [X] T123 [US4] **FR-073, FR-074** `APP/UI/Home/Component/HomeTopBar.swift`: la lupa avisa de que
       la búsqueda llegará próximamente; la información está y **no hace nada todavía**.
-- [ ] T124 [US4] **FR-075** `APP/Core/UI/Component/PublicationCard.swift`: compartir abre la hoja
+- [X] T124 [US4] **FR-075** `APP/Core/UI/Component/PublicationCard.swift`: compartir abre la hoja
       del sistema **con el enlace del documento oficial**.
-- [ ] T125 [US4] **FR-076, FR-077** `APP/Core/UI/Component/PublicationCard.swift`: guardar avisa; y
+- [X] T125 [US4] **FR-076, FR-077** `APP/Core/UI/Component/PublicationCard.swift`: guardar avisa; y
       **tocar el cuerpo de la tarjeta no navega a ningún sitio**, que es lo que la feature siguiente
       va a cambiar.
 - [X] T126 [US4] **FR-078** `APP/UI/Navigation/RootView.swift`: conmutar a `MainView` en lugar de a
@@ -584,7 +584,7 @@ del quickstart.
 - [X] T127 [US4] **FR-086, SC-009** `UITEST/Main/TabNavigationUITests.swift`: los tres destinos, el
       marcador
       en dos de ellos, y que la barra refleja cuál está activo.
-- [ ] T128 [US4] `TEST/Integration/AppContainerTests.swift`: que el contenedor resuelve las fábricas
+- [X] T128 [US4] `TEST/Integration/AppContainerTests.swift`: que el contenedor resuelve las fábricas
       nuevas y **no dispara efectos de arranque** al construirse.
 
 **Checkpoint**: ninguna acción visible deja sin respuesta, y la estructura de navegación queda

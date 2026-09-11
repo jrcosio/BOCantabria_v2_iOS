@@ -84,14 +84,36 @@ struct PublicationCard: View {
     private var actions: some View {
         HStack(spacing: BocTheme.spacing.xs) {
             Spacer()
-            action(.icShare, label: Strings.Card.share, identifier: "publication_share") {
-                onShare?()
+            // Se comparte **el enlace del documento oficial**, no el título: lo que sirve al otro
+            // lado es poder abrir el documento (FR-075).
+            ShareLink(
+                item: publication.documentUrl,
+                subject: Text(publication.title),
+                message: Text(Strings.Card.shareChooser)
+            ) {
+                icon(.icShare)
             }
+            .buttonStyle(.plain)
+            .foregroundStyle(BocTheme.colors.textSecondary)
+            .accessibilityLabel(Text(Strings.Card.share))
+            .accessibilityIdentifier("publication_share")
+            .simultaneousGesture(TapGesture().onEnded { onShare?() })
+
             action(.icBookmark, label: Strings.Card.save, identifier: "publication_save") {
                 onSave?()
             }
         }
         .padding(.top, BocTheme.spacing.xxs)
+    }
+
+    private func icon(_ resource: ImageResource) -> some View {
+        Image(resource)
+            .resizable()
+            .scaledToFit()
+            .frame(width: 24, height: 24)
+            // Área táctil de 48 pt, aunque el icono mida 24 (documento de diseño §12.1).
+            .frame(width: 48, height: 48)
+            .contentShape(Rectangle())
     }
 
     private func action(
@@ -101,13 +123,7 @@ struct PublicationCard: View {
         action: @escaping () -> Void
     ) -> some View {
         Button(action: action) {
-            Image(icon)
-                .resizable()
-                .scaledToFit()
-                .frame(width: 24, height: 24)
-                // Área táctil de 48 pt, aunque el icono mida 24 (documento de diseño §12.1).
-                .frame(width: 48, height: 48)
-                .contentShape(Rectangle())
+            self.icon(icon)
         }
         .buttonStyle(.plain)
         .foregroundStyle(BocTheme.colors.textSecondary)

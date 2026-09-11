@@ -12,6 +12,7 @@
 //  ámbitos son los previstos.
 //
 
+import Foundation
 import Testing
 @testable import BOCantabria_ios
 
@@ -47,6 +48,38 @@ struct AppContainerTests {
 
         // Arranca con marcadores, no con una pantalla en blanco.
         #expect(viewModel.state.content == .skeleton)
+    }
+
+    @Test("Entrega también el armazón, con su árbol de secciones")
+    func itDeliversTheShell() {
+        // **El almacén se inyecta.** Con el de producción, esta prueba lee las preferencias reales
+        // del anfitrión y hereda la selección que dejó una ejecución anterior: la primera versión
+        // falló por eso, con «2.2» guardado de una tanda de pruebas de interfaz. Es exactamente la
+        // contaminación entre pruebas de la que avisa `UserDefaultsSelectionStore`.
+        let store = UserDefaultsSelectionStore(
+            defaults: UserDefaults(suiteName: "boc-container-\(UUID().uuidString)")!
+        )
+        let container = AppContainer(
+            telemetry: .noOp, clock: ImmediateClock(), selectionStore: store
+        )
+        let shell = container.makeMainViewModel()
+        #expect(shell.state.sections.count == 9)
+        #expect(shell.state.selection == .todaysBulletin)
+        #expect(container.makeMainViewModel() !== shell, "Un modelo por pantalla")
+    }
+
+    @Test("Construirlo no abre la base: eso es un paso del arranque, no un efecto del grafo")
+    func buildingDoesNotOpenTheDatabase() async {
+        // Si se abriera aquí, un fallo de migración no tendría dónde contarse: la portada es el
+        // único sitio con indicador, límite de espera y reintento (research.md D-305).
+        let crashReporter = RecordingCrashReporter()
+        _ = AppContainer(
+            telemetry: TelemetryBundle(
+                analytics: NoOpAnalyticsTracker(), crashReporter: crashReporter
+            ),
+            clock: ImmediateClock()
+        )
+        #expect(crashReporter.messages.isEmpty)
     }
 
     @Test("Construirlo no dispara ningún trabajo")
