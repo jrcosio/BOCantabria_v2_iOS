@@ -183,10 +183,18 @@ View → ViewModel → UseCase → Repository (protocolo en Domain)
 
 ### Concurrencia
 
-- **Swift 6 con concurrencia estricta.** El proyecto compila con `SWIFT_VERSION = 6.0`,
-  `SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor` y `SWIFT_APPROACHABLE_CONCURRENCY = YES`: el
-  aislamiento por defecto es el actor principal, así que lo que debe salir de él se marca
-  `nonisolated` a propósito y no por descuido.
+- **Swift 6 con concurrencia estricta**, `SWIFT_VERSION = 6.0` y
+  `SWIFT_APPROACHABLE_CONCURRENCY = YES`.
+- **El aislamiento por defecto es `nonisolated`, y se cambió a conciencia.** La plantilla de Xcode
+  lo deja en `MainActor` y la feature 001 lo dio por bueno al planificar; al implementar se vio que
+  es al revés de lo que esta arquitectura necesita. Con `MainActor` por defecto, los tipos de
+  `Domain` y `Core/Telemetry` nacen aislados al actor principal y **dejan de compilar en cuanto un
+  `actor` de `Data` o un doble de pruebas los toca** —lo destapó el primer espía de analítica, con
+  tres errores seguidos—, así que habría que sembrar `nonisolated` por las dos capas que nunca
+  deben estar en el actor principal. Puesto en `nonisolated`, la anotación cae donde tiene
+  sentido: el modelo de pantalla se marca `@MainActor` —cosa que la regla de arquitectura 5 ya
+  exige— y las vistas lo son por su propio protocolo. **La regla general**: el ajuste por defecto
+  de una plantilla describe la aplicación que la plantilla imagina, que es una sin capa de datos.
 - El trabajo de `Data` va en tipos `actor` o funciones `nonisolated`; nunca bloquees el actor
   principal con E/S.
 - **El reloj, la aleatoriedad y el planificador se inyectan**, nunca se referencian
@@ -445,13 +453,28 @@ borrar una prueba para que pase la build.
   permutadas, el 8.1 vacío, el que trae `<!DOCTYPE`, el de la entidad externa y el de la fecha
   inválida. Si el servicio cambia de forma, se actualizan las muestras y las pruebas lo dicen.
 
-**Reglas de arquitectura**: hay una prueba propia que recorre el árbol de fuentes y comprueba
-las importaciones y los nombres. Hace cumplir la separación de capas, que solo `Data` toque
-Firebase y GRDB, que solo `UI/PDF` toque PDFKit, que solo `Core/UI/Theme` construya colores,
-que nada dependa del tema del sistema, y que todo tipo de dominio y todo `ViewModel` tenga su
-fichero de prueba. **Es análisis de texto, no de AST** —Swift no tiene Konsist—, así que la
-lista de reglas se mantiene corta, explícita y con una prueba de la propia regla: una regla que
-no puede fallar es una regla que no protege nada.
+**Reglas de arquitectura** (`BOCantabria-iosTests/Architecture/`): **nueve**, en una prueba propia
+que recorre el árbol de fuentes. Localiza el árbol con `#filePath` —el proceso de pruebas del
+simulador lee el sistema de ficheros del anfitrión— y por cada fichero saca su ruta, sus `import` y
+los tipos que declara al nivel superior.
+
+**En Swift las importaciones no bastan para la regla de capas, y esto es la trampa número uno del
+port.** En Kotlin, cruzar de paquete exige un `import`, así que Konsist podía comprobarla mirando
+la lista de importaciones. Dentro de un módulo Swift **no hace falta importar nada**: un fichero de
+`Domain` puede nombrar un tipo de `Data` sin una sola línea de `import`. Traducir la regla tal cual
+habría dado una regla que pasa siempre. Por eso hay dos comprobaciones: las importaciones cazan los
+marcos y los SDK, y las **referencias por nombre** —buscadas como palabra completa sobre el código
+con los comentarios y las cadenas retirados— cazan los cruces entre capas. Retirar los comentarios
+no es un detalle: sin eso, un comentario que explica por qué `Domain` no debe conocer cierto tipo
+dispararía la regla que ese comentario documenta.
+
+**Es análisis de texto, no de AST** —Swift no tiene Konsist—, así que la lista se mantiene corta,
+explícita y **con una prueba de la propia regla** (`SourceTreeTests`): una regla que no puede
+fallar es una regla que no protege nada. Añadir una regla obliga a añadir su prueba.
+
+Antes de dar por buena cualquier feature, provoca una violación a mano y comprueba que se pone en
+rojo. Es el paso 2 de `quickstart.md` de la 001, y está verificado para la regla de capas, la del
+color y la del fichero de prueba ausente.
 
 **Trampas conocidas** — las marcadas «heredada» costaron tiempo en Android y el mecanismo sigue
 siendo posible aquí; las demás son propias de esta plataforma.
@@ -472,6 +495,28 @@ siendo posible aquí; las demás son propias de esta plataforma.
   estado protegido, o mejor, como `actor`.
 - **`@Observable` no notifica lo que no se lee.** Una prueba que afirme sobre el estado debe
   leer la propiedad; observar el objeto entero no dispara nada.
+- **Una prueba de interfaz corre en otro proceso y no puede sustituir nada por dentro.** En Android
+  bastaba con cargar módulos de Koin desde el propio test; aquí el único mecanismo es pasar
+  argumentos al lanzar la aplicación y que el composition root los lea (`LaunchConfiguration`). Es
+  una costura en código de producción, así que se mantiene **acotada**: elige entre escenarios de
+  un origen desechable, y se sustituye —no se amplía— cuando llegue el origen real.
+- **Un contenedor de SwiftUI no se expone como `otherElements`.** Según lo que lleve dentro sale
+  como un tipo u otro, o no sale. `app.otherElements["home_error"]` falló por esto y el mensaje
+  hacía pensar que la pantalla estaba mal. Busca por identificador **sin fijar el tipo**:
+  `app.descendants(matching: .any).matching(identifier: "…").firstMatch`.
+- **Comprobar el estado de carga contra una latencia corta es una carrera contra el arranque.** El
+  origen de ejemplo tarda 0,6 s y la aplicación tarda más en lanzarse, así que cuando la prueba
+  mira ya hay contenido. Hay un escenario lento justo para eso; subir el tiempo de espera no
+  arregla nada, porque el problema es el contrario.
+- **`Regex` no es `Sendable`**, así que una constante estática de ese tipo no compila bajo
+  concurrencia estricta. Se declara calculada: el coste de construirla es irrelevante al lado de lo
+  que haya al otro extremo.
+- **`${BUILD_DIR%/Build/*}` solo funciona dentro del script de una fase, no en sus ficheros de
+  entrada.** La lista que documenta Firebase para subir los símbolos usa esa expansión; en el campo
+  de entradas Xcode la evalúa a vacío y la build falla con «Unable to load contents of file list».
+  La fase se declara siempre desactualizada y se queda sin lista. Comprobado que la subida corre en
+  Release **sin** desactivar `ENABLE_USER_SCRIPT_SANDBOXING`, que la documentación de Firebase da
+  por necesario.
 - *(heredada)* **Con el reloj congelado, un filtro por fechas es inerte y no se comprueba
   nada.** Las pruebas de integración de los avisos almacenan y activan en el mismo instante:
   las que quieren ver actuar el filtro tienen que **avanzar el reloj** entre ciclos.
@@ -579,9 +624,10 @@ xcodebuild ... -only-testing:BOCantabria-iosUITests -quiet test
 - **Dependencias**: GRDB 7.11.1 y Firebase 12.19.1, declaradas en el proyecto Xcode con
   `upToNextMajorVersion`. Los productos enlazados son `GRDB`, `FirebaseAnalytics`,
   `FirebaseCrashlytics` y `FirebaseRemoteConfig`.
-- **Pendiente de configuración**: la fase de build que sube los símbolos de depuración a
-  Crashlytics (`run` de FirebaseCrashlytics) **no está añadida todavía**. Sin ella los informes
-  de fallo llegan sin simbolizar. Se añade al implementar la telemetría, en la feature 001.
+- **Arranque medido**: **815 ms** de media en cinco tomas sobre el simulador de referencia
+  (desviación relativa del 0,5 %), medido el 11 de septiembre de 2026 con
+  `XCTApplicationLaunchMetric`. El objetivo de la feature 001 es menos de 2 s. La cifra se **mide**
+  con esa métrica, no se estima; el Android equivalente daba 648 ms.
 - **Documentación de diseño**: `docs/diseno/` contiene las especificaciones visuales y la
   imagen de referencia del arranque. Es la fuente de verdad de la interfaz; si cambias algo
   acordado, actualiza también el documento.

@@ -123,7 +123,7 @@
 				409C523D305359D00014B83A /* Sources */,
 				409C523E305359D00014B83A /* Frameworks */,
 				409C523F305359D00014B83A /* Resources */,
-				BC0100000000000000000041 /* Símbolos de Crashlytics */,
+				BC0100000000000000000041 /* Símbolos de Crashlytics */,
 			);
 			buildRules = (
 			);
@@ -213,10 +213,10 @@
 				};
 			};
 			buildConfigurationList = 409C523C305359D00014B83A /* Build configuration list for PBXProject "BOCantabria-ios" */;
-			developmentRegion = en;
+			developmentRegion = es;
 			hasScannedForEncodings = 0;
 			knownRegions = (
-				en,
+				es,
 				Base,
 			);
 			mainGroup = 409C5238305359D00014B83A;
@@ -262,12 +262,12 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		BC0100000000000000000041 /* Símbolos de Crashlytics */ = {
+		BC0100000000000000000041 /* Símbolos de Crashlytics */ = {
 			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
 			buildActionMask = 2147483647;
 			files = (
 			);
-			alwaysOutOfDate = 1;
 			inputFileListPaths = (
 			);
 			inputPaths = (
@@ -464,7 +464,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = nonisolated;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 6.0;
@@ -498,7 +498,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = nonisolated;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 6.0;

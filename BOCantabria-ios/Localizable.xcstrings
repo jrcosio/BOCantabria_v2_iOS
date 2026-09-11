@@ -1,0 +1,41 @@
+{
+  "sourceLanguage" : "es",
+  "strings" : {
+    "home_empty_body" : {
+      "comment" : "Estado sin contenido de la pantalla inicial. No es un error.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Todavía no hay nada que mostrar." } }
+      }
+    },
+    "home_error_body" : {
+      "comment" : "Estado de error de la pantalla inicial.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "No se ha podido cargar el contenido." } }
+      }
+    },
+    "home_loading_body" : {
+      "comment" : "Estado de carga de la pantalla inicial.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Cargando…" } }
+      }
+    },
+    "home_title" : {
+      "comment" : "Título de la pantalla inicial.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "BOC Cantabria" } }
+      }
+    },
+    "action_retry" : {
+      "comment" : "Acción de reintentar, común a toda la aplicación.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Reintentar" } }
+      }
+    }
+  },
+  "version" : "1.0"
+}

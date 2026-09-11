@@ -45,11 +45,13 @@ pruebas que fallan si alguien la rompe.**
 | | |
 |---|---|
 | **Versión** | 1.0.0 |
-| **Fase** | Proyecto inicializado. Pendiente de la feature 001 |
+| **Fase** | Esqueleto de arquitectura: capas, contenedor, sistema de diseño, telemetría y reglas |
 | **Plataforma** | iOS 18.0 o superior, solo iPhone |
 | **Orientación** | Solo vertical |
 | **Tema** | Solo claro, sin seguir el ajuste del sistema |
 | **Recursos** | Los 51 iconos y el escudo, convertidos desde los vectores de Android |
+| **Pruebas** | 58 sin interfaz en 0,1 s · 6 de interfaz en 28 s |
+| **Arranque** | 815 ms medidos *(objetivo: < 2 s)* |
 
 ---
 
