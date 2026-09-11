@@ -1,0 +1,53 @@
+# ---------- Xcode ----------
+build/
+DerivedData/
+*.xcworkspace/xcuserdata/
+*.xcodeproj/xcuserdata/
+*.xcodeproj/project.xcworkspace/xcuserdata/
+*.moved-aside
+*.pbxuser
+!default.pbxuser
+*.perspectivev3
+!default.perspectivev3
+xcuserdata/
+*.xccheckout
+*.xcscmblueprint
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+timeline.xctimeline
+playground.xcworkspace
+
+# ---------- Swift Package Manager ----------
+.build/
+.swiftpm/
+Packages/
+Package.resolved.backup
+
+# ---------- Secretos ----------
+# La credencial del servicio de IA. El .example sí se versiona.
+Config/Secrets.xcconfig
+
+# Configuración de Firebase. NO se versiona, y la diferencia con Android es real: allí el
+# google-services.json sí va en el repositorio porque la clave se restringe por paquete Y
+# huella de firma; en iOS la restricción es solo por identificador de paquete, sin prueba
+# criptográfica, así que ese razonamiento no se traslada. Se descarga de la consola del
+# proyecto bocantabria-6e90f (app iOS com.jrblanco.BOCantabria) y en CI entra como secreto.
+GoogleService-Info.plist
+
+# ---------- Fastlane / distribución ----------
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/**/*.png
+fastlane/test_output
+
+# ---------- macOS ----------
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# ---------- Proyecto ----------
+# Material de referencia (capturas, modelos de datos, especificaciones fuente) no versionado
+/Datos_modelo

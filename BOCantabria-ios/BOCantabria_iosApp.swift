@@ -2,31 +2,21 @@
 //  BOCantabria_iosApp.swift
 //  BOCantabria-ios
 //
-//  Created by José Ramón Blanco on 10/09/2026.
+//  Punto de entrada de la aplicación.
+//
+//  ANDAMIAJE PROVISIONAL: la composición real —contenedor de dependencias,
+//  arranque de Firebase y pantalla de portada— entra con la feature
+//  001-esqueleto-arquitectura, siguiendo el ciclo de Spec Kit. Lo único que hace
+//  este fichero hoy es dejar el proyecto compilando.
 //
 
 import SwiftUI
-import SwiftData
 
 @main
-struct BOCantabria_iosApp: App {
-    var sharedModelContainer: ModelContainer = {
-        let schema = Schema([
-            Item.self,
-        ])
-        let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
-
-        do {
-            return try ModelContainer(for: schema, configurations: [modelConfiguration])
-        } catch {
-            fatalError("Could not create ModelContainer: \(error)")
-        }
-    }()
-
+struct BOCantabriaApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
         }
-        .modelContainer(sharedModelContainer)
     }
 }

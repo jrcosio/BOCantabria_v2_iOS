@@ -1,0 +1,12 @@
+// Base.xcconfig — configuración base del target de la aplicación.
+//
+// Este fichero SÍ se versiona. Los secretos NO: viven en Secrets.xcconfig, que
+// está en .gitignore y se incluye de forma opcional. Si falta, la build sigue en
+// verde y la credencial llega vacía, que la aplicación traduce en «no configurado».
+// Es el equivalente exacto del `local.properties` + `BuildConfig` de Android.
+
+#include? "Secrets.xcconfig"
+
+// Credencial del servicio de IA. Viaja al Info.plist generado y la lee
+// GeminiApiKeyProvider. Nunca se registra ni se envía a telemetría.
+INFOPLIST_KEY_GEMINI_API_KEY = $(GEMINI_API_KEY)

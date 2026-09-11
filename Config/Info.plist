@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!--
+	  Claves propias del Info.plist. Xcode sigue generando las suyas
+	  (GENERATE_INFOPLIST_FILE = YES) y las fusiona con las de aquí; este fichero
+	  existe porque INFOPLIST_KEY_<clave> solo admite una lista cerrada de claves
+	  conocidas y la credencial del servicio de IA no está en ella.
+
+	  El valor se expande desde Config/Base.xcconfig, que a su vez incluye de forma
+	  opcional Secrets.xcconfig. Si falta el secreto, aquí llega una cadena vacía y
+	  la aplicación lo trata como «no configurado». La build no se rompe nunca.
+	-->
+	<key>GEMINI_API_KEY</key>
+	<string>$(GEMINI_API_KEY)</string>
+</dict>
+</plist>

@@ -1,0 +1,475 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <string name="app_name">BOCantabria</string>
+
+    <!-- Pantalla de inicio -->
+    <string name="home_error_unknown">Se ha producido un error inesperado.</string>
+    <string name="action_retry">Reintentar</string>
+
+    <!-- Pantalla de arranque -->
+    <string name="splash_acronym">BOC</string>
+    <string name="splash_title_line_one">BOLETÍN OFICIAL</string>
+    <string name="splash_title_line_two">DE CANTABRIA</string>
+    <string name="splash_authorship_label">Diseñada y desarrollada por</string>
+    <string name="splash_authorship_name">José Ramón Blanco Gutiérrez</string>
+    <string name="splash_loading_description">Preparando la aplicación</string>
+    <string name="splash_error_title">No hemos podido preparar la aplicación</string>
+    <string name="splash_error_network">Comprueba tu conexión e inténtalo de nuevo.</string>
+    <string name="splash_error_unknown">Se ha producido un error inesperado.</string>
+    <string name="splash_continue_offline">Continuar sin conexión</string>
+    <string name="splash_update_required_title">Actualiza la aplicación</string>
+    <string name="splash_update_required_message">Esta versión ha dejado de estar soportada. Instala la última versión para seguir consultando el boletín.</string>
+    <string name="splash_maintenance_title">Servicio en mantenimiento</string>
+    <!-- ===== Feature 003: boletín del día ===== -->
+
+    <!-- Barra superior -->
+    <string name="app_bar_title">BOC Cantabria</string>
+    <string name="app_bar_open_sections">Abrir las secciones del boletín</string>
+    <string name="app_bar_search">Filtrar esta lista</string>
+    <string name="app_bar_info">Información</string>
+
+    <!-- Cabecera editorial -->
+    <string name="home_bulletin_today">Boletín de hoy</string>
+    <!-- La fecha va rotulada: sola no se sabe qué fecha es, y junto al recuento invita a inventarse
+         la relación entre ambos. Son dos rótulos porque la fecha significa dos cosas distintas. -->
+    <string name="home_header_date_bulletin">Edición del %1$s</string>
+    <string name="home_header_date_section">Última publicación: %1$s</string>
+    <plurals name="home_publication_count">
+        <item quantity="one">%d anuncio</item>
+        <item quantity="other">%d anuncios</item>
+    </plurals>
+
+    <!-- Filtros rápidos -->
+    <string name="chip_todays_bulletin">Boletín de hoy</string>
+    <string name="chip_whole_section">Toda la sección</string>
+
+    <!-- Estados del listado -->
+    <string name="home_empty_today">Todavía no hay publicaciones para esta fecha.</string>
+    <string name="home_empty_section">Esta sección no tiene publicaciones guardadas.</string>
+    <string name="home_error_sync">No hemos podido traer el boletín. Comprueba tu conexión.</string>
+    <string name="home_offline">Sin conexión. Estás viendo lo último descargado.</string>
+
+    <!-- Tarjeta de publicación -->
+    <string name="publication_save">Guardar</string>
+    <string name="publication_unsave">Quitar de guardados</string>
+    <string name="publication_share">Compartir</string>
+    <string name="publication_share_chooser">Compartir publicación</string>
+    <string name="publication_section">Sección %1$s</string>
+
+    <!-- Panel de secciones -->
+    <string name="sections_expand">Desplegar %1$s</string>
+    <string name="sections_collapse">Contraer %1$s</string>
+    <string name="sections_close">Recoger el panel</string>
+
+    <!-- Barra de navegación inferior -->
+    <string name="nav_home">Inicio</string>
+    <string name="nav_search">Buscar</string>
+    <string name="nav_saved">Guardados</string>
+
+    <!-- Funcionalidades aplazadas -->
+    <string name="coming_soon">Próximamente</string>
+    <!-- ===== Feature 004: detalle de publicación y visor del PDF ===== -->
+
+    <!-- Barra superior del detalle -->
+    <string name="detail_title">Detalle de publicación</string>
+    <string name="detail_back">Volver</string>
+    <string name="detail_save">Guardar</string>
+    <string name="detail_unsave">Quitar de guardados</string>
+    <string name="detail_share">Compartir</string>
+
+    <!-- Cabecera -->
+    <string name="detail_official_badge">Documento oficial</string>
+    <string name="detail_issuer_description">Organismo emisor</string>
+    <string name="detail_date_description">Fecha de publicación</string>
+
+    <!-- Pestañas -->
+    <string name="detail_tab_document">Documento</string>
+    <string name="detail_tab_summary">Resumen IA</string>
+
+    <!-- Ficha de metadatos -->
+    <string name="detail_field_description">Descripción</string>
+    <string name="detail_field_issuer">Organismo</string>
+    <string name="detail_field_section">Sección</string>
+    <string name="detail_field_date">Fecha de publicación</string>
+    <string name="detail_field_reference">Referencia</string>
+    <string name="detail_field_official">Documento oficial</string>
+    <string name="detail_field_edition_ordinary">Edición ordinaria</string>
+    <string name="detail_field_edition_extraordinary">Edición extraordinaria</string>
+    <string name="detail_field_edition_unknown">Edición sin especificar</string>
+
+    <!-- Previsualización y descarga -->
+    <string name="detail_preview_title">Primera página</string>
+    <string name="detail_preview_loading">Preparando el documento…</string>
+    <string name="detail_preview_unavailable">No hemos podido dibujar la primera página. El documento se abre igualmente.</string>
+    <string name="document_error_network">No hemos podido traer el documento. Comprueba tu conexión.</string>
+    <string name="document_error_invalid">Lo que ha devuelto el servicio no es el documento oficial.</string>
+
+    <!-- Barra de acciones -->
+    <string name="detail_action_open">Abrir PDF oficial</string>
+    <string name="detail_action_ask">Preguntar</string>
+
+    <!-- Publicación retirada -->
+    <string name="detail_missing_title">Esta publicación ya no está disponible</string>
+    <string name="detail_missing_body">Puede que se haya retirado al liberar espacio. Vuelve al boletín para buscarla de nuevo.</string>
+    <string name="detail_missing_action">Volver al boletín</string>
+
+    <!-- Pestañas aplazadas -->
+    <string name="ask_title">Preguntar al BOC</string>
+
+    <!-- Visor -->
+    <string name="pdf_viewer_loading">Abriendo el documento…</string>
+    <string name="pdf_viewer_error">No hemos podido abrir el documento.</string>
+
+    <!-- Compartir -->
+    <string name="share_preparing">Preparando el documento…</string>
+    <string name="share_link_fallback">Sin conexión para traer el documento. Se comparte el enlace al original.</string>
+
+    <!-- ===== Feature 005: publicaciones guardadas ===== -->
+
+    <!-- Pantalla Guardados -->
+    <string name="saved_title">Guardados</string>
+    <string name="saved_empty_title">Aún no has guardado publicaciones</string>
+    <string name="saved_empty_body">Toca el marcador de una publicación y la encontrarás aquí.</string>
+    <string name="saved_empty_action">Explorar el BOC</string>
+
+    <!-- Fallo al escribir la marca -->
+    <string name="save_failed">No hemos podido guardar el cambio. Inténtalo de nuevo.</string>
+
+    <!-- ===== Feature 006: buscar ===== -->
+
+    <!-- Pantalla Buscar -->
+    <!-- La barra dice «Buscar», como la pestaña que lleva a ella y como el apartado 17.1 del
+         documento de diseño; el texto de ayuda del campo dice «Buscar publicaciones». No repiten:
+         la frase larga justo encima del campo que ya la dice era ruido, y un lector de pantalla la
+         leía dos veces seguidas. -->
+    <string name="search_title">Buscar</string>
+    <string name="search_hint">Buscar publicaciones</string>
+    <string name="search_clear">Borrar la búsqueda</string>
+    <string name="search_initial_title">Busca en todo el BOC</string>
+    <string name="search_initial_body">Escribe al menos dos letras o aplica un filtro y verás las publicaciones que coincidan.</string>
+    <string name="search_empty_title">No hemos encontrado publicaciones</string>
+    <string name="search_empty_body">Prueba con otras palabras o quita alguno de los filtros.</string>
+    <plurals name="search_truncated">
+        <item quantity="one">Hay más de %d publicación. Acota la búsqueda para verlas todas.</item>
+        <item quantity="other">Hay más de %d publicaciones. Acota la búsqueda para verlas todas.</item>
+    </plurals>
+    <plurals name="search_result_count">
+        <item quantity="one">%d resultado</item>
+        <item quantity="other">%d resultados</item>
+    </plurals>
+
+    <!-- Filtros y orden -->
+    <string name="search_filters_open">Filtrar resultados</string>
+    <string name="search_filters_title">Filtrar resultados</string>
+    <string name="search_filters_apply">Aplicar filtros</string>
+    <string name="search_filters_clear">Limpiar</string>
+    <string name="search_chips_clear_all">Limpiar todo</string>
+    <string name="search_filter_date_from">Fecha desde</string>
+    <string name="search_filter_date_to">Fecha hasta</string>
+    <string name="search_filter_section">Sección</string>
+    <string name="search_filter_subsection">Subsección</string>
+    <string name="search_filter_issuer">Organismo</string>
+    <string name="search_filter_issuer_hint">Buscar un organismo</string>
+    <string name="search_filter_all_feminine">Todas</string>
+    <string name="search_filter_all_masculine">Todos</string>
+    <string name="search_filter_remove">Quitar el filtro %1$s</string>
+    <string name="search_sort_label">Ordenar por</string>
+    <string name="search_sort_newest">Más recientes</string>
+    <string name="search_sort_oldest">Más antiguas</string>
+
+    <!-- Búsqueda rápida en Inicio. Los textos hablan de «lo que estás viendo» y no de «esta
+         edición»: con una sección elegida lo que se filtra son cientos de anuncios de muchas
+         fechas, y llamarlo edición hacía pensar que la lupa buscaba en todo el BOC. El puente
+         hacia el buscador global (home_search_globally) se conserva literal. -->
+    <string name="home_search_hint">Filtrar lo que estás viendo…</string>
+    <string name="home_search_close">Cerrar la búsqueda</string>
+    <string name="home_search_clear">Borrar el texto</string>
+    <plurals name="home_search_match_count">
+        <item quantity="one">%d coincidencia</item>
+        <item quantity="other">%d coincidencias</item>
+    </plurals>
+    <string name="home_no_results_title">Nada en esta lista</string>
+    <string name="home_no_results_body">No hay publicaciones que coincidan con «%1$s» en lo que estás viendo.</string>
+    <string name="home_search_globally">Buscar en todo el BOC</string>
+
+    <!-- ===== Feature 008: Acerca de ===== -->
+
+    <string name="info_title">Acerca de</string>
+    <string name="info_back">Volver</string>
+    <string name="info_brand">BOC CANTABRIA</string>
+    <string name="info_author_name">José Ramón Blanco</string>
+    <string name="info_author_role">Tech Lead I+D · AI Engineer</string>
+    <string name="info_author_tagline">AI-Driven Developer</string>
+    <string name="info_linkedin">Ver perfil en LinkedIn</string>
+    <string name="info_github">Ver proyecto en GitHub</string>
+    <string name="info_open_external">Abrir enlace externo</string>
+    <string name="info_purpose_title">Tecnología con propósito</string>
+    <string name="info_purpose_first">Desarrollo aplicaciones móviles y soluciones de inteligencia artificial para convertir la tecnología en herramientas útiles y accesibles.</string>
+    <string name="info_purpose_second">Con BOC Cantabria quiero facilitar el acceso a la información pública de nuestra tierra.</string>
+    <string name="info_community_title">Compartir, aprender y aportar</string>
+    <string name="info_community_body">Creo en el Open Source y en el conocimiento compartido.\nColaboro con iniciativas sociales y educativas.\nSoy de Cosío - Valle del Nansa.</string>
+    <string name="info_work_title">Mi ámbito de trabajo</string>
+    <string name="info_work_ai">IA y LLMs</string>
+    <string name="info_work_mobile">Móvil · Flutter, Kotlin y Jetpack Compose</string>
+    <string name="info_work_backend">Backend · Python y Java</string>
+    <string name="info_independent">Aplicación independiente y no oficial.\nNo está vinculada al Gobierno de Cantabria.</string>
+    <string name="info_source">Fuente de las publicaciones: Boletín Oficial de Cantabria.</string>
+    <string name="info_version">Versión %1$s</string>
+    <string name="info_link_error">No hay ninguna aplicación disponible para abrir este enlace.</string>
+
+    <!-- Resumen IA (feature 007) -->
+    <string name="ai_summary_intro">Una explicación en lenguaje claro de lo que dice el documento oficial, con las páginas que respaldan cada dato.</string>
+    <string name="ai_summary_generate">Generar resumen</string>
+    <string name="ai_summary_regenerate">Volver a generar</string>
+    <string name="ai_summary_card_title">Resumen generado por IA</string>
+    <string name="ai_summary_disclaimer">Comprueba siempre el texto oficial</string>
+    <string name="ai_summary_disclaimer_accessible">Aviso importante: este resumen lo ha generado una inteligencia artificial y puede contener errores. Comprueba siempre el texto oficial.</string>
+    <string name="ai_summary_share_prefix">Resumen generado por inteligencia artificial. Puede contener errores. Consulta siempre el PDF oficial.</string>
+
+    <!-- Secciones de la ficha. Se ocultan cuando el documento no las sustenta. -->
+    <string name="ai_summary_section_key_points">Puntos clave</string>
+    <string name="ai_summary_section_affected">A quién afecta</string>
+    <string name="ai_summary_section_dates">Fechas y plazos</string>
+    <string name="ai_summary_section_amounts">Importes</string>
+    <string name="ai_summary_section_actions">Qué hay que hacer</string>
+    <string name="ai_summary_section_appeals">Recursos o alegaciones</string>
+    <string name="ai_summary_section_warnings">Advertencias</string>
+    <string name="ai_summary_sources">Fuentes del resumen</string>
+    <string name="ai_summary_page_chip">Página %1$d</string>
+    <string name="ai_summary_page_chip_accessible">Abrir en el documento oficial la página %1$d</string>
+
+    <!-- Fases del proceso. No hay respuesta progresiva, así que la espera tiene que contar algo. -->
+    <string name="ai_summary_phase_fetching">Obteniendo el documento oficial…</string>
+    <string name="ai_summary_phase_uploading">Preparando el documento…</string>
+    <string name="ai_summary_phase_generating">Generando el resumen…</string>
+    <string name="ai_summary_quota_wait">Se ha alcanzado el límite por minuto. Continuaremos en unos %1$d s.</string>
+
+    <!--
+      Cobertura parcial: se avisa antes de gastar la petición y se dice después.
+      En plural de verdad: «Se analizarán las 1 primeras» es lo que sale si no se hace, y es un caso
+      que ocurre —un documento largo del que solo cabe la primera página—.
+    -->
+    <plurals name="ai_summary_partial_after">
+        <item quantity="one">Se ha analizado la página %1$s de %2$d. El resumen no cubre el documento completo.</item>
+        <item quantity="other">Se han analizado las páginas %1$s de %2$d. El resumen no cubre el documento completo.</item>
+    </plurals>
+    <string name="ai_summary_stale">Este resumen se hizo con una versión anterior del documento.</string>
+
+    <!-- Acciones -->
+    <string name="ai_summary_copy">Copiar</string>
+    <string name="ai_summary_copied">Resumen copiado</string>
+    <string name="ai_summary_share">Compartir</string>
+
+    <!-- El aviso de la primera vez -->
+    <string name="ai_notice_title">El documento se envía a un servicio externo</string>
+    <string name="ai_notice_body">Para generar el resumen o responder a tus preguntas, la aplicación envía el documento oficial completo a un servicio de inteligencia artificial fuera del dispositivo. El servicio lo conserva un tiempo limitado, y la aplicación lo retira al salir de esta publicación. No se envía nada tuyo: ni lo que has guardado, ni lo que has leído. El servicio puede usar el contenido de este documento público para mejorar sus modelos.</string>
+    <string name="ai_notice_continue">Continuar</string>
+    <string name="ai_notice_cancel">Cancelar</string>
+
+    <!-- Mensajes de error. En lenguaje corriente y sin ningún código (FR-040). -->
+    <string name="ai_error_offline">No hay conexión. El resumen podrá generarse cuando vuelvas a estar conectado.</string>
+    <string name="ai_error_unreadable">No se ha podido leer este documento. Puedes consultar el PDF oficial.</string>
+    <string name="ai_error_encrypted">El documento está protegido y no se puede leer su texto.</string>
+    <string name="ai_error_quota_minute">Se ha alcanzado temporalmente el límite de la función. Inténtalo dentro de unos segundos.</string>
+    <string name="ai_error_quota_day">Se ha alcanzado el límite de resúmenes de hoy. Inténtalo mañana.</string>
+    <string name="ai_error_not_configured">El servicio de resúmenes no está configurado en esta aplicación.</string>
+    <string name="ai_error_invalid">No se ha podido construir un resumen fiable. Puedes consultar el documento oficial.</string>
+    <string name="ai_error_unknown">No se ha podido generar el resumen. Inténtalo de nuevo.</string>
+    <string name="ai_summary_no_document">Esta publicación no tiene documento oficial que resumir.</string>
+    <string name="ai_summary_retry">Reintentar</string>
+
+    <!-- ==================== Preguntar al BOC (feature 011) ==================== -->
+
+    <!-- La pantalla -->
+    <string name="ask_scope_notice">Las respuestas se basan solo en este documento</string>
+    <string name="ask_composer_hint">Escribe una pregunta…</string>
+    <string name="ask_send">Enviar pregunta</string>
+    <string name="ask_open_document">Ver PDF oficial</string>
+    <string name="ask_sources">Fuentes</string>
+    <string name="ask_source_line">Página %1$d · %2$s</string>
+    <string name="ask_counter">%1$d/%2$d</string>
+    <string name="ask_you">Tú</string>
+    <string name="ask_assistant">BOC</string>
+
+    <!-- Las tres sugeridas. Fijas para toda publicación: generarlas costaría una petición
+         antes de que nadie haya preguntado nada (research.md D-325). -->
+    <string name="ask_suggestion_affects">¿A quién afecta?</string>
+    <string name="ask_suggestion_effective">¿Cuándo entra en vigor?</string>
+    <string name="ask_suggestion_deadlines">¿Qué plazos establece?</string>
+
+    <!-- Las fases de preparación. Las mismas dos del resumen, dichas igual. -->
+    <string name="ask_phase_fetching">Obteniendo el documento…</string>
+    <string name="ask_phase_uploading">Preparando el documento…</string>
+    <string name="ask_thinking">Buscando en el documento…</string>
+
+    <!-- Lo que se lee cuando la petición era ajena al documento. Es NUESTRO texto: ni un carácter
+         de lo que conteste el servicio llega a pantalla en ese caso (FR-021, SC-004). -->
+    <string name="ask_out_of_scope">Solo puedo responder sobre esta publicación del BOC. Prueba a preguntarme por su contenido: plazos, importes, a quién afecta o qué hay que hacer.</string>
+
+    <!-- Mensajes de error. En lenguaje corriente, sin ningún código y sin nombre de proveedor
+         (FR-031). Son ocho, uno por caso de AiChatError. -->
+    <string name="ask_error_offline">No hay conexión. Podrás preguntar cuando vuelvas a estar conectado.</string>
+    <string name="ask_error_quota_minute">Se ha alcanzado temporalmente el límite de la función. Inténtalo dentro de unos segundos.</string>
+    <string name="ask_error_quota_day">Se ha alcanzado el límite de preguntas de hoy. Inténtalo mañana.</string>
+    <string name="ask_error_not_configured">Preguntar no está disponible en esta aplicación.</string>
+    <string name="ask_error_unreadable">No se ha podido leer este documento. Puedes consultar el PDF oficial.</string>
+    <string name="ask_error_encrypted">El documento está protegido y no se puede consultar su contenido.</string>
+    <string name="ask_error_invalid">No se ha podido construir una respuesta fiable. Puedes consultar el documento oficial.</string>
+    <string name="ask_error_unknown">No se ha podido responder. Inténtalo de nuevo.</string>
+    <string name="ask_retry">Reintentar</string>
+
+    <!-- ==================== Avisos (feature 012) ==================== -->
+
+    <!-- Barra inferior -->
+    <string name="nav_alerts">Avisos</string>
+
+    <!-- La pantalla -->
+    <string name="alerts_title">Avisos</string>
+    <string name="alerts_settings">Ajustes de avisos</string>
+    <string name="alerts_tab_news">Novedades</string>
+    <string name="alerts_tab_news_count">Novedades %1$d</string>
+    <string name="alerts_tab_rules">Mis avisos</string>
+    <string name="alerts_intro_title">Sigue lo que te importa</string>
+    <string name="alerts_intro_body">Recibe un aviso cuando una nueva publicación coincida con tus intereses.</string>
+    <string name="alerts_create">Crear aviso</string>
+    <string name="alerts_rules_header">Mis avisos</string>
+    <plurals name="alerts_active_count">
+        <item quantity="one">%d activo</item>
+        <item quantity="other">%d activos</item>
+    </plurals>
+    <string name="alerts_rules_empty_title">Aún no tienes avisos</string>
+    <string name="alerts_rules_empty_body">Crea un aviso para saber cuándo aparece una publicación relacionada con tus intereses.</string>
+    <string name="alerts_rules_empty_action">Crear mi primer aviso</string>
+    <string name="alerts_news_empty_title">No tienes avisos nuevos</string>
+    <string name="alerts_news_empty_body">Cuando una publicación nueva coincida con alguno de tus avisos, aparecerá aquí.</string>
+    <string name="alerts_news_mark_all_read">Marcar todas como leídas</string>
+    <string name="alerts_news_matches">Coincide con: %1$s</string>
+    <string name="alerts_news_unread">Sin leer</string>
+    <string name="alerts_day_today">Hoy</string>
+    <string name="alerts_day_yesterday">Ayer</string>
+    <string name="alerts_time_minutes">Hace %1$d min</string>
+    <string name="alerts_time_hours">Hace %1$d h</string>
+    <string name="alerts_time_just_now">Ahora mismo</string>
+
+    <!-- La tarjeta de un aviso -->
+    <string name="alerts_rule_paused">Aviso pausado</string>
+    <string name="alerts_rule_toggle">Activar o pausar el aviso %1$s</string>
+    <string name="alerts_rule_menu">Más opciones de %1$s</string>
+    <string name="alerts_rule_edit">Editar</string>
+    <string name="alerts_rule_duplicate">Duplicar</string>
+    <string name="alerts_rule_delete">Eliminar</string>
+    <string name="alerts_rule_all_sections">Todas las secciones</string>
+    <string name="alerts_rule_section_all_children">%1$s (todas)</string>
+    <string name="alerts_rule_kind_keyword">Palabra clave</string>
+    <plurals name="alerts_rule_kind_keywords">
+        <item quantity="one">%d palabra</item>
+        <item quantity="other">%d palabras</item>
+    </plurals>
+    <string name="alerts_rule_kind_organization">Organismo</string>
+    <plurals name="alerts_matches_today">
+        <item quantity="one">%d coincidencia hoy</item>
+        <item quantity="other">%d coincidencias hoy</item>
+    </plurals>
+    <string name="alerts_rule_last_match">Última coincidencia: %1$s</string>
+    <string name="alerts_rule_no_match">Sin coincidencias todavía</string>
+    <string name="alerts_action_failed">No se ha podido guardar el cambio. Inténtalo de nuevo.</string>
+
+    <!-- Eliminar -->
+    <string name="alerts_delete_title">¿Eliminar este aviso?</string>
+    <string name="alerts_delete_body">Dejarás de recibir novedades que coincidan con «%1$s».</string>
+    <string name="alerts_delete_cancel">Cancelar</string>
+    <string name="alerts_delete_confirm">Eliminar</string>
+
+    <!-- Permiso desactivado -->
+    <string name="alerts_permission_banner">Tus avisos están configurados, pero Android no permite mostrar notificaciones.</string>
+    <string name="alerts_permission_open_settings">Abrir ajustes</string>
+
+    <!-- La hoja de ajustes -->
+    <string name="alerts_settings_title">Ajustes de avisos</string>
+    <string name="alerts_settings_permission_granted">Las notificaciones están activadas.</string>
+    <string name="alerts_settings_permission_needed">Las notificaciones no están activadas. Se piden al guardar el primer aviso; también puedes activarlas en los ajustes de Android.</string>
+    <string name="alerts_settings_permission_disabled">Android no permite mostrar notificaciones de esta aplicación.</string>
+    <string name="alerts_settings_last_check">Última comprobación: %1$s</string>
+    <string name="alerts_settings_never_checked">Todavía no se ha comprobado el boletín.</string>
+    <string name="alerts_settings_periodic" tools:ignore="Typos">La aplicación comprueba el boletín periódicamente mientras tengas algún aviso activo. Android decide el momento exacto.</string>
+
+    <!-- El formulario -->
+    <string name="alert_form_title_create">Crear aviso</string>
+    <string name="alert_form_title_edit">Editar aviso</string>
+    <string name="alert_form_back">Volver</string>
+    <string name="alert_form_intro">Te avisaremos al encontrar una publicación nueva que cumpla estas condiciones.</string>
+    <string name="alert_form_name_label">Nombre del aviso</string>
+    <string name="alert_form_name_hint">Por ejemplo, Ganadería</string>
+    <string name="alert_form_name_error_long" tools:ignore="PluralsCandidate">El nombre no puede tener más de %1$d caracteres.</string>
+    <string name="alert_form_keywords_label">Palabras clave</string>
+    <string name="alert_form_keywords_help">Busca en el título, organismo y categorías del RSS.</string>
+    <string name="alert_form_keywords_hint">Añadir palabra</string>
+    <string name="alert_form_keywords_add">Añadir palabra</string>
+    <string name="alert_form_keyword_remove">Quitar %1$s</string>
+    <string name="alert_form_keyword_rejected_short" tools:ignore="PluralsCandidate">Escribe al menos %1$d caracteres.</string>
+    <string name="alert_form_keyword_rejected_long" tools:ignore="PluralsCandidate">Una palabra o frase no puede tener más de %1$d caracteres.</string>
+    <string name="alert_form_keyword_rejected_duplicate">Esa palabra ya está en el aviso.</string>
+    <string name="alert_form_keyword_rejected_limit" tools:ignore="PluralsCandidate">Como mucho %1$d palabras por aviso.</string>
+    <string name="alert_form_match_label">Coincidencia</string>
+    <string name="alert_form_match_any">Cualquiera de las palabras</string>
+    <string name="alert_form_match_all">Todas las palabras</string>
+    <string name="alert_form_sections_label">Secciones del BOC</string>
+    <string name="alert_form_sections_help">Opcional · Si no eliges ninguna, se buscará en todas.</string>
+    <string name="alert_form_sections_open">Elegir secciones</string>
+    <string name="alert_form_sections_sheet_title">Seleccionar secciones</string>
+    <string name="alert_form_sections_all">Todas las secciones</string>
+    <plurals name="alert_form_sections_selected">
+        <item quantity="one">%d seleccionada</item>
+        <item quantity="other">%d seleccionadas</item>
+    </plurals>
+    <string name="alert_form_sections_apply">Aplicar</string>
+    <string name="alert_form_organization_label">Organismo</string>
+    <string name="alert_form_organization_hint">Cualquier organismo</string>
+    <string name="alert_form_enabled_label">Aviso</string>
+    <string name="alert_form_enabled_help">Notificar al encontrar coincidencias nuevas</string>
+    <string name="alert_form_summary_title">Así funcionará</string>
+    <string name="alert_form_summary_need_criteria">Añade una palabra, una sección o un organismo para saber de qué te avisaremos.</string>
+    <string name="alert_form_summary_any">Te avisaremos de cualquier publicación nueva.</string>
+    <string name="alert_form_summary_any_of_sections">Te avisaremos de cualquier publicación nueva de %1$s.</string>
+    <string name="alert_form_summary_words">Te avisaremos cuando una publicación nueva incluya %1$s.</string>
+    <string name="alert_form_summary_words_in_sections">Te avisaremos cuando una publicación nueva de %1$s incluya %2$s.</string>
+    <string name="alert_form_summary_organization">" del organismo «%1$s»"</string>
+    <string name="alert_form_summary_join_or">" o "</string>
+    <string name="alert_form_summary_join_and">" y "</string>
+    <string name="alert_form_summary_join_comma">", "</string>
+    <plurals name="alert_form_preview_count">
+        <item quantity="one">%d publicación actual coincide con esta configuración</item>
+        <item quantity="other">%d publicaciones actuales coinciden con esta configuración</item>
+    </plurals>
+    <string name="alert_form_preview_none">Ninguna publicación actual coincide con esta configuración. Puedes guardar el aviso igualmente.</string>
+    <string name="alert_form_preview_open">Ver resultados</string>
+    <string name="alert_form_preview_title">Publicaciones que ya coinciden</string>
+    <string name="alert_form_cancel">Cancelar</string>
+    <string name="alert_form_save_create">Guardar aviso</string>
+    <string name="alert_form_save_edit">Guardar cambios</string>
+    <string name="alert_form_save_failed">No se ha podido guardar el aviso. Inténtalo de nuevo.</string>
+
+    <!-- El permiso, en contexto -->
+    <string name="alert_permission_title">Activa las notificaciones</string>
+    <string name="alert_permission_body">Permite que BOC Cantabria te avise cuando aparezcan publicaciones relacionadas con tus intereses.</string>
+    <string name="alert_permission_later">Ahora no</string>
+    <string name="alert_permission_continue">Continuar</string>
+
+    <!-- La notificación de Android -->
+    <string name="alert_notification_channel_name">Avisos del BOC</string>
+    <string name="alert_notification_channel_description">Publicaciones nuevas que coinciden con tus avisos.</string>
+    <string name="alert_notification_title_single">Nueva publicación: %1$s</string>
+    <string name="alert_notification_title_multi">Nueva publicación del BOC</string>
+    <string name="alert_notification_matches">Coincide con %1$s</string>
+    <plurals name="alert_notification_summary">
+        <item quantity="one">%d publicación nueva coincide con tus avisos</item>
+        <item quantity="other">%d publicaciones nuevas coinciden con tus avisos</item>
+    </plurals>
+
+    <!-- El aviso dentro de la aplicación -->
+    <string name="alert_snackbar_single">Una nueva publicación coincide con «%1$s»</string>
+    <plurals name="alert_snackbar_many">
+        <item quantity="one">%d nueva publicación coincide con tus avisos</item>
+        <item quantity="other">%d nuevas publicaciones coinciden con tus avisos</item>
+    </plurals>
+    <string name="alert_snackbar_action">VER</string>
+</resources>
