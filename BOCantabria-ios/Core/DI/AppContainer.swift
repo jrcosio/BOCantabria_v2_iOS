@@ -104,6 +104,16 @@ final class AppContainer {
 
     /// Nuevo en cada llamada: un modelo de pantalla tiene el ciclo de vida de su pantalla.
     func makeHomeViewModel() -> HomeViewModel {
-        HomeViewModel(analytics: telemetry.analytics)
+        HomeViewModel(
+            observePublications: ObservePublicationsUseCase(repository: publicationRepository),
+            observeHeader: ObserveBulletinHeaderUseCase(repository: publicationRepository),
+            refreshPublications: RefreshPublicationsUseCase(repository: publicationRepository),
+            analytics: telemetry.analytics
+        )
+    }
+
+    /// El árbol de secciones, para el panel y para las filas de chips.
+    func makeSections() -> [BocSection] {
+        GetBocSectionsUseCase(repository: sectionRepository)()
     }
 }

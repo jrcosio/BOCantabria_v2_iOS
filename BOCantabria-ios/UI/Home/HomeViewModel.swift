@@ -2,8 +2,13 @@
 //  HomeViewModel.swift
 //  The screen model of the initial screen.
 //
+//  **No pide publicaciones: las observa.** `refresh` escribe y devuelve un resumen; lo que se
+//  pinta llega por el flujo de lo guardado. Es lo que hace que no exista ningún camino por el que
+//  un dato recién traído de la red alcance esta pantalla sin pasar por la base.
+//
 
 import Foundation
+import Synchronization
 
 @MainActor
 @Observable
@@ -13,9 +18,35 @@ final class HomeViewModel {
 
     private(set) var state = HomeUiState()
 
+    private let observePublications: ObservePublicationsUseCase
+    private let observeHeader: ObserveBulletinHeaderUseCase
+    private let refreshPublications: RefreshPublicationsUseCase
     private let analytics: AnalyticsTracker
 
-    init(analytics: AnalyticsTracker) {
+    /// Las dos observaciones vivas. **Tienen dueño**: se cancelan al cambiar de selección y al
+    /// morir el modelo. Una tarea suelta sobreviviría a la pantalla y seguiría observando la base
+    /// para escribir en un estado que ya no se ve.
+    ///
+    /// Viven en una caja `nonisolated` porque el `deinit` de una clase `@MainActor` **no lo es**,
+    /// y sin la caja no habría forma de cancelarlas al morir el modelo: solo dejarían de tener a
+    /// quién escribir, que no es lo mismo que dejar de observar.
+    private let observations = ObservationBox()
+
+    /// Mientras no haya terminado una sincronización y no haya nada guardado, lo que se enseña son
+    /// los marcadores. Una lista vacía **antes** de la primera vuelta no es «no hay nada»: es «no
+    /// se sabe todavía» (FR-041).
+    private var hasSynced = false
+    private var isRefreshing = false
+
+    init(
+        observePublications: ObservePublicationsUseCase,
+        observeHeader: ObserveBulletinHeaderUseCase,
+        refreshPublications: RefreshPublicationsUseCase,
+        analytics: AnalyticsTracker
+    ) {
+        self.observePublications = observePublications
+        self.observeHeader = observeHeader
+        self.refreshPublications = refreshPublications
         self.analytics = analytics
         // Exactamente una vez por instancia, no una por aparición de la vista: la vista aparece
         // otra vez al volver de segundo plano, y eso no es una visita nueva.
@@ -23,21 +54,109 @@ final class HomeViewModel {
         state.sectionChips = Self.chips(for: BocSection.topLevel)
     }
 
-    /// Aplica una selección. **No retorna hasta publicar el primer estado**, para que la prueba
-    /// pueda afirmar en la línea siguiente.
-    ///
-    /// Todavía no hay de dónde leer: la cadena real llega con la historia 1. Lo que ya está puesto
-    /// es la forma —los chips y el estado vacío—, que es lo que permite que la pantalla y sus
-    /// pruebas no se reescriban cuando llegue.
-    func apply(_ selection: HomeSelection) async {
-        state.selection = selection
-        state.subsectionChips = Self.subsectionChips(for: selection)
-        state.content = .empty
-        state.header = nil
+    deinit {
+        observations.cancelAll()
+    }
+
+    // MARK: - Entradas
+
+    /// La primera sincronización, si toca. Respeta la ventana de caducidad (FR-023).
+    func onAppear() async {
+        await sync(force: false)
+    }
+
+    /// El gesto de deslizar hacia abajo. **Siempre** sale a la red (FR-024).
+    func onRefresh() async {
+        await sync(force: true)
     }
 
     func onRetry() async {
-        await apply(state.selection)
+        await sync(force: true)
+    }
+
+    /// Aplica una selección y empieza a observarla.
+    ///
+    /// **No retorna hasta publicar el primer estado**, para que la prueba pueda afirmar en la
+    /// línea siguiente.
+    func apply(_ selection: HomeSelection) async {
+        observations.cancelAll()
+
+        state.selection = selection
+        state.subsectionChips = Self.subsectionChips(for: selection)
+        analytics.track(.sectionSelected(code: selection.storedCode ?? SectionChip.todayCode))
+
+        // La cabecera se observa por su cuenta: su recuento y su fecha cambian con lo guardado,
+        // igual que la lista, pero no al mismo ritmo.
+        observations.header = Task { [weak self] in
+            guard let stream = self?.observeHeader(selection) else { return }
+            for await result in stream {
+                guard let self, !Task.isCancelled else { return }
+                if case .success(let header) = result { state.header = header }
+            }
+        }
+
+        var publishedFirst = false
+        let stream = observePublications(selection)
+        observations.publications = Task { [weak self] in
+            for await result in stream {
+                guard let self, !Task.isCancelled else { return }
+                publish(result)
+            }
+        }
+
+        // Esperar al primer valor hace afirmable la prueba y evita un fotograma con el estado de
+        // la selección anterior.
+        for await result in observePublications(selection) {
+            publish(result)
+            publishedFirst = true
+            break
+        }
+        if !publishedFirst { state.content = hasSynced ? .empty : .skeleton }
+    }
+
+    // MARK: - Dentro
+
+    private func sync(force: Bool) async {
+        guard !isRefreshing else { return }
+        isRefreshing = true
+        state.isRefreshing = true
+        defer {
+            isRefreshing = false
+            state.isRefreshing = false
+        }
+
+        let result = await refreshPublications(force: force)
+
+        guard !Task.isCancelled else { return }
+        hasSynced = true
+
+        switch result {
+        case .success(let summary):
+            analytics.track(.bulletinSync(summary))
+            // Sin conexión **con** contenido guardado no es un error: es un resultado correcto que
+            // enciende el aviso y deja el contenido donde está (FR-027).
+            state.isOffline = summary.allFailed
+            if case .skeleton = state.content { state.content = .empty }
+        case .failure(let error):
+            state.isOffline = error == .network
+            // Solo se pinta el error cuando no hay nada que enseñar. Con contenido a la vista, lo
+            // que se enseña es el contenido.
+            if case .publications = state.content { return }
+            state.content = .error(error)
+        }
+    }
+
+    private func publish(_ result: AppResult<[Publication]>) {
+        switch result {
+        case .success(let items) where !items.isEmpty:
+            state.content = .publications(items)
+        case .success:
+            // Vacío **después** de haber sincronizado; antes, marcadores.
+            state.content = hasSynced ? .empty : .skeleton
+        case .failure(let error):
+            if case .publications = state.content { return }
+            state.content = .error(error)
+        }
     }
 
     private static func chips(for sections: [BocSection]) -> [SectionChip] {
@@ -53,5 +172,31 @@ final class HomeViewModel {
         guard !children.isEmpty else { return [] }
         return [SectionChip(code: code, title: String(localized: Strings.Chip.wholeSection))]
             + children.map { SectionChip(code: $0.code, title: $0.shortName) }
+    }
+}
+
+/// Caja `nonisolated` para las tareas de observación.
+///
+/// Existe solo porque el `deinit` de una clase `@MainActor` es `nonisolated` y no puede tocar sus
+/// propiedades aisladas. Sin ella, las observaciones sobrevivirían al modelo de pantalla.
+private final class ObservationBox: Sendable {
+    private let storage = Mutex<(publications: Task<Void, Never>?, header: Task<Void, Never>?)>((nil, nil))
+
+    var publications: Task<Void, Never>? {
+        get { storage.withLock { $0.publications } }
+        set { storage.withLock { $0.publications = newValue } }
+    }
+
+    var header: Task<Void, Never>? {
+        get { storage.withLock { $0.header } }
+        set { storage.withLock { $0.header = newValue } }
+    }
+
+    func cancelAll() {
+        storage.withLock { tasks in
+            tasks.publications?.cancel()
+            tasks.header?.cancel()
+            tasks = (nil, nil)
+        }
     }
 }

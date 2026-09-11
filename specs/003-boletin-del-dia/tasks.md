@@ -332,7 +332,7 @@ con el recuento. Es el paso 6 del quickstart.
       `APP/Core/DI/AppContainer.swift`: abrir y migrar la base como un paso más de la comprobación
       previa. Un fallo de migración es un desenlace de la portada, **no un cierre inesperado**;
       hoy la portada es el único sitio con indicador, límite de espera y reintento.
-- [ ] T068 [US1] `TEST/Domain/PrepareStartupUseCaseTests.swift`: que un fallo al abrir la base
+- [X] T068 [US1] `TEST/Domain/PrepareStartupUseCaseTests.swift`: que un fallo al abrir la base
       publica el estado terminal con reintento, y que el camino feliz no lo altera.
 
 ### El coordinador y el repositorio
@@ -360,30 +360,30 @@ con el recuento. Es el paso 6 del quickstart.
 
 ### La pantalla
 
-- [ ] T075 [US1] **FR-030, FR-039 … FR-042** `APP/UI/Home/HomeUiState.swift`: reescrito entero,
+- [X] T075 [US1] **FR-030, FR-039 … FR-042** `APP/UI/Home/HomeUiState.swift`: reescrito entero,
       con `HomeContent` de cuatro casos y las banderas de refresco y sin conexión como **ejes
       independientes**, no como casos del enumerado.
-- [ ] T076 [US1] `APP/UI/Home/HomeViewModel.swift`: reescrito. `@MainActor @Observable`,
+- [X] T076 [US1] `APP/UI/Home/HomeViewModel.swift`: reescrito. `@MainActor @Observable`,
       `private(set) var state`, `apply(_:)` que **no retorna hasta publicar el primer estado** y
       comprobación de cancelación antes de publicar.
-- [ ] T077 [US1] `TEST/UI/HomeViewModelTests.swift`: reescrito. Carga con contenido, carga vacía,
+- [X] T077 [US1] `TEST/UI/HomeViewModelTests.swift`: reescrito. Carga con contenido, carga vacía,
       error con reintento, y que la analítica de vista de pantalla se emite **una sola vez por
       instancia**.
-- [ ] T078 [US1] [P] **FR-039, FR-040** `APP/Core/UI/Component/PublicationCard.swift`: organismo,
+- [X] T078 [US1] [P] **FR-039, FR-040** `APP/Core/UI/Component/PublicationCard.swift`: organismo,
       título, fecha con icono y acciones, con la línea vertical del color de su sección **siempre
       acompañada de texto**. Sube a `Core` porque la van a usar tres pantallas.
-- [ ] T079 [US1] [P] **FR-041** `APP/Core/UI/Component/PublicationCardSkeleton.swift`: marcadores
+- [X] T079 [US1] [P] **FR-041** `APP/Core/UI/Component/PublicationCardSkeleton.swift`: marcadores
       con la forma del contenido final, **cinco como máximo**, nunca un indicador giratorio grande.
-- [ ] T080 [US1] [P] **FR-032 … FR-036** `APP/UI/Home/Component/BulletinHeaderView.swift`: la
+- [X] T080 [US1] [P] **FR-032 … FR-036** `APP/UI/Home/Component/BulletinHeaderView.swift`: la
       denominación, la fecha **con su rótulo** y el distintivo perfilado del recuento. **Ningún
       número de boletín**: el servicio no lo publica, y escribirlo sería presentar un dato inventado
       como oficial.
-- [ ] T081 [US1] [P] **FR-031** `APP/UI/Home/Component/HomeTopBar.swift`: control del panel, escudo,
+- [X] T081 [US1] [P] **FR-031** `APP/UI/Home/Component/HomeTopBar.swift`: control del panel, escudo,
       nombre, lupa e información. **Sin campana.**
-- [ ] T082 [US1] `APP/UI/Home/HomeContentView.swift` y `HomeView.swift`: la composición de FR-030,
+- [X] T082 [US1] `APP/UI/Home/HomeContentView.swift` y `HomeView.swift`: la composición de FR-030,
       la vista de contenido sin estado y previsualizable por estado, y los identificadores de
       accesibilidad de `contracts/internal-contracts.md` §5.
-- [ ] T083 [US1] **D-320** `APP/UI/Home/`: todo contenedor que tenga que encontrarse se declara
+- [X] T083 [US1] **D-320** `APP/UI/Home/`: todo contenedor que tenga que encontrarse se declara
       `.accessibilityElement(children: .contain)` **antes** del identificador. Sin eso no entra en
       el árbol, aunque se vea en pantalla.
 - [ ] T084 [US1] **D-322** `APP/Data/Sync/ScenarioDatabaseSeeder.swift` y
@@ -404,7 +404,7 @@ con el recuento. Es el paso 6 del quickstart.
 - [ ] T087 [US1] `TEST/Integration/SyncFlowIntegrationTests.swift`: el grafo real sobre base en
       memoria con descargador falso. Primera sincronización con las diez muestras, y el estado que
       la pantalla acaba viendo.
-- [ ] T088 [US1] **FR-029, D-327** `APP/Data/Sync/FeedSyncCoordinator.swift` y
+- [X] T088 [US1] **FR-029, D-327** `APP/Data/Sync/FeedSyncCoordinator.swift` y
       `TEST/Data/FeedSyncCoordinatorTests.swift`: el evento `boc_sync` lleva **solo recuentos**
       —fuentes con éxito, sin cambios, fallidas, insertadas, actualizadas, rechazadas— y el registro
       `OSLog` de categoría `sync` dice fase, número de fuentes, bytes y motivo. La prueba, sobre
@@ -440,12 +440,12 @@ inmediato, con el aviso. Pasos 7 y 8 del quickstart.
       concurrentes producen **diecinueve** descargas, no treinta y ocho, y **las dos devuelven el
       mismo resumen**. La segunda espera y comparte; ignorarla haría que el indicador desapareciera
       antes que la sincronización.
-- [ ] T094 [US2] [P] **FR-043** `APP/Core/UI/Component/OfflineBanner.swift`: aviso con icono
+- [X] T094 [US2] [P] **FR-043** `APP/Core/UI/Component/OfflineBanner.swift`: aviso con icono
       `ic_cloud_off` **que no oculta el contenido**.
-- [ ] T095 [US2] **FR-027** `APP/UI/Home/HomeViewModel.swift` y `HomeContentView.swift`: las dos
+- [X] T095 [US2] **FR-027** `APP/UI/Home/HomeViewModel.swift` y `HomeContentView.swift`: las dos
       ramas del fallo total —con contenido guardado, se muestra y se enciende el aviso; sin nada
       guardado, mensaje con reintento—.
-- [ ] T096 [US2] **SC-003** `TEST/UI/HomeViewModelTests.swift`: las dos ramas anteriores —en ninguna
+- [X] T096 [US2] **SC-003** `TEST/UI/HomeViewModelTests.swift`: las dos ramas anteriores —en ninguna
       de las dos se llega a una pantalla vacía sin explicación—, más que una
       actualización sin novedades **deja el contenido intacto y no muestra ningún error**.
 - [X] T097 [US2] **FR-021, FR-084, SC-005, D-324** `TEST/Integration/NoDeleteRegressionTests.swift`:

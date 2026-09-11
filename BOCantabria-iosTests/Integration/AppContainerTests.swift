@@ -71,9 +71,15 @@ struct AppContainerTests {
         // Modelos distintos: un modelo de pantalla tiene el ciclo de vida de su pantalla.
         #expect(first !== second)
 
-        // Y los dos empiezan igual, porque lo que comparten es el almacén y no el estado.
+        // Y los dos ven lo mismo, porque lo que comparten es el almacén.
+        //
+        // Se comparan el contenido y la selección, **no el estado entero**: la cabecera llega por
+        // una observación propia y a su ritmo, así que compararla sería una carrera y la prueba
+        // fallaría a veces por un motivo que no tiene nada que ver con lo que quiere comprobar.
         await first.apply(.todaysBulletin)
         await second.apply(.todaysBulletin)
-        #expect(first.state == second.state)
+        #expect(first.state.content == second.state.content)
+        #expect(first.state.selection == second.state.selection)
+        #expect(first.state.sectionChips == second.state.sectionChips)
     }
 }

@@ -14,9 +14,20 @@ import Testing
 struct HomeViewModelTests {
 
     private func makeViewModel(
+        publications: AppResult<[Publication]> = .success([]),
+        header: AppResult<BulletinHeader> = .success(.empty),
+        refreshResult: AppResult<SyncSummary> = .success(SyncSummary(succeededFeeds: 19)),
         analytics: AnalyticsTracker = NoOpAnalyticsTracker()
     ) -> HomeViewModel {
-        HomeViewModel(analytics: analytics)
+        let repository = FakePublicationRepository(
+            publications: publications, header: header, refreshResult: refreshResult
+        )
+        return HomeViewModel(
+            observePublications: ObservePublicationsUseCase(repository: repository),
+            observeHeader: ObserveBulletinHeaderUseCase(repository: repository),
+            refreshPublications: RefreshPublicationsUseCase(repository: repository),
+            analytics: analytics
+        )
     }
 
     @Test("Arranca con marcadores, no con una pantalla en blanco")
@@ -95,5 +106,109 @@ struct HomeViewModelTests {
         await viewModel.apply(.todaysBulletin)
         await viewModel.apply(.section(code: "1", subsectionCode: nil))
         #expect(analytics.screenViews == [HomeViewModel.screenName])
+    }
+
+    // MARK: - Contenido
+
+    @Test("Con publicaciones guardadas, se pintan")
+    func storedPublicationsAreShown() async {
+        let items = [publication(externalKey: "boc:1"), publication(externalKey: "boc:2")]
+        let viewModel = makeViewModel(publications: .success(items))
+        await viewModel.apply(.todaysBulletin)
+        #expect(viewModel.state.content == .publications(items))
+    }
+
+    @Test("Una lista vacía ANTES de la primera sincronización son marcadores, no «no hay nada»")
+    func emptyBeforeTheFirstSyncMeansSkeleton() async {
+        // «No se sabe todavía» y «no hay nada» son cosas distintas, y confundirlas enseñaría un
+        // estado vacío en la primera ejecución mientras las fuentes todavía están respondiendo.
+        let viewModel = makeViewModel(publications: .success([]))
+        await viewModel.apply(.todaysBulletin)
+        #expect(viewModel.state.content == .skeleton)
+    }
+
+    @Test("Una lista vacía DESPUÉS de sincronizar sí es el estado vacío")
+    func emptyAfterSyncingIsTheEmptyState() async {
+        let viewModel = makeViewModel(publications: .success([]))
+        await viewModel.apply(.todaysBulletin)
+        await viewModel.onAppear()
+        #expect(viewModel.state.content == .empty)
+    }
+
+    @Test("La cabecera llega de lo guardado, con su fecha y su recuento")
+    func theHeaderComesFromWhatIsStored() async {
+        let header = BulletinHeader(
+            title: "Boletín de hoy", date: BocDate(iso: "2026-08-27"), count: 48,
+            dateMeaning: .edition
+        )
+        let viewModel = makeViewModel(header: .success(header))
+        await viewModel.apply(.todaysBulletin)
+        // La cabecera se observa por su cuenta; se le da margen para publicar.
+        for _ in 0..<50 where viewModel.state.header == nil { await Task.yield() }
+        #expect(viewModel.state.header == header)
+    }
+
+    // MARK: - Sincronización
+
+    @Test("Si todo falla y no hay nada guardado, error con reintento (FR-027)")
+    func aTotalFailureWithoutContentIsAnError() async {
+        let viewModel = makeViewModel(publications: .success([]), refreshResult: .failure(.network))
+        await viewModel.apply(.todaysBulletin)
+        await viewModel.onAppear()
+        #expect(viewModel.state.content == .error(.network))
+        #expect(viewModel.state.isOffline)
+    }
+
+    @Test("Si todo falla PERO hay contenido, se ve el contenido y se enciende el aviso")
+    func aTotalFailureWithContentKeepsTheContent() async {
+        // No es un error: es un resultado correcto con una bandera. Mezclar las dos cosas en el
+        // enumerado obligaría a la pantalla a desenredarlas otra vez.
+        let items = [publication()]
+        let viewModel = makeViewModel(
+            publications: .success(items),
+            refreshResult: .success(SyncSummary(failedFeeds: 19))
+        )
+        await viewModel.apply(.todaysBulletin)
+        await viewModel.onAppear()
+        #expect(viewModel.state.content == .publications(items))
+        #expect(viewModel.state.isOffline)
+    }
+
+    @Test("Una sincronización sin novedades deja el contenido intacto y no muestra error")
+    func aQuietSyncChangesNothing() async {
+        let items = [publication()]
+        let viewModel = makeViewModel(publications: .success(items))
+        await viewModel.apply(.todaysBulletin)
+        await viewModel.onRefresh()
+        #expect(viewModel.state.content == .publications(items))
+        #expect(!viewModel.state.isOffline)
+    }
+
+    @Test("El resumen de la sincronización viaja a analítica con solo recuentos (FR-029)")
+    func theSyncEventCarriesOnlyCounts() async {
+        // Ni un título, ni un organismo, ni una dirección: lo que una persona lee es asunto suyo.
+        let analytics = RecordingAnalyticsTracker()
+        let viewModel = makeViewModel(
+            refreshResult: .success(SyncSummary(succeededFeeds: 19, inserted: 40)),
+            analytics: analytics
+        )
+        await viewModel.onAppear()
+
+        let sync = analytics.events.first { $0.name == "boc_sync" }
+        #expect(sync != nil)
+        let values = sync?.parameters.values.joined() ?? ""
+        let onlyDigits = values.allSatisfy { $0.isASCII && $0.isNumber }
+        #expect(onlyDigits, "Un parámetro con texto libre sería un dato de la persona")
+        #expect(sync?.parameters["inserted"] == "40")
+    }
+
+    @Test("La sección elegida sí viaja: es un enumerado del catálogo público")
+    func theSelectedSectionCodeMayTravel() async {
+        let analytics = RecordingAnalyticsTracker()
+        let viewModel = makeViewModel(analytics: analytics)
+        await viewModel.apply(.section(code: "2", subsectionCode: "2.2"))
+
+        let selected = analytics.events.first { $0.name == "home_section_selected" }
+        #expect(selected?.parameters["section_code"] == "2.2")
     }
 }
