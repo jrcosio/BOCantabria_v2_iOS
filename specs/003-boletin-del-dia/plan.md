@@ -182,6 +182,10 @@ BOCantabria-iosTests/
 ├── Architecture/SourceTreeTests.swift                 MODIFICADO  su prueba, que la regla exige
 ├── Architecture/ArchitectureRulesTests.swift          MODIFICADO  regla 6 ampliada + reglas 10, 11 y 12
 ├── Domain/BocDateTests.swift                          NUEVO       la trampa de Int("+1"), otra vez
+├── Domain/BocSectionRepositoryImplTests.swift         NUEVO
+├── Core/ManualClockTests.swift                        NUEVO       el reloj que no avanza solo
+├── Data/BocFeedCatalogTests.swift                     NUEVO       19 direcciones, ninguna calculada
+├── Data/PublicationRepositoryImplTests.swift          NUEVO       las cinco filas de la política
 ├── Domain/BocSectionTests.swift                       NUEVO       catálogo, padres e hijas, color
 ├── Domain/PublicationTests.swift                      NUEVO
 ├── Domain/HomeSelectionTests.swift                    NUEVO

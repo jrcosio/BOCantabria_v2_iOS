@@ -49,7 +49,8 @@ que GRDB compila dentro del proyecto.
       `sectionPersonnel` `#6A4C93`, `sectionContracting` `#00838F`, `sectionEconomy` `#2E7D32`,
       `sectionAnnouncements` `#AD5B00`— y el token `scrim` del velo del panel. Son los seis únicos
       tokens nuevos; **la regla 7 exige que se construyan aquí y solo aquí**.
-- [ ] T006 `TEST/Core/BocThemeTests.swift`: afirmar los seis valores nuevos y retirar de la cabecera
+- [ ] T006 **FR-080** `TEST/Core/BocThemeTests.swift`: afirmar los seis valores nuevos, y que
+      **ninguno tiene variante oscura** —la regla 8, que ya existe, es la que lo protege— y retirar de la cabecera
       del fichero de colores la nota de que los de sección «quedan fuera a propósito», que deja de
       ser cierta.
 - [ ] T007 **Prueba de humo de GRDB**: un `import GRDB` en un fichero de `APP/Data/Source/Local/` y
@@ -114,7 +115,9 @@ nuevas y la retirada de la rodaja de relleno. ⚠️ **Bloquea las cuatro histor
       un capricho: los identificadores no son correlativos y dos pertenecen a otro rango.
 - [ ] T024 `TEST/Data/BocFeedCatalogTests.swift`: **SC-006**. Diecinueve entradas; todas HTTPS;
       todas apuntan al servicio oficial; cada una casa con una sección o subsección del catálogo de
-      dominio; y **ninguna dirección se construye concatenando**.
+      dominio; y **ninguna dirección se construye concatenando**. **FR-003**: desactivar una entrada
+      la retira de la lista que se consulta **sin tocar el proceso de lectura**, y una entrada nueva
+      entra sin tocarlo tampoco.
 - [ ] T025 [P] `APP/Data/Repository/BocSectionRepositoryImpl.swift` y su prueba en
       `TEST/Data/BocSectionRepositoryImplTests.swift`: devuelve el árbol ordenado. No lee de la
       base: es catálogo.
@@ -141,7 +144,8 @@ nuevas y la retirada de la rodaja de relleno. ⚠️ **Bloquea las cuatro histor
       compone el formato largo español desde el catálogo de cadenas. **Sin `Date`, sin `Calendar`,
       sin `TimeZone` y sin `DateFormatter`**, y la zona `Europe/Madrid` fijada en un solo sitio para
       decidir qué es «hoy».
-- [ ] T031 `TEST/Core/BocDateFormattingTests.swift`: las doce fechas con la cadena exacta; los
+- [ ] T031 **SC-011, FR-087** `TEST/Core/BocDateFormattingTests.swift`: las doce fechas con la
+      cadena exacta; los
       **dos** rótulos distintos (**FR-034**); que sin fecha **no se compone ningún rótulo**
       (**FR-035**); el plural en uno y en cero; y una prueba que cambia la zona del entorno y
       afirma que la fecha del boletín no se mueve.
@@ -170,8 +174,12 @@ nuevas y la retirada de la rodaja de relleno. ⚠️ **Bloquea las cuatro histor
       `@concurrent`, y pierde la cancelación estructurada.
 - [ ] T038 **D-325** `TEST/Architecture/ArchitectureRulesTests.swift`: añadir a
       `domainTypesWithoutBehaviour` **solo** `EditionType`, `IdSource`, `ParserWarning` y
-      `SectionColorGroup`. `Publication`, `BocDate`, `BocSection`, `HomeSelection` y `SyncSummary`
+      `SectionColorGroup` —**FR-085 y SC-012** son lo que esta regla hace verificable—.
+      `Publication`, `BocDate`, `BocSection`, `HomeSelection` y `SyncSummary`
       **no se eximen**: tienen comportamiento y ya tienen su fichero. Se decide aquí y en frío.
+      Y **actualizar la cita del comentario**, que dice SC-002: en la 001 ése era el criterio de la
+      cobertura de pruebas y **en esta feature SC-002 es el tiempo del boletín del día**. Aquí el
+      criterio que la regla hace verificable es **SC-012**.
 - [ ] T039 **Paso 5 del quickstart**: provocar a mano una violación de cada regla nueva y comprobar
       que se pone en rojo. **Una regla que no puede fallar no protege nada.** Revertir después.
 
@@ -303,7 +311,8 @@ con el recuento. Es el paso 6 del quickstart.
       actualiza y no duplica; `first_seen_at` que no se mueve y `last_seen_at` que sí; y el modo de
       diario comprobado sobre un fichero temporal real, **declarando que la base en memoria lo
       ignora** (**D-301**).
-- [ ] T066 [US1] `TEST/Data/PublicationQueriesTests.swift`: el boletín del día es la fecha máxima;
+- [ ] T066 [US1] **FR-037, FR-038** `TEST/Data/PublicationQueriesTests.swift`: el boletín del día es
+      la fecha máxima **de todas las secciones**;
       una sección principal **recoge a sus subsecciones**; una subsección no recoge a su hermana; el
       recuento casa con la lista; y el desempate determinista con dos publicaciones de la misma
       fecha (**FR-028**).
@@ -367,9 +376,12 @@ con el recuento. Es el paso 6 del quickstart.
       el árbol, aunque se vea en pantalla.
 - [ ] T084 [US1] **D-322** `APP/Data/Sync/ScenarioDatabaseSeeder.swift` y
       `APP/Core/Util/LaunchConfiguration.swift`: `-boc-data-scenario=` con `today`, `empty`,
-      `failing`, `offline` y `slow`, sembrando la base **con las muestras pasadas por el analizador
-      real**, en memoria o fichero temporal, **jamás la de la persona**. Sustituye a la costura
-      vieja: siguen siendo dos argumentos, los mismos que hoy.
+      `failing`, `offline` y `slow`, sembrando la base con un conjunto **sintetizado en código**,
+      en memoria o fichero temporal, **jamás la de la persona**. Sustituye a la costura vieja:
+      siguen siendo dos argumentos, los mismos que hoy. **No se leen las muestras de
+      `TEST/Fixtures/`**: viajan solo en el bundle de pruebas y este código corre en el proceso de
+      la aplicación, que no las ve; y embarcarlas en el binario que se publica es justo lo que la
+      promesa de costura acotada evita.
 - [ ] T085 [US1] **FR-086** `UITEST/Home/HomeStatesUITests.swift`: devolverle los cinco escenarios,
       con **los mismos identificadores** de la 001, que son contrato. **D-328**: esperar por
       existencia, nunca reposo — el esqueleto pulsa sin fin por diseño y una espera de reposo se
@@ -380,7 +392,13 @@ con el recuento. Es el paso 6 del quickstart.
 - [ ] T087 [US1] `TEST/Integration/SyncFlowIntegrationTests.swift`: el grafo real sobre base en
       memoria con descargador falso. Primera sincronización con las diez muestras, y el estado que
       la pantalla acaba viendo.
-- [ ] T088 [US1] **D-300** `TEST/Data/BocRssParserTests.swift`: la prueba que afirma, **dentro** de
+- [ ] T088 [US1] **FR-029, D-327** `APP/Data/Sync/FeedSyncCoordinator.swift` y
+      `TEST/Data/FeedSyncCoordinatorTests.swift`: el evento `boc_sync` lleva **solo recuentos**
+      —fuentes con éxito, sin cambios, fallidas, insertadas, actualizadas, rechazadas— y el registro
+      `OSLog` de categoría `sync` dice fase, número de fuentes, bytes y motivo. La prueba, sobre
+      `RecordingAnalyticsTracker`, afirma que **ningún parámetro lleva texto libre**: ni un título,
+      ni un organismo, ni una dirección.
+- [ ] T089 [US1] **D-300** `TEST/Data/BocRssParserTests.swift`: la prueba que afirma, **dentro** de
       la función analizadora, que no se está en el hilo principal. Se pone roja si alguien quita
       `@concurrent`. Sin ella, el atributo es una convención.
 
@@ -396,39 +414,46 @@ con cabecera rotulada y recuento. **US1 es el MVP y ya es demostrable.**
 **Independent Test**: abrir con conexión, cerrar, modo avión, volver a abrir. Mismo contenido, de
 inmediato, con el aviso. Pasos 7 y 8 del quickstart.
 
-- [ ] T089 [US2] **FR-023, D-317** `APP/Data/Repository/PublicationRepositoryImpl.swift`:
+- [ ] T090 [US2] **FR-023, D-317** `APP/Data/Repository/PublicationRepositoryImpl.swift`:
       `isCacheStale()` contra `last_success_at` y el `now()` inyectado. **Un transcurrido negativo o
       una marca en el futuro se tratan como caducado**, no como recién sincronizado: si no, la
       caché se congela hasta que el reloj del dispositivo alcance ese valor.
-- [ ] T090 [US2] `TEST/Data/PublicationRepositoryImplTests.swift`: a los veintinueve minutos no
+- [ ] T091 [US2] `TEST/Data/PublicationRepositoryImplTests.swift`: a los veintinueve minutos no
       sincroniza, a los treinta y uno sí, y con la marca en el futuro sí. Con `ManualClock`, las
       tres en microsegundos. **`ImmediateClock` no vale aquí**: gana toda carrera contra un límite.
-- [ ] T091 [US2] **FR-024, FR-025, FR-026** `APP/UI/Home/HomeViewModel.swift`: `onRefresh()` con
+- [ ] T092 [US2] **FR-024, FR-025, FR-026** `APP/UI/Home/HomeViewModel.swift`: `onRefresh()` con
       `force: true`, que **siempre** sale a la red; `isRefreshing` mientras dura; y el contenido
       existente **intacto** durante toda la actualización.
-- [ ] T092 [US2] **FR-025, D-307** `TEST/Data/FeedSyncCoordinatorTests.swift`: dos llamadas
+- [ ] T093 [US2] **FR-025, D-307** `TEST/Data/FeedSyncCoordinatorTests.swift`: dos llamadas
       concurrentes producen **diecinueve** descargas, no treinta y ocho, y **las dos devuelven el
       mismo resumen**. La segunda espera y comparte; ignorarla haría que el indicador desapareciera
       antes que la sincronización.
-- [ ] T093 [US2] [P] **FR-043** `APP/Core/UI/Component/OfflineBanner.swift`: aviso con icono
+- [ ] T094 [US2] [P] **FR-043** `APP/Core/UI/Component/OfflineBanner.swift`: aviso con icono
       `ic_cloud_off` **que no oculta el contenido**.
-- [ ] T094 [US2] **FR-027** `APP/UI/Home/HomeViewModel.swift` y `HomeContentView.swift`: las dos
+- [ ] T095 [US2] **FR-027** `APP/UI/Home/HomeViewModel.swift` y `HomeContentView.swift`: las dos
       ramas del fallo total —con contenido guardado, se muestra y se enciende el aviso; sin nada
       guardado, mensaje con reintento—.
-- [ ] T095 [US2] `TEST/UI/HomeViewModelTests.swift`: las dos ramas anteriores, más que una
+- [ ] T096 [US2] **SC-003** `TEST/UI/HomeViewModelTests.swift`: las dos ramas anteriores —en ninguna
+      de las dos se llega a una pantalla vacía sin explicación—, más que una
       actualización sin novedades **deja el contenido intacto y no muestra ningún error**.
-- [ ] T096 [US2] **FR-021, FR-084, SC-005, D-324** `TEST/Integration/NoDeleteRegressionTests.swift`:
+- [ ] T097 [US2] **FR-021, FR-084, SC-005, D-324** `TEST/Integration/NoDeleteRegressionTests.swift`:
       configurar la base para **recoger cada sentencia que se ejecuta**, correr una sincronización
       completa y afirmar que ninguna borra de `publications`. Es la garantía de verdad: GRDB borra
       sin que la palabra aparezca en ninguna cadena del fuente, así que la regla textual **no puede
       verlo**.
-- [ ] T097 [US2] `TEST/Integration/NoDeleteRegressionTests.swift`: con la misma traza, que la
+- [ ] T098 [US2] `TEST/Integration/NoDeleteRegressionTests.swift`: con la misma traza, que la
       actualización de la sincronización es una **lista blanca de columnas** y no menciona
       `first_seen_at`. Es la infraestructura que Guardados y Avisos van a necesitar tal cual.
-- [ ] T098 [US2] **SC-004** `TEST/Integration/SyncFlowIntegrationTests.swift`: cinco
+- [ ] T099 [US2] **SC-004** `TEST/Integration/SyncFlowIntegrationTests.swift`: cinco
       sincronizaciones seguidas no duplican nada y **el recuento no baja**, ni siquiera cuando una
       publicación deja de aparecer en la fuente.
-- [ ] T099 [US2] **FR-086** `UITEST/Home/HomeStatesUITests.swift`: el escenario `offline` muestra el
+- [ ] T100 [US2] **FR-083** `TEST/Integration/SyncFlowIntegrationTests.swift`: **la matriz completa
+      de la sincronización, los nueve casos nombrados uno a uno**: primera obtención; segunda sin
+      cambios, que **no reescribe nada** porque la huella coincide; publicación nueva; publicación
+      actualizada, que conserva `first_seen_at`; publicación que **sale de la ventana de cien** y
+      sigue guardada; una fuente que falla; todas fallan **con** contenido guardado; todas fallan
+      **sin** contenido guardado; y un duplicado entre dos fuentes, que da **un solo registro**.
+- [ ] T101 [US2] **FR-086** `UITEST/Home/HomeStatesUITests.swift`: el escenario `offline` muestra el
       aviso **sin tapar el contenido**, y el escenario `slow` sigue siendo necesario — comprobar la
       carga contra una latencia corta es una carrera contra el arranque, y subir el tiempo de espera
       no arregla nada porque el problema es el contrario.
@@ -445,61 +470,65 @@ prueba que demuestra que nada borra.
 **Independent Test**: abrir el panel, desplegar una sección con subsecciones y elegir una; la lista,
 la cabecera y las dos filas cambian. Pasos 9, 10 y 11 del quickstart.
 
-- [ ] T100 [US3] **FR-068, D-318** `APP/Data/Source/Local/UserDefaultsSelectionStore.swift`: guarda
+- [ ] T102 [US3] **FR-068, D-318** `APP/Data/Source/Local/UserDefaultsSelectionStore.swift`: guarda
       **el código como cadena** y al restaurar lo **resuelve contra el catálogo**; si no casa, cae a
       «Boletín de hoy» en silencio. **Nunca un índice** y nunca un `init(rawValue:)` sin su
       alternativa explícita detrás: las subsecciones del BOC pueden cambiar, y un código guardado
       que ya no exista tumbaría Inicio en el único camino que nadie recorre a mano.
-- [ ] T101 [US3] `TEST/Data/UserDefaultsSelectionStoreTests.swift`: guarda, lee, código desconocido
+- [ ] T103 [US3] `TEST/Data/UserDefaultsSelectionStoreTests.swift`: guarda, lee, código desconocido
       y cadena vacía. Los cuatro casos.
-- [ ] T102 [US3] `APP/UI/Main/MainUiState.swift` y `MainViewModel.swift`: la selección, el árbol de
+- [ ] T104 [US3] `APP/UI/Main/MainUiState.swift` y `MainViewModel.swift`: la selección, el árbol de
       secciones y el conjunto de desplegadas. **El abierto/cerrado del panel no está aquí**: es
       `@State` de la vista, porque es efímero y no sobrevive a nada (**D-319**).
-- [ ] T103 [US3] `TEST/UI/MainViewModelTests.swift`: elegir, desplegar, contraer, y **un valor
+- [ ] T105 [US3] `TEST/UI/MainViewModelTests.swift`: elegir, desplegar, contraer, y **un valor
       guardado inválido que se resuelve a «Boletín de hoy»**.
-- [ ] T104 [US3] **FR-057, FR-064, D-319** `APP/UI/Main/SectionsDrawer.swift`: pila en profundidad
+- [ ] T106 [US3] **FR-057, FR-064, D-319** `APP/UI/Main/SectionsDrawer.swift`: pila en profundidad
       alineada al inicio con contenido, velo y panel; entrada por encima del contenido; cierre por
       deslizar y por tocar fuera. **No se construye gesto de apertura desde el borde**: ese borde ya
       lo usan el gesto de volver y los del sistema, y esto es una decisión del propietario, no una
       omisión.
-- [ ] T105 [US3] **FR-060 … FR-063** `APP/UI/Main/SectionsDrawer.swift`: la cabecera con el escudo,
+- [ ] T107 [US3] **FR-060 … FR-063** `APP/UI/Main/SectionsDrawer.swift`: la cabecera con el escudo,
       «BOC Cantabria» y, **al final de la fila**, la flecha que recoge el panel, con descripción
       accesible. **Sin campo de filtro**, y sin nada de su lógica: ni filtrado, ni poda de
       subsecciones, ni apertura automática, ni estado vacío de «ninguna sección coincide».
-- [ ] T106 [US3] **FR-058, FR-059, FR-066** `APP/UI/Main/SectionsDrawerRow.swift`: fila de 72 pt
+- [ ] T108 [US3] **FR-058, FR-059, FR-066** `APP/UI/Main/SectionsDrawerRow.swift`: fila de 72 pt
       mínimo, icono de sección en el color de su grupo, número y nombre, chevron con rotación y
       divisor; subsecciones sobre `surfaceSoft` con sangría. El panel se recorre entero con todo
       desplegado.
-- [ ] T107 [US3] **D-320** `APP/UI/Main/SectionsDrawer.swift`: el panel se mantiene montado con
+- [ ] T109 [US3] **D-320** `APP/UI/Main/SectionsDrawer.swift`: el panel se mantiene montado con
       `.accessibilityHidden(!isOpen)` **y** `.allowsHitTesting(isOpen)`, más el rasgo modal mientras
       está abierto y la acción de escape. Un panel a mano no trae gratis lo que una hoja nativa sí.
-- [ ] T108 [US3] **D-320** `UITEST/Main/SectionsDrawerUITests.swift`: **antes de abrir nada**,
+      **FR-067**: y una aserción de que el panel **no contiene campana ni tarjeta de alertas**, que
+      hoy se cumple por ausencia y mañana es lo que impide que alguien las reintroduzca sin pensar.
+- [ ] T110 [US3] **D-320** `UITEST/Main/SectionsDrawerUITests.swift`: **antes de abrir nada**,
       afirmar que una etiqueta exclusiva del panel **no existe**. La aserción es sobre existencia,
       **no sobre pulsabilidad**: `allowsHitTesting(false)` a secas deja el elemento en el árbol, y
       comprobar lo segundo es comprobar la mitad equivocada.
-- [ ] T109 [US3] `UITEST/Main/SectionsDrawerUITests.swift`: abrir con el botón; cerrar tocando el
+- [ ] T111 [US3] **FR-065, SC-008** `UITEST/Main/SectionsDrawerUITests.swift`: contar los toques
+      hasta una subsección, que son **tres como máximo**; abrir con el botón; cerrar tocando el
       velo; cerrar arrastrando; cerrar con la flecha **sin que cambie la selección**; y elegir una
       subsección comprobando que el panel se retira y la cabecera la nombra **por identificador**,
       nunca por texto.
-- [ ] T110 [US3] **FR-045, FR-046, FR-054** `APP/UI/Home/Component/SectionChipRow.swift`: una sola
+- [ ] T112 [US3] **FR-045, FR-046, FR-054** `APP/UI/Home/Component/SectionChipRow.swift`: una sola
       vista que sirve a las dos filas, con estilo primario y secundario. El primer chip dice
       **«Boletín de hoy»**, no «Todo»: el comportamiento era correcto y la palabra era la
       equivocada.
-- [ ] T111 [US3] **FR-047 … FR-053, FR-055** `APP/UI/Home/HomeViewModel.swift` y
+- [ ] T113 [US3] **FR-047 … FR-053, FR-055** `APP/UI/Home/HomeViewModel.swift` y
       `HomeContentView.swift`: la segunda fila solo cuando procede; `Toda la sección`; **un solo
       toque hace las dos cosas**; la primera fila sigue marcando la sección padre; y llegar desde el
       panel produce el mismo resultado que llegar desde los chips.
-- [ ] T112 [US3] `TEST/UI/HomeViewModelTests.swift`: las seis reglas anteriores, una aserción cada
+- [ ] T114 [US3] `TEST/UI/HomeViewModelTests.swift`: las seis reglas anteriores, una aserción cada
       una, incluida la de que pasar a una sección sin subsecciones **retira** la segunda fila.
-- [ ] T113 [US3] **FR-038** `APP/UI/Home/`: con sección elegida, el listado **no se limita a una
+- [ ] T115 [US3] **FR-038** `APP/UI/Home/`: con sección elegida, el listado **no se limita a una
       fecha** y el rótulo de la cabecera pasa a «Última publicación: …». Es lo que evita que una
       fecha de 2021 se lea como un fallo.
-- [ ] T114 [US3] **FR-086** `UITEST/Home/HomeFiltersUITests.swift`: las dos filas, con
-      `home_subsection_chips` **que no existe** cuando no procede.
-- [ ] T115 [US3] **SC-007** `TEST/Integration/SyncFlowIntegrationTests.swift`: elegir 8.1 da estado
+- [ ] T116 [US3] **FR-056, FR-086** `UITEST/Home/HomeFiltersUITests.swift`: las dos filas, con
+      `home_subsection_chips` **que no existe** cuando no procede; que ambas se desplazan
+      horizontalmente; y que **el resto de la pantalla no se desplaza** con ellas.
+- [ ] T117 [US3] **SC-007** `TEST/Integration/SyncFlowIntegrationTests.swift`: elegir 8.1 da estado
       vacío **con mensaje propio y ningún error**; elegir 4.3 da sus publicaciones antiguas con su
       advertencia registrada y **ninguna descartada**.
-- [ ] T116 [US3] `APP/UI/Home/HomeView.swift`: la selección llega de `MainView` como `let` y se
+- [ ] T118 [US3] `APP/UI/Home/HomeView.swift`: la selección llega de `MainView` como `let` y se
       aplica con `.task(id: selection)`, que cancela la consulta anterior al cambiar. **Nada de
       `@Environment`** para esto (**D-321**).
 
@@ -515,34 +544,35 @@ la muerte del proceso.
 **Independent Test**: recorrer los tres destinos y las dos acciones de la barra superior. Paso 12
 del quickstart.
 
-- [ ] T117 [US4] **FR-069, FR-070, FR-072, D-321** `APP/UI/Main/MainView.swift` y `BocTabBar.swift`:
+- [ ] T119 [US4] **FR-069, FR-070, FR-072, D-321** `APP/UI/Main/MainView.swift` y `BocTabBar.swift`:
       `ZStack { TabView ; velo ; panel }` con **un `NavigationStack` por pestaña**. Envolver el
       `TabView` con un `NavigationStack` es el error habitual: rompe la barra y deja una sola pila
       para tres destinos. El panel va **por encima** del `TabView`, y como la portada es hermana de
       `MainView`, **no la alcanza**.
-- [ ] T118 [US4] **D-321** `APP/UI/Main/BocTabBar.swift`: fondo de la barra declarado
+- [ ] T120 [US4] **D-321** `APP/UI/Main/BocTabBar.swift`: fondo de la barra declarado
       explícitamente, porque por defecto se pinta un material translúcido y el apartado 10.1 del
       documento de diseño pide blanco con borde superior. Activo marcado por **forma o peso, además
       del color** (**FR-070**).
-- [ ] T119 [US4] **D-318, D-321** `APP/UI/Navigation/Route.swift`: `MainTab` restaurado **por
+- [ ] T121 [US4] **D-318, D-321** `APP/UI/Navigation/Route.swift`: `MainTab` restaurado **por
       nombre**, con su alternativa explícita. Misma cautela que la selección: una pestaña guardada
       que ya no exista tumbaría la aplicación al volver de la muerte del proceso.
-- [ ] T120 [US4] [P] **FR-071** `APP/UI/Search/SearchView.swift` y `APP/UI/Saved/SavedView.swift`
+- [ ] T122 [US4] [P] **FR-071** `APP/UI/Search/SearchView.swift` y `APP/UI/Saved/SavedView.swift`
       sobre `APP/Core/UI/Component/ComingSoonMessage.swift`: destinos reales con el aspecto de la
       aplicación.
-- [ ] T121 [US4] **FR-073, FR-074** `APP/UI/Home/Component/HomeTopBar.swift`: la lupa avisa de que
+- [ ] T123 [US4] **FR-073, FR-074** `APP/UI/Home/Component/HomeTopBar.swift`: la lupa avisa de que
       la búsqueda llegará próximamente; la información está y **no hace nada todavía**.
-- [ ] T122 [US4] **FR-075** `APP/Core/UI/Component/PublicationCard.swift`: compartir abre la hoja
+- [ ] T124 [US4] **FR-075** `APP/Core/UI/Component/PublicationCard.swift`: compartir abre la hoja
       del sistema **con el enlace del documento oficial**.
-- [ ] T123 [US4] **FR-076, FR-077** `APP/Core/UI/Component/PublicationCard.swift`: guardar avisa; y
+- [ ] T125 [US4] **FR-076, FR-077** `APP/Core/UI/Component/PublicationCard.swift`: guardar avisa; y
       **tocar el cuerpo de la tarjeta no navega a ningún sitio**, que es lo que la feature siguiente
       va a cambiar.
-- [ ] T124 [US4] **FR-078** `APP/UI/Navigation/RootView.swift`: conmutar a `MainView` en lugar de a
+- [ ] T126 [US4] **FR-078** `APP/UI/Navigation/RootView.swift`: conmutar a `MainView` en lugar de a
       `HomeView`, conservando que la portada **no entra en la pila** y que volver desde Inicio no la
       hace reaparecer.
-- [ ] T125 [US4] **FR-086** `UITEST/Main/TabNavigationUITests.swift`: los tres destinos, el marcador
+- [ ] T127 [US4] **FR-086, SC-009** `UITEST/Main/TabNavigationUITests.swift`: los tres destinos, el
+      marcador
       en dos de ellos, y que la barra refleja cuál está activo.
-- [ ] T126 [US4] `TEST/Integration/AppContainerTests.swift`: que el contenedor resuelve las fábricas
+- [ ] T128 [US4] `TEST/Integration/AppContainerTests.swift`: que el contenedor resuelve las fábricas
       nuevas y **no dispara efectos de arranque** al construirse.
 
 **Checkpoint**: ninguna acción visible deja sin respuesta, y la estructura de navegación queda
@@ -554,43 +584,49 @@ fijada para las features siguientes.
 
 **Purpose**: dejar los documentos coherentes, atravesar la frontera real y anotar las cifras.
 
-- [ ] T127 **SC-010** Revisar la pantalla con el tamaño de letra del sistema al **200 %**: las
+- [ ] T129 **SC-010** Revisar la pantalla con el tamaño de letra del sistema al **200 %**: las
       tarjetas crecen y no se recorta el organismo, el título ni la fecha, y la posición de lectura
       no se pierde (**FR-044**). **Se mira la pantalla, no el código**: así se descubrió que el
       botón principal era invisible sobre la portada.
-- [ ] T128 Comprobar las tres trampas que en Android solo aparecieron en el dispositivo: que el
+- [ ] T130 Comprobar las tres trampas que en Android solo aparecieron en el dispositivo: que el
       organismo **no salga dos veces** en la tarjeta, que no haya un hueco de área segura sobre el
       escudo, y que el panel no tenga un tinte que no es suyo. Ninguna prueba de esta casa las ve.
-- [ ] T129 **FR-081** `docs/diseno/especificaciones-diseno.md`: anotar las desviaciones propias de
+- [ ] T131 **FR-081** `docs/diseno/especificaciones-diseno.md`: anotar las desviaciones propias de
       iOS con su fecha y su motivo —tres destinos mientras no existan los avisos, y la tarjeta de
       alertas del panel en suspenso—, y **corregir los apartados 32 y 36**, que siguen
       transcribiendo el microcopy y el checklist que las enmiendas de 14.4 y 16 dejaron sin efecto.
-- [ ] T130 `CLAUDE.md`: retirar la **013** del orden de portado explicando por qué se absorbe, y
+- [ ] T132 `CLAUDE.md`: retirar la **013** del orden de portado explicando por qué se absorbe, y
       añadir las trampas nuevas: el aislamiento por defecto que ya no salta al pool, el delegado
       débil del analizador, el texto que llega troceado, el booleano de `parse()`, el panel siempre
       montado en el árbol de accesibilidad, y la cadena SQL que el motor de reglas no ve.
-- [ ] T131 `README.md`: la tabla de estado se quedó en la 001 —dice «Esqueleto de arquitectura» y
+- [ ] T133 `README.md`: la tabla de estado se quedó en la 001 —dice «Esqueleto de arquitectura» y
       «58 sin interfaz · 6 de interfaz»—. Ponerla al día con las cifras de esta feature.
-- [ ] T132 **FR-088, SC-013 · Paso 13 del quickstart**: contraste contra el servicio real. Anotar
+- [ ] T134 **FR-088, SC-013 · Paso 13 del quickstart**: contraste contra el servicio real. Anotar
       **con cifras**: fuentes que respondieron, publicaciones recibidas, aceptadas, rechazadas con
       su motivo, sin identificador en el enlace, con clasificación que no corresponde, **con orden
       anómalo** —en Android fueron ocho, todas del feed 4.3— e identificadores repetidos. Es lo
       único que mira al otro lado de la frontera.
-- [ ] T133 **D-329** Volver a medir el arranque con `XCTApplicationLaunchMetric`, cinco tomas, y
+- [ ] T135 **SC-001, SC-002** Medir y **anotar las dos cifras de rendimiento**: con contenido
+      guardado, cuánto tarda Inicio en mostrar publicaciones desde que la pantalla aparece —objetivo,
+      menos de 1 s, con y sin conexión—; y en instalación limpia con conexión, cuánto tarda el
+      boletín del día desde el toque —objetivo, menos de 15 s—. La constitución pide cifras, no
+      recorridos: recorrerlo en el quickstart no basta.
+- [ ] T136 **D-329** Volver a medir el arranque con `XCTApplicationLaunchMetric`, cinco tomas, y
       anotar la cifra junto a los **815 ms** anteriores. Esta feature mete abrir un fichero y
       migrarlo en ese camino. «Sigue bien» no es una cifra.
 
 ### Las cuatro puertas
 
-No hay CI, por la constitución 1.1.0: se ejecutan aquí y **el resultado se anota con cifras**.
+**SC-014.** No hay CI, por la constitución 1.1.0: se ejecutan aquí y **el resultado se anota con
+cifras**.
 
-- [ ] T134 Puerta 1 · Construcción: `xcodebuild ... -quiet build` → **anotar el tiempo**
-- [ ] T135 Puerta 2 · Pruebas sin interfaz: `-only-testing:BOCantabria-iosTests` → **anotar número
+- [ ] T137 Puerta 1 · Construcción: `xcodebuild ... -quiet build` → **anotar el tiempo**
+- [ ] T138 Puerta 2 · Pruebas sin interfaz: `-only-testing:BOCantabria-iosTests` → **anotar número
       de pruebas, de suites, tiempo y el delta** respecto a las 116 de partida
-- [ ] T136 Puerta 3 · Pruebas de interfaz: `-testPlan UITests` → **anotar número y tiempo**, y el
+- [ ] T139 Puerta 3 · Pruebas de interfaz: `-testPlan UITests` → **anotar número y tiempo**, y el
       delta respecto a las 16 de partida. Con `-testPlan`, **nunca** con `-only-testing` sobre el
       target de interfaz
-- [ ] T137 Puerta 4 · Sin avisos nuevos: `grep -c "warning:"` → **anotar la cifra**. El único
+- [ ] T140 Puerta 4 · Sin avisos nuevos: `grep -c "warning:"` → **anotar la cifra**. El único
       admisible es el preexistente de `appintentsmetadataprocessor`, que es de Apple
 
 ---
@@ -656,7 +692,7 @@ T078 (tarjeta) · T079 (esqueleto) · T080 (cabecera) · T081 (barra superior)
 
 ### Riesgos anotados
 
-- **La pieza con más incógnita es el panel** (T104…T109): no hay componente del sistema y hay que
+- **La pieza con más incógnita es el panel** (T106…T111): no hay componente del sistema y hay que
   reponer a mano lo que una hoja nativa daría gratis.
 - **El punto de corte natural** de la feature está entre US2 y US3. Si hubiera que partir la
   entrega, US1 + US2 ya son una aplicación que sirve.
@@ -674,7 +710,11 @@ Cuando las cuatro puertas estén en verde, la feature está **terminada**, no in
 
 - `[P]` = ficheros distintos y sin dependencias entre sí.
 - `HomeViewModel` y `HomeContentView` se tocan desde tres historias. Están sin `[P]` a propósito.
-- Las cifras de las puertas se escriben en T134…T137. **Un «pasa» no vale**: es lo único que después
+- Las cifras de las puertas se escriben en T137…T140. **Un «pasa» no vale**: es lo único que después
   permite saber si se ejecutaron.
 - Las diez muestras XML **ya están** en `TEST/Fixtures/` desde la 001, y los cincuenta y dos iconos
-  también. No se dibuja ninguno nuevo ni se descarga ninguna muestra.
+  también. No se dibuja ninguno nuevo ni se descarga ninguna muestra. Y viajan **solo en el bundle de
+  pruebas**: el sembrador de escenarios no puede leerlas, por eso sintetiza en código (**D-322**).
+- El bloque T040…T047 **no se apoya en ningún requisito funcional**: su justificación está en las
+  suposiciones de la especificación —«la rodaja vertical de relleno de la feature 001 se retira»—. Se
+  anota para que nadie lo lea como un grupo de tareas huérfanas.

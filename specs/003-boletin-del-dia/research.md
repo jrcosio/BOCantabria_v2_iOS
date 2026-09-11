@@ -621,9 +621,19 @@ los hace sustituibles cuando cambie el mecanismo.
 - **Un servidor local en el proceso de pruebas.** Necesita excepción de seguridad de transporte para
   localhost y trae intermitencia.
 
+**La siembra sintetiza en código, y esto es una corrección del análisis previo.** La primera
+redacción de esta decisión decía que la siembra pasaría las diez muestras XML por el analizador real.
+**No es implementable**: las muestras de `BOCantabria-iosTests/Fixtures/` viajan solo en el bundle de
+pruebas, y el sembrador es código de la aplicación, que corre en otro proceso y no las ve. Las dos
+salidas eran embarcar muestras de prueba en el binario que se publica —que es exactamente lo que la
+promesa de «costura acotada» quiere evitar— o **construir en código un conjunto determinista de
+publicaciones**. Se elige lo segundo, y se acepta su consecuencia: **el analizador no queda ejercitado
+desde la prueba de interfaz**, sino desde sus pruebas unitarias, que es donde tiene que estar. Lo que
+la prueba de interfaz verifica es la pantalla, no el camino de datos.
+
 **Dos condiciones que no son negociables**: la base sembrada es **en memoria o en un fichero
-temporal**, jamás la de la persona; y la siembra pasa por el analizador real, de modo que el analizador
-queda ejercitado también desde la prueba de interfaz.
+temporal**, jamás la de la persona; y el conjunto sintético es fijo, de modo que una prueba que
+afirme un recuento no dependa de nada externo.
 
 **Lo que se retira a la vez**: el escenario de contenido de `LaunchConfiguration`, el origen de
 ejemplo, el origen local en memoria y la entrada correspondiente del contenedor. `HomeStatesUITests`
