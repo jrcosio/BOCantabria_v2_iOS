@@ -28,10 +28,10 @@ demostrarse por separado.
 **Purpose**: las carpetas, los textos y los tokens que todo lo demás necesita, y la comprobación de
 que GRDB compila dentro del proyecto.
 
-- [ ] T001 Crear las carpetas nuevas: `APP/Data/Sync/`, `APP/UI/Main/`, `APP/UI/Home/Component/`,
+- [X] T001 Crear las carpetas nuevas: `APP/Data/Sync/`, `APP/UI/Main/`, `APP/UI/Home/Component/`,
       `APP/UI/Search/`, `APP/UI/Saved/` y `UITEST/Main/`. Los grupos sincronizados las recogen
       solas: **no se toca `project.pbxproj`** para fuentes.
-- [ ] T002 [P] **FR-079**: añadir a `APP/Localizable.xcstrings` las veinticinco cadenas de esta
+- [X] T002 [P] **FR-079**: añadir a `APP/Localizable.xcstrings` las veinticinco cadenas de esta
       feature, con los textos literales de `docs/referencia-android/res/strings.xml` y cada una con
       su `comment`: `app_bar_title`, `app_bar_open_sections`, `app_bar_search`, `app_bar_info`,
       `home_bulletin_today`, `home_header_date_bulletin`, `home_header_date_section`,
@@ -39,25 +39,27 @@ que GRDB compila dentro del proyecto.
       `home_error_sync`, `home_offline`, `publication_save`, `publication_unsave`,
       `publication_share`, `publication_share_chooser`, `publication_section`, `sections_expand`,
       `sections_collapse`, `sections_close`, `nav_home`, `nav_search`, `nav_saved`, `coming_soon`.
-- [ ] T003 [P] **D-316**: añadir a `APP/Localizable.xcstrings` los doce nombres de mes en minúscula
+- [X] T003 [P] **D-316**: añadir a `APP/Localizable.xcstrings` los doce nombres de mes en minúscula
       y el **primer plural del catálogo**, `home_publication_count` («%lld anuncio» / «%lld
       anuncios»). Es `%lld` y no `%d`: en 64 bits un `Int` no cabe en `%d`.
-- [ ] T004 [P] `APP/Core/UI/Strings.swift`: añadir `enum Home`, `enum Sections`, `enum Nav` y
+- [X] T004 [P] `APP/Core/UI/Strings.swift`: añadir `enum Home`, `enum Sections`, `enum Nav` y
       `enum Card` con las claves nuevas, siguiendo el patrón del `enum Splash`.
-- [ ] T005 [P] **D-326 y D-319**: añadir a `APP/Core/UI/Theme/BocColors.swift` los cinco colores de
+- [X] T005 [P] **D-326 y D-319**: añadir a `APP/Core/UI/Theme/BocColors.swift` los cinco colores de
       sección del apartado 4.4 del documento de diseño —`sectionGeneral` `#1565C0`,
       `sectionPersonnel` `#6A4C93`, `sectionContracting` `#00838F`, `sectionEconomy` `#2E7D32`,
       `sectionAnnouncements` `#AD5B00`— y el token `scrim` del velo del panel. Son los seis únicos
       tokens nuevos; **la regla 7 exige que se construyan aquí y solo aquí**.
-- [ ] T006 **FR-080** `TEST/Core/BocThemeTests.swift`: afirmar los seis valores nuevos, y que
+- [X] T006 **FR-080** `TEST/Core/BocThemeTests.swift`: afirmar los seis valores nuevos, y que
       **ninguno tiene variante oscura** —la regla 8, que ya existe, es la que lo protege— y retirar de la cabecera
       del fichero de colores la nota de que los de sección «quedan fuera a propósito», que deja de
       ser cierta.
-- [ ] T007 **Prueba de humo de GRDB**: un `import GRDB` en un fichero de `APP/Data/Source/Local/` y
+- [X] T007 **Prueba de humo de GRDB**: un `import GRDB` en un fichero de `APP/Data/Source/Local/` y
       una construcción. Confirma lo que el plan da por hecho: la biblioteca está enlazada desde la
       001 y **no hay que tocar `project.pbxproj`**. Si esto falla, no se sigue.
 
-**Checkpoint**: el árbol compila con GRDB dentro y las 116 pruebas de partida siguen en verde.
+**Checkpoint**: ✅ el árbol compila con GRDB dentro —comprobado con un fichero de humo que se
+retira acto seguido— y la suite pasa: **118 pruebas en 19 suites, 0,188 s**, todas en verde (eran
+116 al empezar; las dos nuevas son las de los seis tokens de color).
 
 ---
 

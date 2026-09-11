@@ -22,5 +22,5 @@ struct EmptyMessage: View {
 }
 
 #Preview {
-    EmptyMessage(message: Strings.Home.empty)
+    EmptyMessage(message: Strings.Home.emptyToday)
 }

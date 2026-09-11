@@ -31,14 +31,14 @@ struct HomeContentView: View {
             .accessibilityIdentifier("home_content")
 
         case .empty:
-            EmptyMessage(message: Strings.Home.empty)
+            EmptyMessage(message: Strings.Home.emptyToday)
                 .accessibilityIdentifier("home_empty")
 
         case .error:
             // El error de dominio no se pinta: la pantalla nunca dice códigos. Lo que se ve es
             // siempre el mismo texto, y el detalle vive en el registro.
             ErrorMessage(
-                message: Strings.Home.error,
+                message: Strings.Home.errorSync,
                 retryTitle: Strings.Action.retry,
                 onRetry: onRetry
             )

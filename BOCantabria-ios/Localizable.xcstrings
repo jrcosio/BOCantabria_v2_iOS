@@ -1,132 +1,678 @@
 {
-  "sourceLanguage" : "es",
-  "strings" : {
-    "home_empty_body" : {
-      "comment" : "Estado sin contenido de la pantalla inicial. No es un error.",
-      "extractionState" : "manual",
-      "localizations" : {
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Todavía no hay nada que mostrar." } }
+  "sourceLanguage": "es",
+  "strings": {
+    "action_retry": {
+      "comment": "Acción de reintentar, común a toda la aplicación.",
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reintentar"
+          }
+        }
       }
     },
-    "home_error_body" : {
-      "comment" : "Estado de error de la pantalla inicial.",
-      "extractionState" : "manual",
-      "localizations" : {
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "No se ha podido cargar el contenido." } }
+    "app_bar_info": {
+      "comment": "Acción de información de la barra superior.",
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Información"
+          }
+        }
       }
     },
-    "home_loading_body" : {
-      "comment" : "Estado de carga de la pantalla inicial.",
-      "extractionState" : "manual",
-      "localizations" : {
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Cargando…" } }
+    "app_bar_open_sections": {
+      "comment": "Descripción accesible del control que abre el panel lateral.",
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir las secciones del boletín"
+          }
+        }
       }
     },
-    "home_title" : {
-      "comment" : "Título de la pantalla inicial.",
-      "extractionState" : "manual",
-      "localizations" : {
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "BOC Cantabria" } }
+    "app_bar_search": {
+      "comment": "Acción de buscar de la barra superior. Todavía anuncia «Próximamente»: el buscador llega con su feature.",
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buscar"
+          }
+        }
       }
     },
-    "splash_acronym" : {
-      "comment" : "Siglas del boletín en la portada de arranque.",
-      "extractionState" : "manual",
-      "localizations" : {
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "BOC" } }
+    "app_bar_title": {
+      "comment": "Barra superior de Inicio, junto al escudo.",
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "BOC Cantabria"
+          }
+        }
       }
     },
-    "splash_title_line_one" : {
-      "comment" : "Primera línea de la denominación del boletín en la portada.",
-      "extractionState" : "manual",
-      "localizations" : {
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "BOLETÍN OFICIAL" } }
+    "chip_todays_bulletin": {
+      "comment": "Primer chip de la fila de secciones. Dice lo que muestra: la última edición, no el archivo entero.",
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Boletín de hoy"
+          }
+        }
       }
     },
-    "splash_title_line_two" : {
-      "comment" : "Segunda línea de la denominación del boletín en la portada.",
-      "extractionState" : "manual",
-      "localizations" : {
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "DE CANTABRIA" } }
+    "chip_whole_section": {
+      "comment": "Primera entrada de la fila de subsecciones: vuelve a la sección completa.",
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Toda la sección"
+          }
+        }
       }
     },
-    "splash_authorship_label" : {
-      "comment" : "Etiqueta de la autoría en la portada. Va sobre el nombre y en otro color.",
-      "extractionState" : "manual",
-      "localizations" : {
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Diseñada y desarrollada por" } }
+    "coming_soon": {
+      "comment": "Lo que dice toda acción o destino que todavía no hace nada.",
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Próximamente"
+          }
+        }
       }
     },
-    "splash_authorship_name" : {
-      "comment" : "Nombre del autor en la portada. Destacado sobre la etiqueta.",
-      "extractionState" : "manual",
-      "localizations" : {
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "José Ramón Blanco Gutiérrez" } }
+    "date_long": {
+      "comment": "Formato largo español: día, mes y año. Es %lld y no %d: en 64 bits un Int no cabe en %d.",
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld de %2$@ de %3$lld"
+          }
+        }
       }
     },
-    "splash_loading_description" : {
-      "comment" : "Descripción de accesibilidad del indicador de progreso de la portada.",
-      "extractionState" : "manual",
-      "localizations" : {
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Preparando la aplicación" } }
+    "home_bulletin_today": {
+      "comment": "Denominación de la selección por defecto en la cabecera editorial.",
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Boletín de hoy"
+          }
+        }
       }
     },
-    "splash_error_title" : {
-      "comment" : "Título del error recuperable del arranque.",
-      "extractionState" : "manual",
-      "localizations" : {
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "No hemos podido preparar la aplicación" } }
+    "home_empty_section": {
+      "comment": "Estado vacío de una sección. No es un error: hay secciones sin publicar desde hace años.",
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esta sección no tiene publicaciones guardadas."
+          }
+        }
       }
     },
-    "splash_error_network" : {
-      "comment" : "Mensaje del error de arranque cuando no hay conexión.",
-      "extractionState" : "manual",
-      "localizations" : {
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Comprueba tu conexión e inténtalo de nuevo." } }
+    "home_empty_today": {
+      "comment": "Estado vacío del boletín del día. No es un error.",
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Todavía no hay publicaciones para esta fecha."
+          }
+        }
       }
     },
-    "splash_error_unknown" : {
-      "comment" : "Mensaje del error de arranque cuando el fallo no es de red.",
-      "extractionState" : "manual",
-      "localizations" : {
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Se ha producido un error inesperado." } }
+    "home_error_sync": {
+      "comment": "Error del listado cuando no hay nada guardado que mostrar.",
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No hemos podido traer el boletín. Comprueba tu conexión."
+          }
+        }
       }
     },
-    "splash_continue_offline" : {
-      "comment" : "Acción que entra al contenido principal pese al fallo del arranque.",
-      "extractionState" : "manual",
-      "localizations" : {
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Continuar sin conexión" } }
+    "home_header_date_bulletin": {
+      "comment": "Rótulo de la fecha con el boletín del día: es la fecha de la edición publicada.",
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edición del %@"
+          }
+        }
       }
     },
-    "splash_update_required_title" : {
-      "comment" : "Título del acceso bloqueado por versión obsoleta.",
-      "extractionState" : "manual",
-      "localizations" : {
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Actualiza la aplicación" } }
+    "home_header_date_section": {
+      "comment": "Rótulo de la fecha con una sección elegida: es la de su publicación más reciente, que puede ser de hace años.",
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Última publicación: %@"
+          }
+        }
       }
     },
-    "splash_update_required_message" : {
-      "comment" : "Mensaje del acceso bloqueado por versión obsoleta.",
-      "extractionState" : "manual",
-      "localizations" : {
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Esta versión ha dejado de estar soportada. Instala la última versión para seguir consultando el boletín." } }
+    "home_loading_body": {
+      "comment": "Estado de carga de la pantalla inicial.",
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cargando…"
+          }
+        }
       }
     },
-    "splash_maintenance_title" : {
-      "comment" : "Título del acceso bloqueado por mantenimiento. El mensaje lo publica el servicio.",
-      "extractionState" : "manual",
-      "localizations" : {
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Servicio en mantenimiento" } }
+    "home_offline": {
+      "comment": "Aviso de falta de conexión. No tapa el contenido.",
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sin conexión. Estás viendo lo último descargado."
+          }
+        }
       }
     },
-    "action_retry" : {
-      "comment" : "Acción de reintentar, común a toda la aplicación.",
-      "extractionState" : "manual",
-      "localizations" : {
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Reintentar" } }
+    "home_publication_count": {
+      "comment": "Recuento de anuncios de la selección, en el distintivo de la cabecera editorial. Primer plural del catálogo.",
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld anuncio"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld anuncios"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "home_title": {
+      "comment": "Título de la pantalla inicial.",
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "BOC Cantabria"
+          }
+        }
+      }
+    },
+    "month_01": {
+      "comment": "Nombre del mes, en minúscula, para el formato largo español. Se compone a mano: usar el formateador del sistema ataría el texto al idioma del dispositivo (D-316).",
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "enero"
+          }
+        }
+      }
+    },
+    "month_02": {
+      "comment": "Nombre del mes, en minúscula, para el formato largo español. Se compone a mano: usar el formateador del sistema ataría el texto al idioma del dispositivo (D-316).",
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "febrero"
+          }
+        }
+      }
+    },
+    "month_03": {
+      "comment": "Nombre del mes, en minúscula, para el formato largo español. Se compone a mano: usar el formateador del sistema ataría el texto al idioma del dispositivo (D-316).",
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "marzo"
+          }
+        }
+      }
+    },
+    "month_04": {
+      "comment": "Nombre del mes, en minúscula, para el formato largo español. Se compone a mano: usar el formateador del sistema ataría el texto al idioma del dispositivo (D-316).",
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "abril"
+          }
+        }
+      }
+    },
+    "month_05": {
+      "comment": "Nombre del mes, en minúscula, para el formato largo español. Se compone a mano: usar el formateador del sistema ataría el texto al idioma del dispositivo (D-316).",
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "mayo"
+          }
+        }
+      }
+    },
+    "month_06": {
+      "comment": "Nombre del mes, en minúscula, para el formato largo español. Se compone a mano: usar el formateador del sistema ataría el texto al idioma del dispositivo (D-316).",
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "junio"
+          }
+        }
+      }
+    },
+    "month_07": {
+      "comment": "Nombre del mes, en minúscula, para el formato largo español. Se compone a mano: usar el formateador del sistema ataría el texto al idioma del dispositivo (D-316).",
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "julio"
+          }
+        }
+      }
+    },
+    "month_08": {
+      "comment": "Nombre del mes, en minúscula, para el formato largo español. Se compone a mano: usar el formateador del sistema ataría el texto al idioma del dispositivo (D-316).",
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "agosto"
+          }
+        }
+      }
+    },
+    "month_09": {
+      "comment": "Nombre del mes, en minúscula, para el formato largo español. Se compone a mano: usar el formateador del sistema ataría el texto al idioma del dispositivo (D-316).",
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "septiembre"
+          }
+        }
+      }
+    },
+    "month_10": {
+      "comment": "Nombre del mes, en minúscula, para el formato largo español. Se compone a mano: usar el formateador del sistema ataría el texto al idioma del dispositivo (D-316).",
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "octubre"
+          }
+        }
+      }
+    },
+    "month_11": {
+      "comment": "Nombre del mes, en minúscula, para el formato largo español. Se compone a mano: usar el formateador del sistema ataría el texto al idioma del dispositivo (D-316).",
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "noviembre"
+          }
+        }
+      }
+    },
+    "month_12": {
+      "comment": "Nombre del mes, en minúscula, para el formato largo español. Se compone a mano: usar el formateador del sistema ataría el texto al idioma del dispositivo (D-316).",
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "diciembre"
+          }
+        }
+      }
+    },
+    "nav_home": {
+      "comment": "Primer destino de la barra inferior.",
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inicio"
+          }
+        }
+      }
+    },
+    "nav_saved": {
+      "comment": "Tercer destino de la barra inferior.",
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Guardados"
+          }
+        }
+      }
+    },
+    "nav_search": {
+      "comment": "Segundo destino de la barra inferior.",
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buscar"
+          }
+        }
+      }
+    },
+    "publication_save": {
+      "comment": "Acción de guardar de la tarjeta. Todavía anuncia «Próximamente».",
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Guardar"
+          }
+        }
+      }
+    },
+    "publication_section": {
+      "comment": "Texto que acompaña al indicador de color de la tarjeta: el color agrupa, el texto identifica.",
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sección %@"
+          }
+        }
+      }
+    },
+    "publication_share": {
+      "comment": "Acción de compartir de la tarjeta.",
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compartir"
+          }
+        }
+      }
+    },
+    "publication_share_chooser": {
+      "comment": "Título de la hoja del sistema al compartir.",
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compartir publicación"
+          }
+        }
+      }
+    },
+    "publication_unsave": {
+      "comment": "Acción inversa de guardar. Llega con su feature.",
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quitar de guardados"
+          }
+        }
+      }
+    },
+    "sections_close": {
+      "comment": "Descripción accesible de la flecha de la cabecera del panel.",
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recoger el panel"
+          }
+        }
+      }
+    },
+    "sections_collapse": {
+      "comment": "Descripción accesible del chevron de una sección desplegada.",
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Contraer %@"
+          }
+        }
+      }
+    },
+    "sections_expand": {
+      "comment": "Descripción accesible del chevron de una sección contraída.",
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desplegar %@"
+          }
+        }
+      }
+    },
+    "splash_acronym": {
+      "comment": "Siglas del boletín en la portada de arranque.",
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "BOC"
+          }
+        }
+      }
+    },
+    "splash_authorship_label": {
+      "comment": "Etiqueta de la autoría en la portada. Va sobre el nombre y en otro color.",
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diseñada y desarrollada por"
+          }
+        }
+      }
+    },
+    "splash_authorship_name": {
+      "comment": "Nombre del autor en la portada. Destacado sobre la etiqueta.",
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "José Ramón Blanco Gutiérrez"
+          }
+        }
+      }
+    },
+    "splash_continue_offline": {
+      "comment": "Acción que entra al contenido principal pese al fallo del arranque.",
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continuar sin conexión"
+          }
+        }
+      }
+    },
+    "splash_error_network": {
+      "comment": "Mensaje del error de arranque cuando no hay conexión.",
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Comprueba tu conexión e inténtalo de nuevo."
+          }
+        }
+      }
+    },
+    "splash_error_title": {
+      "comment": "Título del error recuperable del arranque.",
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No hemos podido preparar la aplicación"
+          }
+        }
+      }
+    },
+    "splash_error_unknown": {
+      "comment": "Mensaje del error de arranque cuando el fallo no es de red.",
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se ha producido un error inesperado."
+          }
+        }
+      }
+    },
+    "splash_loading_description": {
+      "comment": "Descripción de accesibilidad del indicador de progreso de la portada.",
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preparando la aplicación"
+          }
+        }
+      }
+    },
+    "splash_maintenance_title": {
+      "comment": "Título del acceso bloqueado por mantenimiento. El mensaje lo publica el servicio.",
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Servicio en mantenimiento"
+          }
+        }
+      }
+    },
+    "splash_title_line_one": {
+      "comment": "Primera línea de la denominación del boletín en la portada.",
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "BOLETÍN OFICIAL"
+          }
+        }
+      }
+    },
+    "splash_title_line_two": {
+      "comment": "Segunda línea de la denominación del boletín en la portada.",
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "DE CANTABRIA"
+          }
+        }
+      }
+    },
+    "splash_update_required_message": {
+      "comment": "Mensaje del acceso bloqueado por versión obsoleta.",
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esta versión ha dejado de estar soportada. Instala la última versión para seguir consultando el boletín."
+          }
+        }
+      }
+    },
+    "splash_update_required_title": {
+      "comment": "Título del acceso bloqueado por versión obsoleta.",
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Actualiza la aplicación"
+          }
+        }
       }
     }
   },
-  "version" : "1.0"
+  "version": "1.0"
 }

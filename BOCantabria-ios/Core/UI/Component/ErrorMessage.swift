@@ -72,7 +72,7 @@ struct BocOnPrimaryButtonStyle: ButtonStyle {
 
 #Preview {
     ErrorMessage(
-        message: Strings.Home.error,
+        message: Strings.Home.errorSync,
         retryTitle: Strings.Action.retry,
         onRetry: {}
     )
