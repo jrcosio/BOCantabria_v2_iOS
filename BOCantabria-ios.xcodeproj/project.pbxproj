@@ -123,7 +123,7 @@
 				409C523D305359D00014B83A /* Sources */,
 				409C523E305359D00014B83A /* Frameworks */,
 				409C523F305359D00014B83A /* Resources */,
-				BC0100000000000000000041 /* Símbolos de Crashlytics */,
+				BC0100000000000000000041 /* Símbolos de Crashlytics */,
 			);
 			buildRules = (
 			);
@@ -262,12 +262,12 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		BC0100000000000000000041 /* Símbolos de Crashlytics */ = {
+		BC0100000000000000000041 /* Símbolos de Crashlytics */ = {
 			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
 			buildActionMask = 2147483647;
 			files = (
 			);
-			alwaysOutOfDate = 1;
 			inputFileListPaths = (
 			);
 			inputPaths = (
