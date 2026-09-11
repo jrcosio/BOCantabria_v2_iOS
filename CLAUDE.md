@@ -418,6 +418,9 @@ View → ViewModel → UseCase → Repository (protocolo en Domain)
   nombre y el organismo de una regla de aviso son intereses personales**: nunca a analítica, a
   Crashlytics ni al registro. Solo recuentos y enumerados. Los nombres de las reglas **sí** van
   en la notificación, porque esa es su función.
+- **`OTHER_LDFLAGS` lleva `-ObjC`, y no se quita.** Lo exige Firebase y su ausencia no rompe la
+  construcción ni ninguna prueba: solo hace que la analítica no suba nada. Ver la trampa
+  correspondiente más abajo.
 - El proyecto de Firebase es `bocantabria-6e90f`, el mismo que Android, y la aplicación iOS
   está registrada con el identificador `com.jrblanco.BOCantabria`. **No lo renombres** sin dar
   de alta antes una app nueva en la consola.
@@ -511,6 +514,19 @@ siendo posible aquí; las demás son propias de esta plataforma.
 - **`Regex` no es `Sendable`**, así que una constante estática de ese tipo no compila bajo
   concurrencia estricta. Se declara calculada: el coste de construirla es irrelevante al lado de lo
   que haya al otro extremo.
+- **Sin `-ObjC` en `OTHER_LDFLAGS`, la analítica registra eventos y no sube ninguno.** Parte del SDK
+  de medición vive en categorías de Objective-C; sin ese indicador el enlazador descarta esos
+  objetos, `-[APMMeasurement fetchSBT]` deja de responder y revienta el arranque de la medición con
+  `unrecognized selector` **una sola vez, en el registro**. A partir de ahí no se imprime
+  «Analytics collection enabled» y no hay una sola subida: los eventos se crean y se quedan en el
+  dispositivo, así que el panel del proveedor está vacío y parece que «todavía no ha llegado».
+  Medido sobre los dos binarios: sin el indicador, 0 subidas; con él, HTTP 204. **Se descubrió
+  porque el propietario preguntó si salía en el panel**, no por ninguna prueba: todas las de esta
+  casa verifican el lado de acá de la frontera —que el envoltorio manda el nombre y los parámetros
+  correctos a un doble— y el defecto estaba justo al otro lado. Para mirarlo:
+  `xcrun simctl launch booted com.jrblanco.BOCantabria -FIRAnalyticsDebugEnabled` y
+  `log stream --level debug --predicate 'subsystem BEGINSWITH "com.google"'`; **sin `--level debug`
+  las líneas de evento no salen** y parece que no se registra nada.
 - **`${BUILD_DIR%/Build/*}` solo funciona dentro del script de una fase, no en sus ficheros de
   entrada.** La lista que documenta Firebase para subir los símbolos usa esa expansión; en el campo
   de entradas Xcode la evalúa a vacío y la build falla con «Unable to load contents of file list».
