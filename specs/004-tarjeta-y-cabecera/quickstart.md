@@ -190,9 +190,14 @@ Con el escenario `today`, que trae contenido de sobra:
 - Se elige una sección con subsecciones —la 2, la 4, la 7 o la 8—: aparece la segunda fila dentro de
   la zona fija, el listado se encoge y **sigue habiendo tarjetas desplazables** (FR-017).
 - Sin conexión, se desplaza: el aviso **sigue a la vista** (FR-014).
-- **Y donde se gana el sueldo la histéresis**: con un listado apenas más alto que la pantalla —vale
-  una sección poco poblada—, se desplaza despacio hasta el final y se comprueba que la cabecera **no
-  parpadea** entre sus dos tamaños (D-408).
+- **Y lo que de verdad hay que mirar aquí, porque es de donde vino la queja**: se desplaza **muy
+  despacio** y se para a medio camino. La cabecera tiene que quedarse **a medio encoger** y no
+  moverse mientras el dedo no se mueva; y el listado no puede adelantarse al dedo en ningún momento
+  (D-418).
+- Con un listado apenas más alto que la pantalla —vale una sección poco poblada—, se desplaza
+  despacio hasta el final y se comprueba que la cabecera **no parpadea**. Ya no hay banda de
+  histéresis que lo proteja: con el separador compensador el desplazamiento máximo no cambia, así
+  que la realimentación que obligaba a ponerla no existe. Si parpadeara, es que esa cuenta está mal.
 
 ## Paso 11 — El teléfono más pequeño que la aplicación soporta (SC-005)
 

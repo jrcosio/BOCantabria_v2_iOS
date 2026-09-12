@@ -20,8 +20,17 @@ El enfoque técnico es **no inventar nada nuevo y no medir nada que no haga falt
 catorce no se toca: lo que cambia es qué peldaño usa cada dato, así que `BocThemeTests` sigue en
 verde sin tocarla y no aparece ni un tamaño escrito a mano. Y la cabecera que encoge no observa el
 desplazamiento: observa **un booleano derivado de un umbral**, publicado por
-`onScrollGeometryChange`. Publicar el desplazamiento redibujaría la cabecera en cada fotograma para
-decir lo mismo sesenta veces por segundo.
+`onScrollGeometryChange`. ~~Publicar el desplazamiento redibujaría la cabecera en cada fotograma para
+decir lo mismo sesenta veces por segundo.~~ **Corregido: lo que se publica es la cifra**, y redibujar
+por fotograma es el precio correcto de una cabecera que acompaña al gesto (D-418).
+
+> **Enmienda del 12 de septiembre de 2026, con la implementación terminada.** La cabecera fija se
+> implementó como un **conmutador de dos estados** y el propietario la rechazó al verla: «da como
+> unos saltos, no se siente natural ni suave». Tenía razón, y no era una cuestión de curva de
+> animación: encogía 50,5 puntos de golpe cuando el dedo había recorrido 24, y arrastraba el listado
+> con ella. Se rehízo para que **siga al dedo**: cifra continua en vez de booleano, y un separador
+> que le devuelve al contenido lo que la cabecera libera, de modo que el listado se mueve
+> exactamente lo que se arrastra. Ver `research.md` **D-418**, que sustituye a D-408 y retira D-411.
 
 **Sin `data-model.md`, y decirlo es parte del plan.** Esta feature no introduce, no modifica y no
 consulta ningún dato: no hay entidad, no hay columna, no hay consulta y no hay migración. Es la
@@ -163,7 +172,7 @@ Tres desviaciones. Ninguna añade una capa, un patrón nuevo ni una dependencia.
 | Desviación | Por qué hace falta | Alternativa más simple, y por qué se rechaza |
 |---|---|---|
 | **`HomeContentView` gana un `@State`** y deja de ser literalmente «sin estado», que es lo que dice su propia cabecera y lo que el principio III pide de las vistas reutilizables | El umbral solo lo conoce el `ScrollView`, y el `ScrollView` vive dentro de esta vista. El dato es efímero, no sobrevive a nada, no lo consulta nadie más y no describe el boletín: describe dónde está el dedo. El proyecto ya tiene el precedente exacto —el abierto/cerrado del panel es `@State` de `MainView` (D-319)—, así que esto no abre una puerta, entra por una que ya estaba abierta. **La cabecera del fichero se corrige en el mismo cambio**, que es lo que evita que la mentira se quede escrita | **Subirlo a `HomeUiState`**: mete en el estado de la pantalla algo que el modelo de pantalla no puede decidir ni comprobar, y obliga a que cada fotograma de desplazamiento cruce el actor principal hasta el modelo y vuelva. **Izarlo a `HomeView` con un `Binding`**: el estado sube un nivel para que lo escriba la misma vista que hoy, y las tres vistas previas pasan a necesitar un `.constant(false)` que no aporta nada |
-| **El umbral y la histéresis se escriben como constantes con nombre**, y no salen de `BocTheme`, cuando la guía operativa dice que ningún tamaño se escribe fuera del tema | No son tamaños del sistema de diseño: son **un umbral de gesto**. El documento de diseño no los declara y no debería, porque no describen nada que se vea. Meterlos en `BocSpacing` diría que son parte de la escala de espaciados y que alguien puede usarlos para separar dos vistas. Van con nombre y con comentario, exactamente como los `48` del área táctil que la tarjeta ya declara citando el §12.1 | **Un token nuevo en el tema**: contamina la escala con un valor que nadie más puede usar. **Escribirlos en línea sin nombre**: es el literal suelto que la guía prohíbe con razón, porque nadie sabe después de dónde salió el 24 |
+| ~~**El umbral y la histéresis se escriben como constantes con nombre**~~ · **RETIRADA el 12 de septiembre de 2026** | Ya no existen. El mecanismo de dos umbrales se sustituyó por uno continuo, y la distancia de colapso **se mide** —es el alto que la cabecera libera—, no se escribe. No queda ninguna cifra de gesto fuera de `BocTheme` (`research.md` D-418) | — |
 | **FR-018 se cumple con una prueba unitaria sobre los cuatro peldaños, no con una prueba de interfaz que mida cuatro alturas** —que es lo que el requisito dice literalmente | **La altura de un texto mide su número de líneas, no su peldaño**: la sección, el organismo y la fecha ocupan una línea y el título tres o cuatro, así que las cuatro alturas no son comparables entre sí. Y hay dos cosas que desde la interfaz no se ven de ninguna manera: el **orden** —dos peldaños adyacentes se diferencian en uno o dos puntos y afirmarlo sobre alturas medidas sería frágil entre versiones del sistema— y la **pertenencia a la escala**, que es FR-008 y no tiene traza visual (D-403) | **Medirlas en una prueba de interfaz**: mide otra cosa, no ve el orden ni la escala, y cuesta un simulador. **Renunciar a la comprobación**: es justo lo que FR-018 existe para impedir, porque igualar cuatro tokens es un cambio de una línea que nadie nota en revisión |
 
 > **Corregido al implementar.** Esta tercera desviación se justificaba diciendo que, por estar la

@@ -20,38 +20,83 @@ import SwiftUI
 struct BulletinHeaderView: View {
     let header: BulletinHeader
 
-    /// Encogida: sin fecha rotulada, con menos relleno y con el rótulo a una línea.
+    /// Cuánto está encogida, de 0 —entera— a 1 —al mínimo—.
     ///
-    /// **La denominación y el recuento se quedan** (FR-011): son la respuesta a «qué estoy
-    /// viendo» y «cuánto hay», y perderlas al desplazar es justo lo que esta feature vino a
-    /// arreglar. La fecha rotulada es el único elemento que puede irse sin dejar la cabecera muda,
-    /// y es además el más alto de los tres.
+    /// **Es una cifra continua y no un booleano, y esa es toda la diferencia** (research.md D-418).
+    /// Con dos estados, la cabecera no responde al dedo: responde a un umbral, y cambia de golpe
+    /// cuando el dedo ya ha hecho otra cosa. Con un recorrido, a cualquier punto intermedio del
+    /// desplazamiento le corresponde un tamaño intermedio, y se puede parar a medio camino.
     ///
-    /// **Lo que NO cambia es el peldaño de la denominación**, y cuesta no hacerlo: bajarla de
-    /// `headlineLarge` a `headlineSmall` ahorraría ocho puntos más. Pero **SwiftUI no interpola
-    /// tamaños de fuente**, los resuelve con un fundido, y FR-012 pide una transición gradual sin
-    /// saltos. Ocultar una línea y reducir un relleno sí animan limpiamente, porque las dos cosas
-    /// son alturas (research.md D-410).
+    /// **La denominación y el recuento se quedan** (FR-011): son la respuesta a «qué estoy viendo»
+    /// y «cuánto hay». La fecha rotulada es el único elemento que puede irse sin dejar la cabecera
+    /// muda, y es además el más alto de los tres.
     ///
-    /// El valor por defecto es `false` para que las llamadas y las vistas previas que ya existían
-    /// no cambien.
-    var isCompact: Bool = false
+    /// **Lo que NO cambia es el peldaño de la denominación, ni su número de líneas.** Bajarla de
+    /// `headlineLarge` a `headlineSmall` ahorraría ocho puntos más, y pasarla de dos líneas a una
+    /// ahorraría otros treinta y ocho. Las dos cosas **saltan**: SwiftUI no interpola tamaños de
+    /// fuente ni recuentos de línea, los resuelve con un fundido. Lo que sí se interpola es una
+    /// altura, y por eso lo único que encoge es el relleno y la fecha.
+    var collapse: CGFloat = 0
+
+    /// Cuánto alto puede liberar esta cabecera, publicado hacia arriba.
+    ///
+    /// Quien desplaza necesita el dato para dos cosas: saber en cuántos puntos de recorrido se
+    /// completa el colapso —que es lo que hace que siga al dedo **1:1**— y devolverle al contenido
+    /// exactamente lo que la cabecera libera. **Se mide, no se escribe**: las fuentes escalan con
+    /// el ajuste del dispositivo, así que a doscientos por ciento el alto de la fecha es otro.
+    var onCollapsibleHeight: (CGFloat) -> Void = { _ in }
+
+    /// El alto natural de la **fila** de la fecha rotulada —su separación superior incluida—,
+    /// medido con el texto del dispositivo.
+    ///
+    /// Se mide la fila entera y no solo el texto: forzar el alto del texto sin contar su
+    /// separación **la recorta**, y la cabecera encoge ocho puntos de más nada más aparecer. Es el
+    /// primer defecto que destapó la instrumentación.
+    @State private var dateRowHeight: CGFloat = 0
+
+    /// El recorrido: lo que se gana de relleno —arriba y abajo— más la fila de la fecha.
+    private var collapsibleHeight: CGFloat {
+        guard dateRowHeight > 0 else { return 0 }
+        return (BocTheme.spacing.lg - BocTheme.spacing.sm) * 2 + dateRowHeight
+    }
+
+    private var labelledDate: String? {
+        BocDateFormatting.labelled(header.date, meaning: header.dateMeaning)
+    }
 
     var body: some View {
         HStack(alignment: .top, spacing: BocTheme.spacing.md) {
-            VStack(alignment: .leading, spacing: BocTheme.spacing.xs) {
+            VStack(alignment: .leading, spacing: 0) {
                 Text(header.title)
                     .bocTextStyle(BocTheme.typography.headlineLarge)
                     .foregroundStyle(BocTheme.colors.onPrimary)
-                    .lineLimit(isCompact ? 1 : 2)
+                    .lineLimit(2)
                     .fixedSize(horizontal: false, vertical: true)
 
-                if !isCompact,
-                   let labelled = BocDateFormatting.labelled(header.date, meaning: header.dateMeaning) {
+                // **Solo se retira del árbol al final del recorrido**, cuando ya es invisible. Así
+                // la transición es continua y `home_header_date` sigue desapareciendo de verdad,
+                // que es lo que tres pruebas de interfaz afirman. Retirarla a mitad de camino era
+                // una de las cuatro causas del salto.
+                if collapse < 1, let labelled = labelledDate {
                     Text(labelled)
                         .bocTextStyle(BocTheme.typography.bodyLarge)
                         .foregroundStyle(BocTheme.colors.onPrimaryMuted)
                         .accessibilityIdentifier("home_header_date")
+                        // La separación va **dentro** de lo que se mide y de lo que se recorta:
+                        // fuera, el recorte se la comería y la cabecera perdería ocho puntos de
+                        // golpe nada más aparecer.
+                        .padding(.top, BocTheme.spacing.xs)
+                        .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { height in
+                            // Solo con la cabecera entera: a medio camino el alto ya está
+                            // recortado y mediría el recorte, no el natural.
+                            if collapse == 0, height > 0 { dateRowHeight = height }
+                        }
+                        .frame(
+                            height: dateRowHeight > 0 ? dateRowHeight * (1 - collapse) : nil,
+                            alignment: .top
+                        )
+                        .opacity(1 - collapse)
+                        .clipped()
                 }
             }
 
@@ -68,18 +113,24 @@ struct BulletinHeaderView: View {
                 .accessibilityIdentifier("home_header_count")
         }
         .padding(.horizontal, BocTheme.spacing.lg)
-        .padding(.vertical, isCompact ? BocTheme.spacing.sm : BocTheme.spacing.lg)
+        .padding(
+            .vertical,
+            BocTheme.spacing.lg - (BocTheme.spacing.lg - BocTheme.spacing.sm) * collapse
+        )
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(BocTheme.colors.primary)
-        // La animación se declara **aquí y no en quien cambia el valor** (research.md D-411): así
-        // es una propiedad de la cabecera y no una copia de la duración que alguien tenga que
-        // mantener, y además no anima el primer valor que el desplazamiento publica al aparecer.
-        .animation(.easeInOut(duration: 0.2), value: isCompact)
+        // **Sin `.animation(_:value:)`, y es deliberado** (research.md D-411, enmendada). Con un
+        // valor continuo, una animación implícita hace que la cabecera vaya por detrás del dedo:
+        // rebota y se arrastra, que es otra forma de la misma queja. El gesto **es** la animación.
+        //
         // `.contain` es obligatorio: sin él, este identificador se propaga a los tres hijos y les
         // machaca el suyo. El volcado del árbol mostraba tres elementos llamados `home_header` y
         // ni rastro de `home_header_date` ni de `home_header_count`.
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("home_header")
+        .onChange(of: collapsibleHeight, initial: true) { _, height in
+            onCollapsibleHeight(height)
+        }
     }
 }
 
@@ -111,9 +162,9 @@ struct BulletinHeaderView: View {
     )
 }
 
-#Preview("Compacta") {
-    // Lo que se ve con el listado desplazado: sin fecha rotulada y con la mitad de relleno. La
-    // denominación y el recuento siguen, que es lo que dice qué se está mirando (FR-011).
+#Preview("A medio camino") {
+    // **Lo que hasta la 004 no se podía revisar sin arrancar la aplicación**: con un mecanismo de
+    // dos estados, este fotograma no existía.
     BulletinHeaderView(
         header: BulletinHeader(
             title: "Boletín de hoy",
@@ -121,12 +172,25 @@ struct BulletinHeaderView: View {
             count: 48,
             dateMeaning: .edition
         ),
-        isCompact: true
+        collapse: 0.5
     )
 }
 
-#Preview("Compacta, con una denominación larga") {
-    // A una línea: compacta, el rótulo baja de dos líneas a una, y lo que no cabe se recorta ahí.
+#Preview("Al final del recorrido") {
+    // Sin fecha rotulada y con la mitad de relleno. La denominación y el recuento siguen, que es
+    // lo que dice qué se está mirando (FR-011).
+    BulletinHeaderView(
+        header: BulletinHeader(
+            title: "Boletín de hoy",
+            date: BocDate(iso: "2026-08-27"),
+            count: 48,
+            dateMeaning: .edition
+        ),
+        collapse: 1
+    )
+}
+
+#Preview("Al final, con una denominación larga") {
     BulletinHeaderView(
         header: BulletinHeader(
             title: "Actuaciones en materia de Seguridad Social",
@@ -134,6 +198,6 @@ struct BulletinHeaderView: View {
             count: 9,
             dateMeaning: .latestInSection
         ),
-        isCompact: true
+        collapse: 1
     )
 }

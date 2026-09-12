@@ -320,6 +320,28 @@ usando la aplicación sin conexión, que es cuando menos gracia hace.
 
 ## D-408 · `onScrollGeometryChange` publica un booleano con histéresis, no el desplazamiento
 
+> ## ⚠️ SUSTITUIDA por D-418 el 12 de septiembre de 2026
+>
+> **Esta decisión se implementó y el propietario la rechazó al verla**: «cuando el título se recoge
+> no se siente ni suave ni fluido, da como unos saltos… no se siente natural». Tenía razón, y la
+> cuenta lo explica: la cabecera encogía **50,5 puntos de golpe** cuando el dedo había recorrido
+> **24**, y como está fuera del `ScrollView`, arrastraba el listado con ella — medido, **74,3
+> puntos de movimiento cuando la cabecera solo liberaba 49,3**.
+>
+> **El error de fondo no fue la histéresis: fue elegir un booleano.** Se eligió por una razón real
+> —no invalidar la cabecera sesenta veces por segundo— y el precio que se aceptó a cambio, escrito
+> aquí mismo con todas las letras, era que la cabecera se redibujara «dos veces por recorrido en
+> lugar de mil». Ese precio **es exactamente la queja**: dos veces por recorrido es un conmutador, y
+> un conmutador no puede acompañar a un gesto continuo. La economía de fotogramas se optimizó contra
+> lo único que el requisito pedía.
+>
+> Se conserva entera y no se borra porque **el razonamiento equivocado enseña más que la conclusión
+> correcta**, y porque la histéresis que describe dejó de hacer falta por un motivo que solo se ve
+> comparando las dos decisiones: D-418 cancela la realimentación en vez de amortiguarla.
+>
+> Lo que sigue describe el mecanismo **retirado**.
+
+
 **Decisión**: el `ScrollView` del listado declara
 
 ```swift
@@ -430,8 +452,18 @@ separación.
 **Motivo de lo que se queda, y es el que cuesta más**: la tentación es bajar también la denominación
 de `headlineLarge` a `headlineSmall`, que ahorraría otros ocho puntos. Se descarta porque **SwiftUI
 no interpola tamaños de fuente**: un cambio de cuerpo se resuelve con un fundido, no con un
-crecimiento, y FR-012 pide una transición gradual sin saltos. Ocultar una línea y reducir un relleno
-sí anima limpiamente, porque las dos cosas son alturas.
+crecimiento, y FR-012 pide una transición gradual sin saltos.
+
+> **Corregido el 12 de septiembre de 2026.** Esta decisión terminaba diciendo que «ocultar una línea
+> y reducir un relleno sí anima limpiamente, porque las dos cosas son alturas», y con ese mismo
+> argumento bajaba el rótulo **de dos líneas a una**. Lo primero es cierto; lo segundo **no lo es**:
+> un `lineLimit` no es una altura, es un recuento, y tampoco se interpola —salta igual que un cuerpo
+> de fuente—. El cambio de `lineLimit` se retira y el rótulo se queda en dos líneas siempre. Era una
+> de las cuatro causas del salto que el propietario reportó.
+>
+> Y **ocultar una línea solo anima limpiamente si la línea no se retira del árbol a mitad de
+> camino**: con un `if`, SwiftUI la funde y colapsa el hueco en dos tiempos. En D-418 se repliega
+> interpolando su alto y **solo se retira al final del recorrido**, cuando ya es invisible.
 
 **El valor por defecto es `false`**, y eso importa: la cabecera se usa hoy en tres vistas previas y
 en una prueba, y ninguna tiene que cambiar. Se añaden dos vistas previas nuevas, una por estado, que
@@ -440,6 +472,19 @@ es lo que hace revisable la versión compacta sin arrancar la aplicación.
 ---
 
 ## D-411 · La transición se declara en la cabecera, no en el punto donde se cambia el valor
+
+> ## ⚠️ RETIRADA el 12 de septiembre de 2026
+>
+> **Con un valor continuo no hay nada que animar: el gesto es la animación.** Una animación
+> implícita sobre un valor que ya cambia cada fotograma hace que la cabecera **vaya por detrás del
+> dedo** —rebota, se arrastra—, que es otra forma de la misma queja. `.animation(_:value:)` se
+> retira de `BulletinHeaderView`, y en su lugar la asignación del progreso va envuelta en
+> `withTransaction(Transaction(animation: nil))`, para que **ninguna animación implícita heredada**
+> de un padre convierta la cifra continua en una escalera.
+>
+> Lo que esta decisión razonaba —que la animación es propiedad de la cabecera y no de quien cambia
+> el valor— sigue siendo cierto **cuando hay una animación**. Aquí dejó de haberla.
+
 
 **Decisión**: `BulletinHeaderView` declara `.animation(.easeInOut(duration: 0.2), value: isCompact)`.
 El `action:` del observador se limita a asignar el booleano.
@@ -652,3 +697,106 @@ accesibilidad **de memoria** en vez de volcarlo. El proyecto ya tiene tres tramp
 esa misma familia, y las tres se encontraron volcando. La lección se repite: **sobre el árbol de
 accesibilidad no se razona, se mira**. Por eso T002 existe, y por eso ha pagado el viaje dos veces
 en una feature de tres ficheros.
+
+---
+
+## D-418 · La cabecera sigue al dedo, y lo que libera se le devuelve al contenido
+
+> **Decisión tomada al corregir el defecto que el propietario reportó sobre la 004 ya implementada.**
+> Sustituye a **D-408** y retira **D-411**.
+
+**Decisión**: el `ScrollView` publica **una cifra continua** de 0 a 1, no un booleano; la cabecera
+interpola su relleno y el repliegue de la fecha con esa cifra; y **un separador al principio del
+contenido devuelve exactamente el alto que la cabecera libera**.
+
+### La cuenta, que es toda la decisión
+
+Con la cabecera **fuera** del `ScrollView`, la posición visible del contenido es
+
+```
+visible = altoCabecera − desplazamiento
+```
+
+Si la cabecera encoge `k` puntos por cada punto desplazado, `visible = H₀ − (1+k)·desplazamiento`:
+**el contenido va (1+k) veces más rápido que el dedo**. No hay curva de animación que arregle eso,
+porque no es un problema de suavizado: es que el contenido se mueve una distancia que nadie ha
+pedido. Con el mecanismo anterior, `k` era un pulso de 50,5 puntos concentrado en un instante.
+
+Se cancela con un separador de alto `s` al principio del contenido, creciendo lo mismo que la
+cabecera encoge:
+
+```
+visible = (H₀ − s) + s − desplazamiento = H₀ − desplazamiento      ← 1:1, siempre
+```
+
+**Medido, y con el mecanismo viejo al lado**:
+
+| | Cabecera | Listado se mueve | |
+|---|---|---|---|
+| Antes | libera 49,3 | **74,3** | 25 puntos que el dedo no pidió |
+| Ahora | libera 49,3 | **49,3** | 1:1 |
+
+### Que la distancia de colapso **sea** el alto que se libera no es un detalle
+
+`collapse = desplazamiento / altoQueSeLibera`. Al elegir esas dos cantidades iguales, la cabecera
+encoge un punto por cada punto desplazado mientras dura el recorrido. Cualquier otra distancia daría
+un colapso más rápido o más lento que el dedo, y **se notaría** aunque fuera continuo.
+
+### Por qué un separador dentro del contenido, y no un relleno del contenedor
+
+`.padding(.top, s)` sobre el `ScrollView` hace la misma cuenta, y **queda mal**: el borde superior
+del contenedor se despega del divisor y deja una franja de fondo de hasta cincuenta puntos entre la
+zona fija y la primera tarjeta. Con el separador dentro, al desplazar queda enteramente fuera de
+vista y el listado llega hasta el divisor.
+
+`contentMargins(.top,)` se descarta por un motivo distinto y peor: **cambia `contentInsets`**, que es
+parte de la geometría de la que se deriva el progreso. Se realimentaría.
+
+### El efecto secundario que retira la histéresis
+
+D-408 necesitaba dos umbrales porque compactar agrandaba el contenedor, reducía el desplazamiento
+máximo, el sistema recortaba el actual y la cabecera volvía a crecer de un salto. **Con el separador,
+contenido y contenedor crecen lo mismo y el desplazamiento máximo no cambia**: la realimentación se
+cancela en vez de amortiguarse. No hacen falta umbrales, ni banda, ni histéresis. Un problema que se
+resolvía con un parche desaparece al corregir la causa.
+
+### El alto que se libera **se mide**
+
+Es `(spacing.lg − spacing.sm)·2 + altoDeLaFilaDeLaFecha`, y el segundo sumando sale de
+`onGeometryChange(for: CGFloat.self)` —disponible **desde iOS 16.0**, comprobado en la interfaz del
+SDK instalado—. Escribir «50» a mano se rompería con el texto al doscientos por ciento, donde las
+fuentes escalan porque los tokens se anclan con `Font.custom(relativeTo:)`.
+
+**Y hay que medir la fila, no el texto.** La primera versión medía solo el `Text` y le forzaba ese
+alto **después** de haberle puesto la separación superior: el recorte se comía la separación y la
+cabecera perdía ocho puntos —107 reales contra 99— nada más aparecer. Lo destapó la instrumentación,
+no la revisión.
+
+### Alternativas descartadas
+
+- **Cabecera de alto constante que solo se dibuja más pequeña**, con `visualEffect` —que lee
+  geometría sin invalidar el layout, iOS 17.0—. Es la receta canónica para que el contenido no se
+  mueva, y aquí **no sirve**: si el alto de layout no cambia, la cabecera no libera sitio, y liberar
+  sitio en un teléfono pequeño era la mitad del motivo de compactarla.
+- **`LazyVStack(pinnedViews: [.sectionHeaders])`.** Fija la cabecera, pero la deja **dentro del
+  flujo del contenido**: encogerla mueve todo lo que va detrás, que es el mismo problema con otra
+  forma.
+- **`safeAreaInset(edge: .top)`.** Convierte el alto de la cabecera en inset del contenedor; al
+  cambiar el inset, el contenido se desplaza igual, y además la cifra del progreso pasaría a
+  depender de `contentInsets`.
+- **Cambiar solo al soltar**, con `onScrollPhaseChange`. El salto deja de competir con el dedo, pero
+  sigue siendo un salto de cincuenta puntos. Se le ofreció al propietario y eligió que siguiera al
+  dedo.
+
+### Qué lo demuestra
+
+Dos pruebas nuevas, y **las dos se comprobaron en rojo con el mecanismo anterior**:
+
+- `testTheHeaderTakesIntermediateSizesWhileScrolling` — la cabecera mide **82,0** a medio recorrido,
+  entre 107,0 y 57,7. Con dos estados ese valor no existe, y la prueba falla porque a medio camino la
+  fecha ya ha desaparecido de golpe.
+- `testTheListingMovesExactlyWhatTheHeaderGivesBack` — falla con «74,33 no es igual a 49,33 ±1,5»,
+  que es literalmente la cifra del defecto.
+
+Y lo que **ninguna prueba puede ver**: si se siente bien. Eso se mira, que es de donde vino la queja.
+

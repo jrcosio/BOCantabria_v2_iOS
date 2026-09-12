@@ -367,10 +367,12 @@ cifras y con su delta respecto a T001**. Un «pasa» no vale.
 
 - [X] T035 Puerta 1 · Construcción sobre datos derivados nuevos → **en verde, 24 s**, cero errores.
       Eran **26 s** en T001: **−2 s**, que es ruido de una ejecución a otra.
+      **Tras la corrección de la Phase 4: 26 s**, cero errores.
 - [X] T036 Puerta 2 · Pruebas sin interfaz → **285 pruebas en 41 suites, 0,524 s**, todas en verde.
       Eran **275 en 40 suites, 0,504 s**: **+10 pruebas y +1 suite**. Las diez: cinco de
       `PublicationCardTypographyTests` —la suite nueva— y cinco de `titleWithoutIssuer` en
-      `PublicationTests`.
+      `PublicationTests`. **Tras la Phase 4: 285 en 41 suites, 0,494 s** — sin cambio, porque la
+      corrección es toda de vista.
 
       **`TEST/Core/BocThemeTests.swift` no se ha tocado**, comprobado con `git diff --stat main --`
       sobre ese fichero: sale vacío. Es la señal de que esta feature cambió el **uso** de la escala
@@ -378,12 +380,87 @@ cifras y con su delta respecto a T001**. Un «pasa» no vale.
 - [X] T037 Puerta 3 · Pruebas de interfaz → **40 pruebas en 313 s**, cero fallos. Eran **34 en
       252,2 s**: **+6 pruebas y +61 s**. Las seis: cuatro de `HomeStickyHeaderUITests`, el apilado
       de la fila de la fecha y la conservación de la posición de lectura. Con `-testPlan`, nunca
-      con `-only-testing` sobre el target de interfaz.
+      con `-only-testing` sobre el target de interfaz. **Tras la Phase 4: 42 pruebas en 322 s** —
+      **+2**, las dos de regresión de la compactación continua.
 
       Y **las seis que desplazan se han ejecutado además en el iPhone SE**, en verde (T034).
 - [X] T038 Puerta 4 · Sin avisos nuevos → **1 aviso**, el mismo que en T001: el preexistente de
       `appintentsmetadataprocessor` («No AppIntents.framework dependency found»), que es de Apple y
-      ajeno al código. **Cero avisos del compilador**, y **cero nuevos**.
+      ajeno al código. **Cero avisos del compilador**, y **cero nuevos**. **Tras la Phase 4: 1, el
+      mismo.**
+
+---
+
+## Phase 4: Corrección — que la cabecera siga al dedo
+
+**Purpose**: FR-012 no se cumplía. La cabecera fija se implementó como un **conmutador de dos
+estados** y el propietario la rechazó al verla: «cuando el título se recoge no se siente ni suave ni
+fluido, da como unos saltos… la funcionalidad es correcta pero visualmente queda raro».
+
+**Tenía razón, y la cuenta lo explica**: la cabecera encogía **50,5 puntos de golpe** cuando el dedo
+había recorrido **24**, y como vive fuera del área que se desplaza, arrastraba el listado con ella
+—medido, **74,3 puntos de movimiento cuando la cabecera solo liberaba 49,3**—.
+
+Es un defecto contra un requisito de esta feature, sobre una rama **sin integrar**: se arregla aquí,
+no en una feature nueva.
+
+- [X] T039 **FR-012, D-418** `APP/UI/Home/Component/BulletinHeaderView.swift`: `isCompact: Bool`
+      pasa a **`collapse: CGFloat`** en 0…1, más un cierre `onCollapsibleHeight` que publica hacia
+      arriba cuánto alto puede liberar. El relleno vertical se interpola de `spacing.lg` a
+      `spacing.sm`; la fecha se repliega con alto y opacidad `×(1−collapse)` y **solo se retira del
+      árbol al llegar a 1**, cuando ya es invisible — así la transición es continua y
+      `home_header_date` sigue desapareciendo de verdad, que es lo que tres pruebas afirman.
+- [X] T040 **D-410 corregida** mismo fichero: **se retira el cambio de `lineLimit` de 2 a 1**. Un
+      recuento de líneas no se interpola, igual que no se interpola un cuerpo de fuente: salta. Era
+      una de las cuatro causas del defecto, y la decisión que lo autorizaba afirmaba lo contrario.
+- [X] T041 **D-411 retirada** mismo fichero: fuera `.animation(.easeInOut, value:)`. Con un valor
+      continuo, una animación implícita hace que la cabecera **vaya por detrás del dedo**.
+- [X] T042 Mismo fichero: el alto que se libera **se mide** con `onGeometryChange(for: CGFloat)`
+      —disponible desde **iOS 16.0**, comprobado en la interfaz del SDK—, y se mide **la fila
+      entera**, con su separación superior dentro. Medir solo el texto y forzarle ese alto después
+      de haberle puesto la separación **la recorta**: la cabecera perdía ocho puntos —99 en vez de
+      107— nada más aparecer. Lo destapó la instrumentación, no la revisión.
+- [X] T043 **FR-012, FR-022, D-418** `APP/UI/Home/HomeContentView.swift`: fuera el booleano y los
+      dos umbrales; entra `collapse` continua, con la distancia de colapso **igual** al alto que la
+      cabecera libera —que es lo que hace que encoja al ritmo del dedo— y la asignación envuelta en
+      `withTransaction(Transaction(animation: nil))`.
+- [X] T044 **FR-022, D-418** mismo fichero: **el separador compensador** al principio del contenido
+      del `ScrollView`, de alto `altoQueLibera × collapse`. Es la mitad que faltaba: sin él el
+      contenido se mueve más rápido que el dedo **por construcción**, encoja como encoja la
+      cabecera. Va **dentro del contenido** y no como relleno del contenedor, que dejaría una franja
+      de fondo de hasta cincuenta puntos bajo el divisor.
+- [X] T045 Mismo fichero: **se retira la histéresis y no se sustituye por nada**. Con el separador,
+      contenido y contenedor crecen lo mismo, el desplazamiento máximo no cambia y la realimentación
+      que obligaba a la banda se cancela sola. Un parche que desaparece al corregir la causa.
+- [X] T046 Mismo fichero y `BulletinHeaderView`: vistas previas de la cabecera a **0, 0,5 y 1**, y
+      cabeceras de fichero al día. El fotograma de en medio es justo el que con dos estados no
+      existía.
+- [X] T047 **FR-019** `UITEST/Home/HomeStickyHeaderUITests.swift`:
+      `testTheHeaderTakesIntermediateSizesWhileScrolling` — la cabecera mide **82,0** a medio
+      recorrido, entre 107,0 y 57,7, y a mitad de camino **la fecha sigue ahí, replegándose**.
+      Imposible de pasar con dos estados. Necesita el escenario `offline`, que es el único con lista
+      larga: con `today` son tres publicaciones y el listado toca fondo antes de tiempo.
+- [X] T048 **FR-022** mismo fichero: `testTheListingMovesExactlyWhatTheHeaderGivesBack` — lo que el
+      listado se mueve y lo que la cabecera libera tienen que ser **la misma cifra**. Con un
+      arrastre **sin inercia** —sostenido antes de soltar—, porque si no se mide la deceleración.
+- [X] T049 **Las dos en rojo antes del arreglo**, comprobado restaurando el mecanismo anterior:
+      `testTheHeaderTakesIntermediateSizesWhileScrolling` falla porque a medio camino la fecha ya ha
+      desaparecido de golpe, y `testTheListingMovesExactlyWhatTheHeaderGivesBack` falla con
+      **«74,33 no es igual a 49,33 ±1,5»**, que es literalmente la cifra del defecto. Es lo que la
+      constitución exige de toda corrección.
+- [X] T050 Documentos: `spec.md` —FR-010 y FR-012 reescritos, **FR-022 nuevo**, FR-019 y SC-002
+      ampliados—; `research.md` —**D-408 sustituida**, D-410 corregida, **D-411 retirada**, **D-418
+      nueva**—; `plan.md` —la desviación de los umbrales retirada—; los contratos —el recorrido en
+      vez de dos columnas—; `docs/diseno/especificaciones-diseno.md` §14.6; y el paso 10 del
+      quickstart.
+
+**Checkpoint**: ✅ la cabecera acompaña al gesto, medido y no sentido.
+
+- **285 pruebas sin interfaz en 41 suites, 0,495 s** — sin cambio: la corrección es toda de vista.
+- **42 pruebas de interfaz, 322 s, cero fallos** — eran 40. Las dos nuevas son las de arriba.
+- **Las ocho que desplazan, también en verde en el iPhone SE.**
+- **La cifra que resume la corrección**: el listado se movía 74,3 puntos cuando la cabecera liberaba
+  49,3; ahora se mueve **49,3**.
 
 ---
 

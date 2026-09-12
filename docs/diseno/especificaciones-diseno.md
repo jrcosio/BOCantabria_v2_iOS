@@ -869,7 +869,7 @@ Etiquetas: `Boletín de hoy` y las **nueve secciones** con su nombre corto, en o
 
 ## 14.6. Apariencia al desplazarse
 
-- La cabecera editorial **se mantiene y se compacta**.
+- La cabecera editorial **se mantiene y encoge acompañando al gesto**.
 - La barra superior se mantiene fija.
 - Los filtros se fijan bajo la barra superior con fondo sólido y una línea inferior.
 - No usar cambios bruscos de color.
@@ -888,6 +888,24 @@ Etiquetas: `Boletín de hoy` y las **nueve secciones** con su nombre corto, en o
 > **El aviso de falta de conexión va con la zona fija**, y no es un detalle de disposición: habla de
 > toda la pantalla —de que lo que se lee es lo último descargado—, así que perderlo de vista al
 > desplazar haría creer que se está leyendo lo de hoy.
+
+> **Enmienda (12 de septiembre de 2026, feature 004 (iOS)). La compactación no tiene dos estados:
+> sigue al gesto.** La primera implementación conmutaba entre entera y compacta al cruzar un umbral,
+> y se rechazó al verla: encogía cincuenta puntos de golpe cuando el dedo había recorrido
+> veinticuatro, y como la cabecera está fuera del área que se desplaza, **arrastraba el listado con
+> ella** —medido, el contenido se movía setenta y cuatro puntos cuando la cabecera solo liberaba
+> cuarenta y nueve—.
+>
+> Las dos reglas que sustituyen a aquello:
+>
+> - **A cualquier punto intermedio del desplazamiento le corresponde un tamaño intermedio de la
+>   cabecera**, y se puede detener a medio camino.
+> - **El listado se desplaza exactamente lo que se arrastra.** Lo que la cabecera libera al encoger
+>   se le devuelve al contenido, de modo que su cambio de tamaño no mueve nada.
+>
+> Y dos cosas que **no** se tocan al encoger, por el mismo motivo: ni el cuerpo de la denominación
+> ni su número de líneas. Ninguna de las dos se interpola —se resuelven con un fundido—, así que
+> cualquiera de las dos reintroduce el salto. Lo que encoge es relleno y una línea que se repliega.
 >
 > Los otros tres puntos del apartado **no cambian de contenido, solo de tiempo verbal**: ya
 > autorizaban la barra superior fija y los filtros fijados con fondo sólido y línea inferior. Lo que

@@ -112,29 +112,38 @@ extension Publication {
 ```swift
 struct BulletinHeaderView: View {
     let header: BulletinHeader
-    /// Encogida: sin fecha rotulada, con menos relleno y con el rótulo a una línea.
-    /// **El valor por defecto es `false`**, para que las vistas previas y las llamadas de la 003
-    /// no cambien.
-    var isCompact: Bool = false
+    /// Cuánto está encogida, de 0 —entera— a 1 —al mínimo—. **Una cifra, no un booleano.**
+    var collapse: CGFloat = 0
+    /// Cuánto alto puede liberar, medido y publicado hacia arriba.
+    var onCollapsibleHeight: (CGFloat) -> Void = { _ in }
 }
 ```
 
-**Contrato de la versión compacta** (FR-011):
+**Contrato del recorrido** (FR-010, FR-011, FR-012). No son dos estados: son los **extremos** de un
+recorrido continuo, y a cualquier punto intermedio le corresponde un tamaño intermedio.
 
-| Elemento | Expandida | Compacta |
-|---|---|---|
-| Denominación | `headlineLarge`, hasta 2 líneas | **Igual**, 1 línea |
-| Fecha rotulada · `home_header_date` | Presente si hay fecha | **Ausente** |
-| Distintivo del recuento · `home_header_count` | Presente | **Igual** |
-| Relleno vertical | `spacing.lg` · 24 | `spacing.sm` · 12 |
-| Fondo | `colors.primary` | **Igual** |
+| Elemento | `collapse == 0` | Entre medias | `collapse == 1` |
+|---|---|---|---|
+| Denominación | `headlineLarge`, 2 líneas | **igual** | **igual** |
+| Fecha rotulada · `home_header_date` | presente si hay fecha | alto y opacidad `×(1−collapse)` | **retirada del árbol** |
+| Distintivo · `home_header_count` | presente | igual | igual |
+| Relleno vertical | `spacing.lg` · 24 | interpolado | `spacing.sm` · 12 |
+| Fondo | `colors.primary` | igual | igual |
+| Alto medido (17 Pro) | **107,0** | **82,0** a mitad | **57,7** |
 
-> **La denominación no cambia de peldaño, y es deliberado** (D-410). SwiftUI no interpola tamaños de
-> fuente: los resuelve con un fundido. FR-012 pide una transición gradual sin saltos, y ocultar una
-> línea y reducir un relleno sí anima limpiamente porque las dos cosas son alturas.
+> **Ni el peldaño de la denominación ni su número de líneas cambian**, y las dos cosas son la misma
+> razón: SwiftUI **no interpola** ni tamaños de fuente ni recuentos de línea, los resuelve con un
+> fundido. Lo que sí se interpola es una altura. La versión anterior bajaba el rótulo de dos líneas
+> a una creyendo que «las dos cosas son alturas», y era una de las cuatro causas del salto.
 
-La animación se declara **en la cabecera**, no en quien cambia el valor:
-`.animation(.easeInOut(duration: 0.2), value: isCompact)` (D-411).
+> **La fecha solo se retira del árbol al final del recorrido**, cuando ya es invisible. Retirarla a
+> mitad de camino la hacía entrar y salir con un fundido en dos tiempos; retirarla nunca dejaría
+> `home_header_date` encontrable con la cabecera encogida, que es lo que tres pruebas afirman.
+
+**No hay animación declarada, y es deliberado**: con un valor continuo el gesto **es** la animación,
+y una animación implícita solo consigue que la cabecera vaya por detrás del dedo (D-411, retirada).
+La asignación del progreso va envuelta en `withTransaction(Transaction(animation: nil))` para que
+ninguna animación heredada de un padre convierta la cifra continua en una escalera.
 
 ---
 
@@ -152,8 +161,10 @@ struct HomeContentView: View {
     var onShare: (Publication) -> Void
     var onSave: (Publication) -> Void
 
-    /// Efímero. No sale de aquí y nadie más lo consulta (D-409).
-    @State private var isHeaderCompact: Bool
+    /// Cuánto está encogida la cabecera, 0…1. Efímero (D-409).
+    @State private var collapse: CGFloat
+    /// Cuánto alto libera la cabecera. Lo publica ella, medido (D-418).
+    @State private var headerCollapsible: CGFloat
 }
 ```
 
@@ -172,10 +183,14 @@ struct HomeContentView: View {
 - El `refreshable` va **en el `ScrollView` del listado** (FR-015), acompañado de
   `.scrollBounceBehavior(.always, axes: .vertical)`, **sin lo cual el gesto desaparece en los estados
   vacío y de error** (D-407).
-- El umbral se observa con `.onScrollGeometryChange(for: Bool.self)`, que publica **el resultado de
-  la comparación y no el desplazamiento**, con dos umbrales —compacta por encima de 24 puntos,
-  expande por debajo de 8— para que la banda no dé un salto con un listado apenas desplazable
-  (D-408).
+- El desplazamiento se observa con `.onScrollGeometryChange(for: CGFloat.self)`, que publica **la
+  cifra**: `collapse = desplazamiento / altoQueLiberaLaCabecera`, pinzado a 0…1. Que esas dos
+  cantidades sean iguales es lo que hace que la cabecera encoja **al ritmo del dedo**.
+- **Un separador al principio del contenido**, de alto `altoQueLibera × collapse`, le devuelve al
+  listado lo que la cabecera libera. Sin él el contenido se mueve más rápido que el dedo — medido,
+  74,3 puntos cuando la cabecera liberaba 49,3 (**FR-022**, D-418).
+- **Sin umbrales y sin histéresis**: con el separador, contenido y contenedor crecen lo mismo, el
+  desplazamiento máximo no cambia y la realimentación que obligaba a la banda se cancela sola.
 
 ---
 

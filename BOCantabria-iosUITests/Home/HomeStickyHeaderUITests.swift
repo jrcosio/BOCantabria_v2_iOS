@@ -43,6 +43,32 @@ final class HomeStickyHeaderUITests: XCTestCase {
             )
     }
 
+    /// Un arrastre **sin inercia**: se sostiene antes de soltar, para que el desplazamiento sea el
+    /// del dedo y no el de la deceleración. Es lo que permite comparar distancias.
+    private func dragSlowly(_ app: XCUIApplication, from: CGFloat, to: CGFloat) {
+        let window = app.windows.firstMatch
+        window.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: from))
+            .press(
+                forDuration: 0.2,
+                thenDragTo: window.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: to)),
+                withVelocity: .slow,
+                thenHoldForDuration: 0.6
+            )
+    }
+
+    /// El escenario con lista larga. `today` solo trae tres publicaciones y el listado toca fondo
+    /// antes de que la cabecera termine su recorrido, así que no sirve para medir.
+    private func launchWithALongListing() -> XCUIApplication {
+        let app = XCUIApplication()
+        app.launchArguments = [
+            "-boc-data-scenario=offline",
+            "-AppleLanguages", "(es)", "-AppleLocale", "es_ES",
+            "-home_selection", "",
+        ]
+        app.launch()
+        return app
+    }
+
     private func scrollDown(_ app: XCUIApplication) { drag(app, from: 0.75, to: 0.55) }
     private func scrollUp(_ app: XCUIApplication) { drag(app, from: 0.55, to: 0.85) }
 
@@ -141,6 +167,68 @@ final class HomeStickyHeaderUITests: XCTestCase {
         XCTAssertTrue(
             element("home_offline_banner", in: app).exists,
             "Perderlo de vista al desplazar haría creer que se está leyendo lo de hoy"
+        )
+    }
+
+    /// FR-012: la compactación **sigue al gesto**, así que existen los tamaños intermedios.
+    ///
+    /// **Esta prueba es imposible de pasar con un mecanismo de dos estados**, que es lo que había
+    /// antes: allí la cabecera solo podía medir 107 o 57,7, nunca 82. Es la traducción exacta de la
+    /// queja del propietario —«da saltos, no se siente natural»— a algo que una máquina puede
+    /// comprobar.
+    func testTheHeaderTakesIntermediateSizesWhileScrolling() {
+        let app = launchWithALongListing()
+        let listing = element("home_content", in: app)
+        XCTAssertTrue(listing.waitForExistence(timeout: 15))
+
+        let full = element("home_header", in: app).frame.height
+
+        // Un arrastre corto: la cabecera tiene que quedarse **a medio camino**.
+        dragSlowly(app, from: 0.62, to: 0.58)
+        let middle = element("home_header", in: app).frame.height
+        XCTAssertTrue(
+            element("home_header_date", in: app).exists,
+            "A medio recorrido la fecha sigue, replegándose; no ha desaparecido de golpe"
+        )
+
+        // Y otro largo: hasta el final del recorrido.
+        dragSlowly(app, from: 0.80, to: 0.40)
+        let minimum = element("home_header", in: app).frame.height
+
+        XCTAssertLessThan(middle, full, "A medio camino ya ha encogido")
+        XCTAssertGreaterThan(
+            middle, minimum,
+            "…pero no del todo: \(full) → \(middle) → \(minimum). Con dos estados, \(middle) no existiría"
+        )
+    }
+
+    /// FR-012, la mitad que de verdad se sentía mal: **el listado se mueve lo que se arrastra, y
+    /// ni un punto más**.
+    ///
+    /// Con la cabecera fuera del área que se desplaza, su encogimiento **se suma** al gesto: el
+    /// contenido va más rápido que el dedo, y eso es lo que se lee como un salto. Se compensa
+    /// devolviéndole al contenido lo que la cabecera libera, de modo que las dos cantidades tienen
+    /// que ser **la misma** (research.md D-418).
+    ///
+    /// Es la prueba de regresión del defecto: con el mecanismo anterior el listado se movía unos
+    /// cincuenta puntos de más, así que se pondría roja.
+    func testTheListingMovesExactlyWhatTheHeaderGivesBack() {
+        let app = launchWithALongListing()
+        let listing = element("home_content", in: app)
+        XCTAssertTrue(listing.waitForExistence(timeout: 15))
+
+        let headerBefore = element("home_header", in: app).frame.height
+        let listingBefore = listing.frame.origin.y
+
+        dragSlowly(app, from: 0.62, to: 0.58)
+
+        let headerGaveBack = headerBefore - element("home_header", in: app).frame.height
+        let listingMoved = listingBefore - listing.frame.origin.y
+
+        XCTAssertGreaterThan(headerGaveBack, 0, "El arrastre tiene que haber encogido la cabecera")
+        XCTAssertEqual(
+            listingMoved, headerGaveBack, accuracy: 1.5,
+            "El listado se movió \(listingMoved) y la cabecera liberó \(headerGaveBack): tienen que ser lo mismo"
         )
     }
 }

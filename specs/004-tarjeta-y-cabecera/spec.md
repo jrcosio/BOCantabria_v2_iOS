@@ -120,11 +120,24 @@ filtros siguen ahí.
 
 - **FR-009**: La barra superior, la cabecera editorial y las filas de filtros MUST permanecer
   visibles mientras se desplaza el listado. Solo las tarjetas MUST desplazarse.
-- **FR-010**: La cabecera editorial MUST compactarse cuando el listado se desplaza, y MUST recuperar
+- **FR-010**: La cabecera editorial MUST encoger conforme se desplaza el listado, y MUST recuperar
   su tamaño al volver al principio.
-- **FR-011**: Compactada, la cabecera MUST seguir mostrando la denominación de lo que se está viendo
+- **FR-011**: Encogida, la cabecera MUST seguir mostrando la denominación de lo que se está viendo
   y el número de publicaciones. La fecha rotulada MUST poder replegarse.
-- **FR-012**: La transición entre los dos tamaños de la cabecera MUST ser gradual, sin saltos.
+- **FR-012**: La compactación MUST seguir al gesto **de forma continua y proporcional**: a cualquier
+  punto intermedio del desplazamiento MUST corresponderle un tamaño intermedio de la cabecera, y
+  MUST poder detenerse a medio camino. MUST NOT haber estados discretos ni saltos.
+- **FR-022**: Mientras la cabecera encoge, el listado MUST desplazarse **exactamente lo que se
+  arrastra**. Lo que la cabecera libera al encoger MUST devolverse al contenido, de modo que su
+  cambio de tamaño no mueva el listado.
+
+  > **Reescrito el 12 de septiembre de 2026, con la implementación terminada.** FR-010 y FR-012
+  > hablaban de «los **dos** tamaños» de la cabecera, y esa forma de decirlo ya contenía el defecto:
+  > describía un conmutador. Implementado como conmutador, el propietario lo rechazó —«da saltos, no
+  > se siente natural ni suave»— y con razón: la cabecera encogía **50,5 puntos de golpe** cuando el
+  > dedo había recorrido 24. **FR-022 es nuevo** y es la mitad que faltaba: medido, el listado se
+  > movía **74,3 puntos cuando la cabecera solo liberaba 49,3**, porque el encogimiento se sumaba al
+  > gesto. Ver `research.md` D-418.
 - **FR-013**: La zona que no se desplaza MUST distinguirse del listado mediante un fondo sólido y un
   divisor inferior, para que las tarjetas no pasen por debajo de un fondo transparente.
 - **FR-014**: El aviso de falta de conexión MUST permanecer visible mientras no haya conexión, sin
@@ -141,7 +154,9 @@ filtros siguen ahí.
 - **FR-018**: MUST existir una prueba automática que compruebe que los cuatro datos de la tarjeta
   tienen **alturas distintas**, para que nadie pueda igualar los tamaños sin que algo se ponga rojo.
 - **FR-019**: MUST existir pruebas automáticas que comprueben que, tras desplazar el listado, la
-  cabecera sigue presente, se ha compactado y los filtros siguen alcanzables.
+  cabecera sigue presente, se ha compactado y los filtros siguen alcanzables. MUST existir además
+  una que compruebe que la cabecera toma **tamaños intermedios** —imposible de pasar con un
+  mecanismo de dos estados— y otra que compruebe el **1:1** de FR-022.
 - **FR-020**: Las desviaciones respecto al documento de diseño MUST quedar registradas en el propio
   documento, con su fecha y su motivo.
 
@@ -157,7 +172,8 @@ que la 003 ya guarda y observa, pintada de otra forma.
 - **SC-001**: Los cuatro datos de la tarjeta se distinguen por tamaño, y se verifica de forma
   mecánica: una comprobación automatizada falla si dos de ellos pasan a medir lo mismo.
 - **SC-002**: Con el listado desplazado, la persona sigue viendo en todo momento **qué está mirando
-  y cuántos anuncios hay**.
+  y cuántos anuncios hay**, y la transición **no se percibe como un salto**: la cabecera acompaña al
+  dedo.
 - **SC-003**: Cambiar de sección desde los filtros **no requiere volver al principio del listado**:
   cero desplazamientos previos.
 - **SC-004**: Con el tamaño de letra del sistema al **200 %** no se recorta el organismo, el título

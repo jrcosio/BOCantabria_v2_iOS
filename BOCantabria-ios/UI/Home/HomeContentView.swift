@@ -6,8 +6,9 @@
 //  pueden recorrer los estados sin arrancar el grafo, y las vistas previas también.
 //
 //  **Un matiz que hasta la 004 no hacía falta**: esta vista tenía escrito que era «sin estado», y
-//  ha dejado de serlo. Tiene exactamente uno propio, `isHeaderCompact`, y es efímero: describe
-//  dónde está el dedo, no qué se está mostrando. No sale de aquí, nadie más lo consulta y el
+//  ha dejado de serlo. Tiene dos propios, `collapse` y `headerCollapsible`, y los dos son
+//  efímeros: describen dónde está el dedo y cuánto alto puede liberar la cabecera, no qué se está
+//  mostrando. No sale de aquí, nadie más lo consulta y el
 //  modelo de pantalla no podría decidirlo, porque depende de una geometría que solo conoce el
 //  `ScrollView`. Es el mismo caso que el abierto/cerrado del panel lateral, que vive en
 //  `MainView` por las mismas tres razones (research.md D-409, y D-319 de la 003).
@@ -30,32 +31,39 @@ struct HomeContentView: View {
     var onShare: (Publication) -> Void = { _ in }
     var onSave: (Publication) -> Void = { _ in }
 
-    /// La cabecera está encogida. **Efímero, y por eso vive aquí** (research.md D-409).
-    @State private var isHeaderCompact = false
+    /// Cuánto está encogida la cabecera, de 0 a 1. **Efímero, y por eso vive aquí** (D-409).
+    @State private var collapse: CGFloat = 0
 
-    /// Los dos umbrales del desplazamiento, en puntos.
+    /// Cuánto alto puede liberar la cabecera. Lo publica ella, medido (D-418).
     ///
-    /// **Son dos y no uno, y esa es la decisión** (research.md D-408). La cabecera está *fuera*
-    /// del `ScrollView`, así que compactarla no cambia el contenido pero **agranda el
-    /// contenedor**: con un listado apenas más alto que la pantalla, el desplazamiento máximo baja,
-    /// el sistema recorta el actual, el valor cae por debajo del umbral y la cabecera vuelve a
-    /// crecer. La secuencia termina —no es un bucle—, pero es un salto visible, y FR-012 pide lo
-    /// contrario. Con una banda entre los dos, el retorno no alcanza al de bajada.
-    ///
-    /// **El de subida es positivo a propósito**: `refreshable` hace negativo el desplazamiento al
-    /// tirar hacia abajo, y con el umbral en cero la cabecera parpadearía en mitad del gesto.
-    ///
-    /// No salen de `BocTheme` porque no son tamaños del sistema de diseño: son un umbral de gesto,
-    /// no describen nada que se vea y el documento de diseño no los declara.
-    private static let compactAbove: CGFloat = 24
-    private static let expandBelow: CGFloat = 8
+    /// Es a la vez **la distancia de colapso** —en cuántos puntos de recorrido se completa— y **lo
+    /// que hay que devolverle al contenido**. Que las dos cosas sean el mismo número no es
+    /// casualidad: es lo que hace que el listado se mueva exactamente lo que se arrastra.
+    @State private var headerCollapsible: CGFloat = 0
 
     var body: some View {
         VStack(spacing: 0) {
             fixedZone
 
             ScrollView {
-                listing
+                VStack(spacing: 0) {
+                    // **El separador que devuelve lo que la cabecera libera** (D-418).
+                    //
+                    // Sin él, la posición visible del contenido es `altoCabecera − desplazamiento`:
+                    // si la cabecera encoge mientras se desplaza, el listado se mueve **más rápido
+                    // que el dedo**, y eso es lo que se siente como un salto. Con él, los dos
+                    // términos se cancelan y queda `H₀ − desplazamiento`: **1:1, siempre**.
+                    //
+                    // Va **dentro del contenido** y no como relleno del contenedor a propósito: con
+                    // `.padding(.top,)` la cuenta también sale, pero el borde del `ScrollView` se
+                    // despega del divisor y deja una franja de fondo de hasta cincuenta puntos.
+                    // Aquí, al desplazar queda enteramente fuera de vista.
+                    Color.clear
+                        .frame(height: headerCollapsible * collapse)
+                        .accessibilityHidden(true)
+
+                    listing
+                }
             }
             // Sin esto, deslizar para actualizar **desaparece en los estados vacío y de error**
             // (research.md D-407). Hasta la 004 el contenedor envolvía la pantalla entera y
@@ -63,13 +71,22 @@ struct HomeContentView: View {
             // contenido cabe en la ventana. No lo caza ninguna prueba: se ve usando la aplicación.
             .scrollBounceBehavior(.always, axes: .vertical)
             .refreshable { await onRefresh() }
-            // Se publica **un booleano, no el desplazamiento**: el cierre se evalúa en cada
-            // fotograma, y una cifra invalidaría la cabecera sesenta veces por segundo para decir
-            // lo mismo. Con un `Equatable`, SwiftUI solo entrega cuando el valor cambia.
-            .onScrollGeometryChange(for: Bool.self) { geometry in
-                geometry.contentOffset.y > (isHeaderCompact ? Self.expandBelow : Self.compactAbove)
-            } action: { _, isPast in
-                isHeaderCompact = isPast
+            // Se publica **una cifra continua, no un booleano** (D-418). El booleano con umbral
+            // que esto sustituye no podía acompañar al gesto: cambiaba de golpe cuando el dedo ya
+            // había hecho otra cosa.
+            //
+            // La distancia de colapso **es** el alto que la cabecera libera, y por eso el
+            // encogimiento va al ritmo del dedo. Tirar hacia abajo da desplazamiento negativo, que
+            // la pinza deja en cero, así que el gesto de actualizar no la toca — y por eso tampoco
+            // hace falta el umbral positivo que antes lo protegía.
+            .onScrollGeometryChange(for: CGFloat.self) { $0.contentOffset.y } action: { _, offset in
+                // Con animación nula: una animación implícita heredada convertiría un valor
+                // continuo en una escalera, que es el defecto que esto viene a corregir.
+                withTransaction(Transaction(animation: nil)) {
+                    collapse = headerCollapsible > 0
+                        ? min(max(offset / headerCollapsible, 0), 1)
+                        : 0
+                }
             }
         }
         .background(BocTheme.colors.background)
@@ -85,7 +102,11 @@ struct HomeContentView: View {
             HomeTopBar(onOpenSections: onOpenSections, onSearch: onSearch, onInfo: onInfo)
 
             if let header = state.header {
-                BulletinHeaderView(header: header, isCompact: isHeaderCompact)
+                BulletinHeaderView(
+                    header: header,
+                    collapse: collapse,
+                    onCollapsibleHeight: { headerCollapsible = $0 }
+                )
             }
 
             SectionChipRow(
