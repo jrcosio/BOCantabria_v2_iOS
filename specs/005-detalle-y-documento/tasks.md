@@ -157,33 +157,33 @@ comprobar la cabecera y sus datos, abrir el documento y retroceder al mismo siti
 
 ### La máquina del documento
 
-- [ ] T021 [P] [US1] Escribir `TEST/Data/HttpDocumentDownloaderTests.swift` con el **camino feliz**,
+- [X] T021 [P] [US1] Escribir `TEST/Data/HttpDocumentDownloaderTests.swift` con el **camino feliz**,
       sustituyendo el protocolo de red: respuesta correcta → `downloaded` con el recuento y la huella
       exactos de `documento_valido.pdf`. Los rechazos llegan en T041 (FR-053)
-- [ ] T022 [US1] Crear `APP/Data/Source/Remote/DocumentDownloader.swift` (protocolo, resultado y
+- [X] T022 [US1] Crear `APP/Data/Source/Remote/DocumentDownloader.swift` (protocolo, resultado y
       motivos de rechazo) y `APP/Data/Source/Remote/HttpDocumentDownloader.swift` hasta hacer pasar
       T021. **En trozos de 64 KiB a `FileHandle`, con la huella al vuelo**: nunca más de 64 KiB en
       memoria. **Un solo intento.** Host `boc.cantabria.es`, que **no es** el de los feeds (D-502,
       D-503, D-504)
-- [ ] T023 [P] [US1] Escribir `TEST/Data/FileDocumentCacheTests.swift` sobre un directorio temporal:
+- [X] T023 [P] [US1] Escribir `TEST/Data/FileDocumentCacheTests.swift` sobre un directorio temporal:
       guardar y recuperar; el `.part` no es visible; **lateral ausente, vacío, truncado y en
       mayúsculas → `unknownChecksum` y el documento se sirve**; retirada por antigüedad con **reloj
       inyectado**; retirada por tope; y que **la clave en uso no se retira** (FR-054)
-- [ ] T024 [US1] Crear `APP/Data/Source/Local/DocumentCache.swift` y
+- [X] T024 [US1] Crear `APP/Data/Source/Local/DocumentCache.swift` y
       `APP/Data/Source/Local/FileDocumentCache.swift` hasta hacer pasar T023. **Guarda la huella** (FR-022) y es **caché, no biblioteca** (FR-030). **El orden de `commit`
       es el requisito**: lateral `.part` → renombrar lateral → renombrar documento → si falla, borrar
       el lateral. El nombre sale de una **huella de la clave**, nunca de la clave (FR-021, FR-023,
       D-505, D-506)
-- [ ] T025 [P] [US1] Escribir `TEST/Data/DocumentStoreTests.swift` con lo que US1 necesita: pedir dos
+- [X] T025 [P] [US1] Escribir `TEST/Data/DocumentStoreTests.swift` con lo que US1 necesita: pedir dos
       veces reutiliza la copia sin descargar otra vez, y **un observador que llega tarde ve
       `available` de inmediato** — ésta es la que protege el cuelgue silencioso de **D-510**. La
       coalescencia y los caminos de error llegan en T042 y T043 (FR-025)
-- [ ] T026 [US1] Crear `APP/Data/Repository/DocumentStore.swift` hasta hacer pasar T025. **El trabajo
+- [X] T026 [US1] Crear `APP/Data/Repository/DocumentStore.swift` hasta hacer pasar T025. **El trabajo
       en vuelo se tipa `Task<AppResult<OfficialDocument>, Never>`**, y va anotado en el fichero por
       qué: con `Error` vuelve entero el defecto de STAB-002 (**D-507**). La difusión es un diccionario
       de continuaciones con **reproducción del valor vigente** y política «el más nuevo, uno» (D-510,
       D-511)
-- [ ] T027 [US1] Crear `APP/Data/Repository/DocumentRepositoryImpl.swift` sobre el almacén, con su
+- [X] T027 [US1] Crear `APP/Data/Repository/DocumentRepositoryImpl.swift` sobre el almacén, con su
       prueba, y emitir `document_opened` con la bandera de caché (depende de T022, T024, T026)
 
 ### El visor
@@ -254,21 +254,21 @@ seguir.
 **Independent Test**: los tres escenarios de rechazo más el disco en solo lectura; en los cuatro, un
 mensaje comprensible con reintento y **nunca** un estado de carga perpetuo.
 
-- [ ] T041 [US2] Ampliar `TEST/Data/HttpDocumentDownloaderTests.swift` con **los nueve rechazos** de
+- [X] T041 [US2] Ampliar `TEST/Data/HttpDocumentDownloaderTests.swift` con **los nueve rechazos** de
       `contracts` §3.1, en su orden: esquema, host, **host del destino final tras una redirección**,
       estado HTTP, tipo declarado, longitud declarada, bytes mágicos con `pagina_error.html` y
       `declarado_pdf_no_lo_es.bin`, tope contando mientras llega, y fallo de escritura. **Cada uno
       comprueba además que no queda ningún fichero** (FR-018, FR-019, FR-020, FR-021, FR-053, SC-004, SC-005)
-- [ ] T042 [US2] Ampliar `TEST/Data/DocumentStoreTests.swift` con la **coalescencia**: dos peticiones
+- [X] T042 [US2] Ampliar `TEST/Data/DocumentStoreTests.swift` con la **coalescencia**: dos peticiones
       simultáneas de la misma clave producen **una** descarga, con un doble contador que la prueba
       libera (FR-026) —**nada de esperas por tiempo**, que convierten la prueba en una carrera—; y **quien
       espera no hereda la cancelación del que inició**, que es FR-028 (D-507, D-508)
-- [ ] T043 [US2] Ampliar `TEST/Data/DocumentStoreTests.swift` con **el estado terminal para cada
+- [X] T043 [US2] Ampliar `TEST/Data/DocumentStoreTests.swift` con **el estado terminal para cada
       camino**, parametrizada con un `struct` de caso —**no con tuplas de cuatro**, que hacen explotar
       al comprobador de tipos—: rechazo por tipo, por bytes, por tope, HTTP 500, fallo de escritura,
       fallo al guardar y cancelación. Aserción única: el último estado es terminal. **Y que cancelar
       publica `absent`, nunca `failed`** (FR-027, FR-029, SC-006)
-- [ ] T044 [US2] Cerrar `APP/Data/Repository/DocumentStore.swift` contra T042 y T043: recuento de espectadores, guardián de
+- [X] T044 [US2] Cerrar `APP/Data/Repository/DocumentStore.swift` contra T042 y T043: recuento de espectadores, guardián de
       identidad al publicar `absent`, y **`settle()` síncrona y aislada al actor**, con el comentario
       que prohíbe meter un `await` dentro (D-508, D-509)
 - [ ] T045 [P] [US2] Ampliar `TEST/UI/PublicationDetailViewModelTests.swift` y
