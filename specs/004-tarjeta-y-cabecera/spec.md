@@ -60,6 +60,12 @@ filtros siguen ahí.
 
 - **Una publicación sin organismo**: el campo es opcional y hay anuncios de los que no se deduce.
   La tarjeta se compone sin esa línea, sin dejar un hueco donde debería estar el nombre.
+- **Un título que empieza por el organismo**: es el caso normal, no la excepción. El prefijo no se
+  vuelve a pintar (FR-021).
+- **Un título cuyo prefijo solo se parece al organismo**: «FRATERNIDAD MUPRESPA MATEPSS Nº 275» no
+  es «Fraternidad Muprespa». Se conserva entero: recortar por parecido mutilaría títulos oficiales.
+- **Un título que es solo el organismo y dos puntos**: se conserva entero. Una tarjeta sin título
+  sería peor que una que repite el organismo.
 - **Un organismo muy largo**: los hay de setenta caracteres. En mayúsculas se lee peor, así que se
   mantiene el tope de dos líneas y lo que no cabe se recorta ahí, no en el título.
 - **Un título muy largo**: sigue con su tope de cuatro líneas y no se recorta antes por haber
@@ -97,6 +103,18 @@ filtros siguen ahí.
 - **FR-007**: Un organismo ausente MUST omitir su línea, sin dejar espacio reservado.
 - **FR-008**: Los tamaños MUST salir de la escala tipográfica del sistema de diseño. MUST NOT
   introducirse un tamaño nuevo ni escribirse ninguno en el punto de uso.
+- **FR-021**: El título MUST NOT repetir el organismo que la línea de encima ya muestra. Cuando el
+  título empiece exactamente por el organismo emisor, ese prefijo MUST omitirse **al pintarlo**; lo
+  almacenado MUST NOT cambiar, de modo que compartir y buscar sigan viendo el título íntegro. Un
+  prefijo que solo se parezca al organismo MUST conservarse entero.
+
+  > **Añadido durante la implementación, 12 de septiembre de 2026.** No es alcance nuevo: es la
+  > mitad de la petición original del propietario que esta especificación no había recogido —«y
+  > debajo, **sin el nombre de la entidad**, el título de la publicación»—. Lo destapó el volcado
+  > del árbol de accesibilidad del paso previo a implementar: el BOC publica el organismo en la
+  > ruta de clasificación **y** al principio del título en mayúsculas, y la tarjeta pintaba los
+  > dos. Con el organismo a dieciséis puntos y en caja alta, la tarjeta habría quedado con dos
+  > líneas seguidas diciendo lo mismo, que es lo contrario de FR-001. Ver `research.md` D-416.
 
 **El desplazamiento de Inicio**
 
@@ -176,6 +194,8 @@ que la 003 ya guarda y observa, pintada de otra forma.
   aquí.
 - **Las mayúsculas del organismo son de presentación, no de dato.** Lo guardado no cambia; cambia
   cómo se pinta. Es lo que permite que la búsqueda y el compartir sigan viendo el texto original.
+  **Y lo mismo vale para el recorte del prefijo del título** (FR-021): se omite al pintar, nunca al
+  guardar.
 
 ### Procedencia
 

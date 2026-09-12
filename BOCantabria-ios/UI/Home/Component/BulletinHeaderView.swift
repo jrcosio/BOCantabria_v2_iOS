@@ -20,16 +20,34 @@ import SwiftUI
 struct BulletinHeaderView: View {
     let header: BulletinHeader
 
+    /// Encogida: sin fecha rotulada, con menos relleno y con el rótulo a una línea.
+    ///
+    /// **La denominación y el recuento se quedan** (FR-011): son la respuesta a «qué estoy
+    /// viendo» y «cuánto hay», y perderlas al desplazar es justo lo que esta feature vino a
+    /// arreglar. La fecha rotulada es el único elemento que puede irse sin dejar la cabecera muda,
+    /// y es además el más alto de los tres.
+    ///
+    /// **Lo que NO cambia es el peldaño de la denominación**, y cuesta no hacerlo: bajarla de
+    /// `headlineLarge` a `headlineSmall` ahorraría ocho puntos más. Pero **SwiftUI no interpola
+    /// tamaños de fuente**, los resuelve con un fundido, y FR-012 pide una transición gradual sin
+    /// saltos. Ocultar una línea y reducir un relleno sí animan limpiamente, porque las dos cosas
+    /// son alturas (research.md D-410).
+    ///
+    /// El valor por defecto es `false` para que las llamadas y las vistas previas que ya existían
+    /// no cambien.
+    var isCompact: Bool = false
+
     var body: some View {
         HStack(alignment: .top, spacing: BocTheme.spacing.md) {
             VStack(alignment: .leading, spacing: BocTheme.spacing.xs) {
                 Text(header.title)
                     .bocTextStyle(BocTheme.typography.headlineLarge)
                     .foregroundStyle(BocTheme.colors.onPrimary)
-                    .lineLimit(2)
+                    .lineLimit(isCompact ? 1 : 2)
                     .fixedSize(horizontal: false, vertical: true)
 
-                if let labelled = BocDateFormatting.labelled(header.date, meaning: header.dateMeaning) {
+                if !isCompact,
+                   let labelled = BocDateFormatting.labelled(header.date, meaning: header.dateMeaning) {
                     Text(labelled)
                         .bocTextStyle(BocTheme.typography.bodyLarge)
                         .foregroundStyle(BocTheme.colors.onPrimaryMuted)
@@ -49,9 +67,14 @@ struct BulletinHeaderView: View {
                 )
                 .accessibilityIdentifier("home_header_count")
         }
-        .padding(BocTheme.spacing.lg)
+        .padding(.horizontal, BocTheme.spacing.lg)
+        .padding(.vertical, isCompact ? BocTheme.spacing.sm : BocTheme.spacing.lg)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(BocTheme.colors.primary)
+        // La animación se declara **aquí y no en quien cambia el valor** (research.md D-411): así
+        // es una propiedad de la cabecera y no una copia de la duración que alguien tenga que
+        // mantener, y además no anima el primer valor que el desplazamiento publica al aparecer.
+        .animation(.easeInOut(duration: 0.2), value: isCompact)
         // `.contain` es obligatorio: sin él, este identificador se propaga a los tres hijos y les
         // machaca el suyo. El volcado del árbol mostraba tres elementos llamados `home_header` y
         // ni rastro de `home_header_date` ni de `home_header_count`.
@@ -85,5 +108,32 @@ struct BulletinHeaderView: View {
 #Preview("Sin fecha todavía") {
     BulletinHeaderView(
         header: BulletinHeader(title: "Boletín de hoy", date: nil, count: 0, dateMeaning: .edition)
+    )
+}
+
+#Preview("Compacta") {
+    // Lo que se ve con el listado desplazado: sin fecha rotulada y con la mitad de relleno. La
+    // denominación y el recuento siguen, que es lo que dice qué se está mirando (FR-011).
+    BulletinHeaderView(
+        header: BulletinHeader(
+            title: "Boletín de hoy",
+            date: BocDate(iso: "2026-08-27"),
+            count: 48,
+            dateMeaning: .edition
+        ),
+        isCompact: true
+    )
+}
+
+#Preview("Compacta, con una denominación larga") {
+    // A una línea: compacta, el rótulo baja de dos líneas a una, y lo que no cabe se recorta ahí.
+    BulletinHeaderView(
+        header: BulletinHeader(
+            title: "Actuaciones en materia de Seguridad Social",
+            date: BocDate(iso: "2021-03-26"),
+            count: 9,
+            dateMeaning: .latestInSection
+        ),
+        isCompact: true
     )
 }

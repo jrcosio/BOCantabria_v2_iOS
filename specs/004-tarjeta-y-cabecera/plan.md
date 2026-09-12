@@ -65,6 +65,12 @@ rojas se arreglan diciendo lo que querían decir (D-412).
 cabecera editorial—, **0 nuevos**, **0 retirados**. 1 fichero de prueba nuevo, 3 modificados.
 Además, 3 documentos enmendados. Ni una cadena nueva en el catálogo.
 
+> **Corregido al implementar: son cuatro ficheros de producción, no tres.** `Domain/Model/
+> Publication.swift` gana una propiedad calculada, `titleWithoutIssuer`, porque el volcado del árbol
+> destapó que el organismo se pintaba **dos veces** y esta feature lo habría empeorado (FR-021,
+> `research.md` D-416). Sigue sin entrar ni salir un dato: es una lectura derivada de lo que ya
+> había, del mismo género que `mostSpecificSectionCode`, que vive tres líneas más arriba.
+
 ## Constitution Check
 
 *GATE: comprobado antes de la investigación y vuelto a comprobar tras el diseño.*
@@ -158,7 +164,14 @@ Tres desviaciones. Ninguna añade una capa, un patrón nuevo ni una dependencia.
 |---|---|---|
 | **`HomeContentView` gana un `@State`** y deja de ser literalmente «sin estado», que es lo que dice su propia cabecera y lo que el principio III pide de las vistas reutilizables | El umbral solo lo conoce el `ScrollView`, y el `ScrollView` vive dentro de esta vista. El dato es efímero, no sobrevive a nada, no lo consulta nadie más y no describe el boletín: describe dónde está el dedo. El proyecto ya tiene el precedente exacto —el abierto/cerrado del panel es `@State` de `MainView` (D-319)—, así que esto no abre una puerta, entra por una que ya estaba abierta. **La cabecera del fichero se corrige en el mismo cambio**, que es lo que evita que la mentira se quede escrita | **Subirlo a `HomeUiState`**: mete en el estado de la pantalla algo que el modelo de pantalla no puede decidir ni comprobar, y obliga a que cada fotograma de desplazamiento cruce el actor principal hasta el modelo y vuelva. **Izarlo a `HomeView` con un `Binding`**: el estado sube un nivel para que lo escriba la misma vista que hoy, y las tres vistas previas pasan a necesitar un `.constant(false)` que no aporta nada |
 | **El umbral y la histéresis se escriben como constantes con nombre**, y no salen de `BocTheme`, cuando la guía operativa dice que ningún tamaño se escribe fuera del tema | No son tamaños del sistema de diseño: son **un umbral de gesto**. El documento de diseño no los declara y no debería, porque no describen nada que se vea. Meterlos en `BocSpacing` diría que son parte de la escala de espaciados y que alguien puede usarlos para separar dos vistas. Van con nombre y con comentario, exactamente como los `48` del área táctil que la tarjeta ya declara citando el §12.1 | **Un token nuevo en el tema**: contamina la escala con un valor que nadie más puede usar. **Escribirlos en línea sin nombre**: es el literal suelto que la guía prohíbe con razón, porque nadie sabe después de dónde salió el 24 |
-| **FR-018 se cumple con una prueba unitaria sobre los cuatro peldaños, no con una prueba de interfaz que mida cuatro alturas** —que es lo que el requisito dice literalmente | La tarjeta se declara `.accessibilityElement(children: .combine)` porque un lector de pantalla tiene que recorrerla de un gesto, no de cuatro. Con eso, **los cuatro textos no existen en el árbol de accesibilidad** y ninguna prueba de interfaz puede medirlos. La prueba unitaria comprueba más: que los cuatro son distintos, que van en el orden declarado y que los cuatro salen de la escala de catorce (D-403) | **Romper el `.combine` y dar identificador a cada texto**: sacrifica la accesibilidad real de la tarjeta para poder medirla, que es medir otra cosa. **Renunciar a la comprobación**: es justo lo que FR-018 existe para impedir, porque igualar cuatro tokens es un cambio de una línea que nadie nota en revisión |
+| **FR-018 se cumple con una prueba unitaria sobre los cuatro peldaños, no con una prueba de interfaz que mida cuatro alturas** —que es lo que el requisito dice literalmente | **La altura de un texto mide su número de líneas, no su peldaño**: la sección, el organismo y la fecha ocupan una línea y el título tres o cuatro, así que las cuatro alturas no son comparables entre sí. Y hay dos cosas que desde la interfaz no se ven de ninguna manera: el **orden** —dos peldaños adyacentes se diferencian en uno o dos puntos y afirmarlo sobre alturas medidas sería frágil entre versiones del sistema— y la **pertenencia a la escala**, que es FR-008 y no tiene traza visual (D-403) | **Medirlas en una prueba de interfaz**: mide otra cosa, no ve el orden ni la escala, y cuesta un simulador. **Renunciar a la comprobación**: es justo lo que FR-018 existe para impedir, porque igualar cuatro tokens es un cambio de una línea que nadie nota en revisión |
+
+> **Corregido al implementar.** Esta tercera desviación se justificaba diciendo que, por estar la
+> tarjeta declarada `.accessibilityElement(children: .combine)`, sus cuatro textos **no existen en el
+> árbol de accesibilidad**. Es falso: `.combine` cambia la etiqueta del contenedor, pero los
+> `StaticText` hijos siguen en el árbol con su marco, y el volcado del paso previo a implementar lo
+> enseña. La desviación se mantiene por los motivos de arriba, que son los buenos; el que estaba
+> escrito, no lo era. Ver `research.md` D-403 y D-417.
 
 **Lo que NO se desvía, y conviene dejar escrito.** La escala tipográfica **no se toca**:
 `BocThemeTests` afirma que tiene catorce estilos y tres tamaños concretos, y esa prueba tiene que

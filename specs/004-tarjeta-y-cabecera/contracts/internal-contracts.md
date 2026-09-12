@@ -12,7 +12,7 @@ Los bloques de código son **firmas, no implementaciones**.
 ## 1 · Lo que NO cambia, y va primero por ser lo más importante
 
 ```swift
-// Domain: intacto. Ni un modelo, ni un protocolo, ni un caso de uso.
+// Domain: una propiedad calculada nueva, y nada más (ver el apartado 2).
 // Data:   intacto. Ni una consulta, ni un registro, ni una migración.
 
 @MainActor @Observable
@@ -66,6 +66,24 @@ extension PublicationCard {
 **La firma pública de la tarjeta no cambia**: sigue recibiendo la publicación y dos cierres, y sigue
 derivando la sección y el color por dentro. Lo que cambia es lo de dentro.
 
+Y `Domain` gana una lectura derivada, que es lo único que esta feature añade fuera de `UI`:
+
+```swift
+extension Publication {
+    /// El título **sin el organismo que la línea de encima ya dice** (FR-021).
+    ///
+    /// Recorte **exacto y sin distinguir mayúsculas** sobre el texto anterior a los primeros dos
+    /// puntos. Un prefijo que solo se parezca se conserva entero: «FRATERNIDAD MUPRESPA MATEPSS
+    /// Nº 275» no es «Fraternidad Muprespa». Es presentación: lo almacenado no cambia, y
+    /// compartir y buscar siguen viendo el título íntegro (research.md D-416).
+    var titleWithoutIssuer: String { get }
+}
+```
+
+> **Por qué en `Domain` y no en la vista**: se prueba en cuatro milésimas en vez de en un simulador,
+> la pantalla de detalle de la 005 la va a necesitar igual, y es del mismo género que
+> `mostSpecificSectionCode`, que vive tres líneas más arriba en el mismo fichero.
+
 **Lo que la tarjeta promete**, y cada línea tiene quien la rompa en rojo:
 
 | Promesa | Qué la rompe | Quién lo caza |
@@ -75,15 +93,17 @@ derivando la sección y el color por dentro. Lo que cambia es lo de dentro.
 | Los cuatro salen de `BocTheme.typography.all` | Escribir un tamaño a mano (FR-008) | `PublicationCardTypographyTests` |
 | La fecha no baja de 12 puntos (§6.3) | Bajarla | `PublicationCardTypographyTests` |
 | El organismo se pinta **en mayúsculas** y se **oye en su caja original** | `issuer.uppercased()` en la vista | La prueba de interfaz, y VoiceOver a mano (quickstart, paso 8) |
-| El organismo se pinta **una sola vez** | Volver a pintarlo con el prefijo del título | `testTheIssuerIsNotPaintedTwice` |
-| La fecha y las acciones comparten fila **y se apilan cuando no caben** | Un `Spacer()` sin `minLength` en el primer candidato de `ViewThatFits` (D-404) | El quickstart, paso 7 — **ninguna prueba automática lo ve** |
+| El organismo se pinta **una sola vez**, y el título no lo repite (FR-021) | Pintar `publication.title` en vez de `titleWithoutIssuer` | `testTheIssuerIsNotPaintedTwice`, que **falla con «(2) is not equal to (1)»** si se revierte |
+| La fecha y las acciones comparten fila **y se apilan cuando no caben** | Un `Spacer()` sin `minLength` en el primer candidato de `ViewThatFits` (D-404) | `testTheDateSharesItsRowWithTheActionsAndStacksWhenItDoesNotFit`, por solapamiento vertical |
 | El organismo ausente **no deja hueco** | Pintar una cadena vacía en vez de omitir la vista | La vista previa «Sin organismo» |
 | El orden vertical es sección → organismo → título → (fecha · acciones) | Reordenar | Revisión y el quickstart |
 
-> **La fila que dice «ninguna prueba automática lo ve» está a propósito.** `ViewThatFits` elige por
-> el ancho disponible en tiempo de dibujado; lo que una prueba de interfaz puede afirmar es que la
-> tarjeta **crece** al 200 % y que ningún texto se recorta, no cuál de los dos candidatos se eligió.
-> Se escribe para que nadie deduzca una cobertura que no hay.
+> **Aquí decía que ninguna prueba automática puede ver qué candidato elige el `ViewThatFits`, y era
+> falso.** Sí puede, y con un margen amplio: compartiendo fila, el texto de la fecha y el botón de
+> compartir **se solapan verticalmente** (al 100 %, 451,2–466,2 contra 434,7–482,7); apilados, el
+> botón queda estrictamente debajo (al 200 %, 930–975 contra 979–1027). Para eso la fecha gana el
+> identificador `publication_date`. Lo que sigue sin poder verse desde una prueba es si el resultado
+> **se lee bien**, y para eso está el paso 8 del quickstart.
 
 ---
 
@@ -177,8 +197,15 @@ pantalla**; lo que cambia es **dónde cuelgan**, y eso basta para romper una pru
 | `home_content` | El `ScrollView` único | El `ScrollView` del listado | **Quince funciones de prueba en seis ficheros lo usan como puerta de entrada** |
 | `home_skeleton` · `home_empty` · `home_error` · `home_retry` | El `ScrollView` único | El `ScrollView` del listado | Igual, y con el gesto de actualizar todavía disponible |
 | `publication_card_<n>` | El listado | **Igual** | |
+| `publication_date` | — | La fila compartida | **El único identificador nuevo de la feature.** Va en el `Text` y no en su fila: sobre el contenedor se propagaría al icono del calendario. Es lo que permite comprobar el apilado |
 | `publication_share` · `publication_save` | La tarjeta | La fila compartida con la fecha | Conservan su área táctil de 48 puntos a cualquier talla |
 | `home_menu` · `home_search` · `home_info` | La barra superior | **Igual** | |
+
+> **Comprobado, no supuesto.** Volcados el árbol antes y después con el mismo escenario, el
+> conjunto de identificadores difiere en **uno solo**: `publication_date`. `home_root`, `home_menu`,
+> `home_search` y `home_info` conservan su nombre —no ha habido propagación—, `home_header` conserva
+> su marco `{{0, 126}, {402, 107}}` con sus dos hijos distintos, los `chip_*` se siguen encontrando
+> uno a uno, y `home_content` arranca en el mismo `y = 299`.
 
 **Las tres caras de la trampa del árbol**, que esta feature vuelve a poner en juego porque mueve
 cuatro contenedores de sitio:
@@ -195,8 +222,9 @@ de fiarse de que las pruebas pasen: las tres se encontraron así en la 003.
 
 ## 6 · Lo que esta feature NO cambia
 
-- **`Domain` y `Data`**: ni un fichero. No hay dato nuevo, ni consulta nueva, ni migración —por eso
-  no hay `data-model.md`—.
+- **`Data`**: ni un fichero. No hay dato nuevo, ni consulta nueva, ni migración —por eso no hay
+  `data-model.md`—. **`Domain` gana una propiedad calculada y nada más**: `titleWithoutIssuer`, que
+  no lee ni escribe nada, solo deriva.
 - **`AppContainer`**: ni una dependencia, ni una firma. `AppContainerTests` no se toca.
 - **`HomeViewModel`, `HomeUiState`, `HomeView`, `MainView` y el panel lateral**: intactos.
 - **La escala tipográfica**: sigue teniendo catorce estilos con los mismos tamaños.

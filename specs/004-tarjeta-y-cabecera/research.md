@@ -111,18 +111,38 @@ extension PublicationCard {
 }
 ```
 
-**El hecho que lo obliga**: la tarjeta se declara `.accessibilityElement(children: .combine)` para
-que un lector de pantalla la recorra de un gesto y no de cuatro. La consecuencia es que **los cuatro
-textos no existen en el árbol de accesibilidad**: no tienen identificador, no tienen marco y ninguna
-prueba de interfaz puede medirlos. FR-018 pide, literalmente, comprobar que los cuatro tienen
-alturas distintas; por la vía de la interfaz no hay forma, y quitar el `.combine` para poder medir
-sería sacrificar la accesibilidad de la tarjeta a cambio de medir otra cosa.
+> **Corregida al implementar, y la corrección importa más que la decisión.** Esta decisión se
+> escribió afirmando que, por estar la tarjeta declarada `.accessibilityElement(children: .combine)`,
+> **sus cuatro textos no existen en el árbol de accesibilidad** y por eso ninguna prueba de interfaz
+> puede medirlos. **Es falso.** El volcado del árbol lo enseña: `.combine` cambia la *etiqueta* del
+> contenedor, pero los `StaticText` hijos siguen ahí con su marco. Se podían medir. La decisión se
+> mantiene porque sus otros dos motivos son buenos; el que se había escrito, no lo era.
+
+**El hecho que lo obliga**, ya corregido: **la altura de un texto no mide su peldaño, mide su número
+de líneas**. La sección, el organismo y la fecha ocupan una línea, así que su alto sigue al cuerpo;
+el título ocupa tres o cuatro, así que su alto no es comparable con los otros tres. Una prueba de
+interfaz que compare las cuatro alturas afirmaría algo que no significa lo que parece. Y hay dos
+cosas más que desde la interfaz **no se ven de ninguna manera**: el **orden** —dos peldaños
+adyacentes se diferencian en uno o dos puntos, y afirmarlo sobre alturas medidas sería frágil entre
+versiones del sistema— y la **pertenencia a la escala**, que es FR-008 y no tiene traza visual
+ninguna.
+
+Las cifras del volcado lo cierran. Antes de esta feature: sección 12,7 puntos de alto, organismo
+11,7, fecha 12,7 — **la sección y la fecha medían exactamente lo mismo**, que es el problema que
+FR-001 describe—. Después: 16,3, 17,3 y 15,0. La diferencia entre dos de ellos es de un punto: una
+aserción sobre eso sería una aserción sobre el renderizador.
 
 **Lo que la prueba unitaria comprueba, y es más de lo que pedía el requisito**: que los cuatro
 tamaños son **distintos dos a dos**; que `section < organisation < title`, que es el orden de peso
-declarado; que la fecha **no baja de 12**, que es lo que el §6.3 prohíbe; y que **los cuatro
+declarado; que la fecha **no baja de 12**, que es lo que el §6.3 prohíbe; que **los cuatro
 pertenecen a `BocTheme.typography.all`**, con lo que FR-008 —«no se introduce un tamaño nuevo»— pasa
-de ser una intención a ser una aserción.
+de ser una intención a ser una aserción; y que el organismo es **regular** y el título **semibold**,
+para que subir de cuerpo y de caja no acabe tapando al título.
+
+**Las cinco muerden.** Comprobado provocando cada violación a mano: igualar dos tokens pone en rojo
+dos pruebas a la vez, intercambiar la sección y el título rompe el orden, bajar la fecha a
+`labelSmall` rompe el suelo del §6.3, y escribir `BocTextStyle(size: 18, …)` a mano rompe la
+pertenencia a la escala.
 
 **Alternativas descartadas**:
 - **Escribir los tokens en línea en el `body`**, como hasta ahora. Funciona y no se puede probar:
@@ -131,6 +151,9 @@ de ser una intención a ser una aserción.
 - **Analizar el fuente con `SourceTree`**, que el proyecto ya usa para las reglas de arquitectura.
   Una regla textual diría que el fichero nombra cuatro tokens distintos, no que sean cuatro tamaños
   distintos ni que estén en el orden correcto. Es la herramienta pobre usada donde hay una rica.
+- **Medir las cuatro alturas en una prueba de interfaz**, que resulta que sí se puede. Mide el
+  número de líneas, no el peldaño; no ve el orden ni la pertenencia a la escala; y cuesta un
+  simulador. La unitaria comprueba más, en cuatro milésimas.
 
 ---
 
@@ -168,9 +191,21 @@ poniendo el texto al 200 % y mirando.
 - **Dejar la fecha en su fila, como hasta ahora.** Es lo que el propietario pidió cambiar, y además
   deja media fila vacía debajo de un dato de doce puntos.
 
-**Qué lo demuestra**: `testTheCardGrowsInsteadOfTruncatingAtLargeTextSizes`, que ya compara la altura
-de la tarjeta al 100 % y al 200 % —fue la prueba que cazó que `Font.system(size:)` no escalaba—, y el
-paso 7 del quickstart, que es donde se ve que apila.
+**Qué lo demuestra**, y aquí también hubo que corregirse: esta decisión se escribió diciendo que
+una prueba solo puede afirmar que la tarjeta **crece**, no **qué candidato se eligió**, y que el
+apilado había que verlo a mano. **Se puede afirmar.** La diferencia entre los dos candidatos es
+grande e inequívoca en la geometría: compartiendo fila, el texto de la fecha y el botón de compartir
+**se solapan verticalmente**; apilados, el botón queda estrictamente debajo. Medido:
+
+| | Fecha | Compartir | |
+|---|---|---|---|
+| 100 % | y 451,2 – 466,2 | y 434,7 – 482,7 | se solapan → **fila** |
+| 200 % | y 930,0 – 975,0 | y 979,0 – 1027,0 | no se solapan → **apilada** |
+
+Lo comprueba `testTheDateSharesItsRowWithTheActionsAndStacksWhenItDoesNotFit`, y por eso la fecha
+gana el identificador `publication_date`: es el único añadido al contrato de identificadores de esta
+feature. Se mantiene además el paso 8 del quickstart, porque **una prueba geométrica dice que se
+apiló, no dice que se lea bien**.
 
 ---
 
@@ -264,6 +299,22 @@ usando la aplicación sin conexión, que es cuando menos gracia hace.
   lo que se actualiza.
 
 **Qué lo demuestra**: el paso 9 del quickstart, con el escenario `empty` y con el `failing`.
+
+> **Se intentó automatizarlo al implementar, y no se puede. Las dos vías, para que nadie repita la
+> hora.**
+>
+> 1. **Buscar el indicador de actualización** tras el arrastre. No queda en el árbol: la
+>    actualización del escenario `empty` termina antes de que la prueba mire, y el indicador de
+>    `refreshable` no se expone como `activityIndicators` de forma fiable.
+> 2. **Sostener el arrastre y medir el desplazamiento del contenido**, con
+>    `press(forDuration:thenDragTo:withVelocity:thenHoldForDuration:)`. **XCUITest devuelve el marco
+>    en reposo, no el transitorio**: el texto no se movía ni un punto. Lo que cierra el diagnóstico
+>    es el experimento de control — la misma medición sobre el escenario `today`, donde el rebote
+>    existe con total seguridad, da también «299,0 no es mayor que 299,0». Falla la medición, no el
+>    rebote.
+>
+> El intento se **retiró** en lugar de dejar una prueba floja o falsa. Queda como comprobación
+> manual, y esta nota es lo que impide que se vuelva a intentar sin saberlo.
 
 ---
 
@@ -516,3 +567,88 @@ tocar el texto de la 003. Son dos cosas distintas y conviene no confundirlas.
 origen «— (nativa)» y las demás corren un número, de modo que el detalle pasa a la **005**. La tabla
 ya estaba desacoplada de la numeración de Android desde que la 013 se absorbió en la 003, así que
 esto no rompe ninguna correspondencia: la hace explícita.
+
+---
+
+## D-416 · El organismo se pintaba dos veces, y la prueba que lo vigilaba estaba verde por accidente
+
+> **Decisión tomada durante la implementación**, no al planificar. Se escribe aquí, con las demás,
+> porque el sitio de una decisión es el documento de decisiones y no el mensaje de un commit.
+
+**Decisión**: `Publication` gana `titleWithoutIssuer`, y la tarjeta pinta eso. El recorte es
+**exacto y sin distinguir mayúsculas**, sobre el texto anterior a los primeros dos puntos; un
+prefijo que solo se parezca se deja intacto.
+
+**Cómo apareció**: el paso T002 de las tareas manda volcar el árbol de accesibilidad **antes** de
+tocar nada, para poder compararlo después. En ese volcado, la etiqueta de la primera tarjeta era
+
+> `Sección Oposiciones, Consejería de Salud, CONSEJERÍA DE SALUD: Convocatoria de
+> concurso-oposición para el acceso a plazas de Enfermería., 27 de agosto de 2026`
+
+**El organismo, dos veces.** El BOC lo publica en la ruta de clasificación —de donde la regla 10 del
+normalizador saca `issuer`— y otra vez al principio del título, en mayúsculas y seguido de dos
+puntos. La tarjeta pintaba los dos desde la 003.
+
+**Por qué nadie lo había visto**: existe una prueba llamada, literalmente,
+`testTheIssuerIsNotPaintedTwice`. Comparaba **distinguiendo mayúsculas**, así que «Consejería de
+Salud» y «CONSEJERÍA DE SALUD» no coincidían, el recuento daba uno y la prueba estaba en verde. Es
+el caso de manual de una prueba que pasa por el motivo equivocado. Y el plan de esta feature ya
+proponía corregir esa comparación —D-412— **creyendo que era un retoque de redacción**; resultó ser
+la prueba de regresión de un defecto real.
+
+**Por qué se arregla aquí y no se aplaza**: porque esta feature lo empeora. Con el organismo a
+dieciséis puntos, en `textPrimary` y en caja alta, la tarjeta quedaría con **dos líneas seguidas
+diciendo lo mismo**, una de ellas la más grande de la tarjeta. FR-001 —que los cuatro datos se
+distingan para poder descartar sin leer— quedaría derrotado por la propia feature que lo pide.
+
+**Y porque el propietario lo había pedido.** Su petición original dice, literalmente: «Junto debajo
+que tienes el nombre de la entidad que hace la publicación en más grande y en mayúsculas. **Y debajo
+sin el nombre de la entidad el título de la publicación.**» La especificación leyó ese «sin» como
+«bajo» y escribió FR-002 —«situarse entre la etiqueta de sección y el título»—, que es la otra
+lectura posible del mismo texto con erratas. Las dos son gramaticalmente posibles; solo una produce
+una tarjeta legible, y es la que él escribió. La especificación gana **FR-021**.
+
+**Dónde vive la regla**: en `Domain/Model/Publication.swift`, como propiedad calculada junto a
+`mostSpecificSectionCode`. No en la vista, por tres razones: se prueba en cuatro milésimas en vez de
+en un simulador; la pantalla de detalle de la 005 la va a necesitar igual; y es una lectura derivada
+del dato, del mismo género que la que ya vive ahí.
+
+**Alternativas descartadas**:
+- **Ocultar la línea del organismo cuando el título ya lo lleva.** Deja el organismo solo dentro del
+  título, a veinte puntos y mezclado con el asunto, que es justo la exploración por barrido que esta
+  feature vino a hacer posible.
+- **Recortar por parecido** —prefijo que empiece por el organismo—. «FRATERNIDAD MUPRESPA MATEPSS Nº
+  275» empieza por «Fraternidad Muprespa», y recortarlo dejaría el título sin el número de la
+  entidad, que es parte de su identificación oficial. **Ante la duda, el título entero.**
+- **Normalizar al guardar**, quitando el prefijo en el normalizador. Cambia el dato: la búsqueda
+  dejaría de encontrar por el organismo escrito en el título y compartir mandaría un asunto
+  distinto del que el boletín publica. Es presentación, y se queda en presentación.
+
+**Qué lo demuestra**: cinco pruebas unitarias en `PublicationTests` —el caso normal, el parecido, el
+título sin dos puntos, el título que es solo el organismo y el caso sin organismo— y
+`testTheIssuerIsNotPaintedTwice`, que **falla con «(2) is not equal to (1)» si se revierte el
+arreglo**. Comprobado ejecutando, que es lo que la constitución pide de toda corrección.
+
+---
+
+## D-417 · Dos predicciones del plan eran falsas, y las dos se corrigen hacia arriba
+
+**Lo que se decide**: cuando una predicción del plan no se cumple, se corrige el plan y **no** se
+ajusta el código para que la predicción parezca cierta. Las dos de esta feature se corrigen dejando
+las pruebas **más** fuertes, no menos.
+
+**Primera: la etiqueta combinada no cambia de orden al apilarse la fila.** D-412 daba por hecho que
+`testTheCardGrowsInsteadOfTruncatingAtLargeTextSizes` se rompería, porque `.combine` concatena los
+fragmentos en orden y la fecha cambiaba de sitio. No se rompe: **las dos acciones son botones**,
+elementos propios del árbol de accesibilidad, y nunca formaron parte de esa etiqueta —el volcado lo
+enseña—; la fecha es el último texto tanto en fila como apilada. La aserción de igualdad **se queda
+como estaba**: debilitarla a una contención la habría hecho más floja a cambio de nada. Lo único que
+cambia es un comentario que dice por qué la predicción falló.
+
+**Segunda: los textos de la tarjeta sí están en el árbol.** Está corregido arriba, en D-403.
+
+**Por qué las dos merecen quedar escritas**: las dos venían de razonar sobre el árbol de
+accesibilidad **de memoria** en vez de volcarlo. El proyecto ya tiene tres trampas documentadas de
+esa misma familia, y las tres se encontraron volcando. La lección se repite: **sobre el árbol de
+accesibilidad no se razona, se mira**. Por eso T002 existe, y por eso ha pagado el viaje dos veces
+en una feature de tres ficheros.

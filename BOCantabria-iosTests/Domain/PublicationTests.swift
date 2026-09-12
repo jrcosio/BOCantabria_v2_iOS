@@ -48,6 +48,56 @@ struct PublicationTests {
         #expect(publication(sectionCode: "1", subsectionCode: nil).mostSpecificSectionCode == "1")
     }
 
+    // MARK: - El organismo, que el BOC publica dos veces
+
+    @Test("El título pierde el prefijo cuando repite exactamente el organismo")
+    func theTitleDropsARedundantIssuerPrefix() {
+        // Es el caso real y el más frecuente: el organismo llega por la ruta de clasificación y
+        // otra vez al principio del título, en mayúsculas.
+        let subject = publication(
+            title: "AYUNTAMIENTO DE PIÉLAGOS: Aprobación definitiva del presupuesto"
+        )
+        #expect(subject.titleWithoutIssuer == "Aprobación definitiva del presupuesto")
+        // Y lo almacenado no cambia: compartir y buscar siguen viendo el título entero.
+        #expect(subject.title == "AYUNTAMIENTO DE PIÉLAGOS: Aprobación definitiva del presupuesto")
+    }
+
+    @Test("Un prefijo que solo se parece al organismo NO se recorta")
+    func aMerelySimilarPrefixSurvives() {
+        // «FRATERNIDAD MUPRESPA MATEPSS Nº 275» no es «Fraternidad Muprespa». Recortar por
+        // parecido mutilaría títulos oficiales; ante la duda, el título entero.
+        let subject = publication(
+            title: "AYUNTAMIENTO DE PIÉLAGOS Y COMARCA: Aprobación definitiva"
+        )
+        #expect(subject.titleWithoutIssuer == subject.title)
+    }
+
+    @Test("Un título sin dos puntos se queda como está")
+    func aTitleWithoutAColonIsUntouched() {
+        let subject = publication(title: "Aprobación definitiva del presupuesto")
+        #expect(subject.titleWithoutIssuer == subject.title)
+    }
+
+    @Test("Un título que solo es el organismo conserva el título entero")
+    func aTitleThatIsOnlyTheIssuerKeepsIt() {
+        // Recortarlo dejaría la tarjeta sin título, que es peor que repetir el organismo.
+        let subject = publication(title: "Ayuntamiento de Piélagos:")
+        #expect(subject.titleWithoutIssuer == "Ayuntamiento de Piélagos:")
+    }
+
+    @Test("Sin organismo no hay nada que recortar")
+    func withoutAnIssuerNothingIsTrimmed() {
+        let subject = Publication(
+            externalKey: "boc:1", blobId: "1", idSource: .blobId, feedId: "6802081",
+            sectionCode: "1", subsectionCode: nil,
+            title: "ALGO: Aprobación definitiva", issuer: nil, organizationPath: [],
+            editionType: .ordinary, publicationDate: BocDate(iso: "2026-08-26")!,
+            documentUrl: URL(string: "https://boc.cantabria.es/x")!,
+            rawCategories: "", warnings: []
+        )
+        #expect(subject.titleWithoutIssuer == "ALGO: Aprobación definitiva")
+    }
+
     private func publication(
         externalKey: String = "boc:439765",
         title: String = "AYUNTAMIENTO DE PIÉLAGOS: Aprobación definitiva",

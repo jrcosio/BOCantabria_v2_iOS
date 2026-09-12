@@ -55,6 +55,13 @@ final class AccessibilityUITests: XCTestCase {
 
         // Y dice lo mismo: el organismo, el título y la fecha siguen enteros. Si se hubiera
         // recortado el texto, la etiqueta combinada sería más corta.
+        //
+        // **El plan de la 004 predijo que esta aserción se rompería, y no se rompe.** El
+        // razonamiento era que al apilarse la fila cambiaría el orden en que `.combine` concatena
+        // los fragmentos. No cambia: las dos acciones son **botones**, elementos propios del árbol
+        // de accesibilidad, y nunca formaron parte de esta etiqueta. La fecha es el último texto
+        // tanto en fila como apilada. Se comprobó ejecutando, y la igualdad se conserva porque
+        // sigue comprobando lo que quería comprobar (research.md D-417).
         XCTAssertEqual(
             card.label, normalLabel,
             "El organismo, el título y la fecha siguen enteros"
@@ -77,13 +84,53 @@ final class AccessibilityUITests: XCTestCase {
     /// Es una de las tres cosas que en la aplicación de origen solo se vieron al ejecutar en un
     /// dispositivo: el organismo salía dos veces, porque está en el campo de clasificación **y**
     /// como prefijo del título, y las dos se pintaban.
+    ///
+    /// **Se compara sin distinguir mayúsculas, y esa es la prueba entera.** Escrita con una
+    /// comparación exacta, esta prueba estuvo en verde toda la feature 003 **por accidente**: el
+    /// BOC publica el organismo en la ruta de clasificación con su caja normal y otra vez al
+    /// principio del título en mayúsculas, así que «Consejería de Salud» y «CONSEJERÍA DE SALUD»
+    /// no coincidían y el recuento daba uno. Se pintaba dos veces y nadie lo veía. Lo destapó el
+    /// volcado del árbol de accesibilidad al planificar la 004 (research.md D-416).
     func testTheIssuerIsNotPaintedTwice() {
         let app = launch(textSize: nil)
         XCTAssertTrue(element("home_content", in: app).waitForExistence(timeout: 15))
 
         let label = element("publication_card_0", in: app).label
         let issuer = "Consejería de Salud"
-        let occurrences = label.components(separatedBy: issuer).count - 1
+        let occurrences = label.lowercased()
+            .components(separatedBy: issuer.lowercased()).count - 1
         XCTAssertEqual(occurrences, 1, "El organismo se pinta una vez: «\(label)»")
+    }
+
+    /// FR-004 y FR-005: la fecha comparte fila con las acciones, y **se apila cuando no cabe**.
+    ///
+    /// Se comprueba con el solapamiento **vertical** entre el texto de la fecha y el botón de
+    /// compartir, que es la diferencia grande e inequívoca entre los dos candidatos del
+    /// `ViewThatFits`: compartiendo fila se solapan; apilados, el botón queda estrictamente
+    /// debajo. Comparar alturas o posiciones exactas sería frágil; esto no.
+    ///
+    /// **El plan daba esto por incomprobable** y se equivocaba: decía que una prueba solo puede
+    /// afirmar que la tarjeta crece, no qué candidato se eligió. Puede afirmar las dos cosas, y
+    /// hace falta, porque un `Spacer()` sin `minLength` en el primer candidato haría que la fila
+    /// no se apilara **nunca** sin romper nada más (research.md D-404).
+    func testTheDateSharesItsRowWithTheActionsAndStacksWhenItDoesNotFit() {
+        let normal = launch(textSize: nil)
+        XCTAssertTrue(element("home_content", in: normal).waitForExistence(timeout: 15))
+        let normalDate = element("publication_date", in: normal).frame
+        let normalShare = element("publication_share", in: normal).frame
+        XCTAssertTrue(
+            normalDate.minY < normalShare.maxY && normalShare.minY < normalDate.maxY,
+            "Al 100 % la fecha y las acciones comparten fila: \(normalDate) · \(normalShare)"
+        )
+        normal.terminate()
+
+        let large = launch(textSize: "UICTContentSizeCategoryAccessibilityXXXL")
+        XCTAssertTrue(element("home_content", in: large).waitForExistence(timeout: 15))
+        let largeDate = element("publication_date", in: large).frame
+        let largeShare = element("publication_share", in: large).frame
+        XCTAssertGreaterThanOrEqual(
+            largeShare.minY, largeDate.maxY,
+            "Al 200 % no caben en una línea: se apilan, no se pisan \(largeDate) · \(largeShare)"
+        )
     }
 }
