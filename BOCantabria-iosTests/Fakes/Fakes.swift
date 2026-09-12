@@ -251,16 +251,33 @@ final class FakePublicationRepository: PublicationRepository, @unchecked Sendabl
     var refreshCalls: [Bool] { calls.withLock { $0 } }
     var observedSelections: [HomeSelection] { selections.withLock { $0 } }
 
+    /// Los valores que emite `observePublication`, en orden. Varios valores sirven para comprobar
+    /// que el detalle **se corrige solo** cuando una sincronización cambia la fila (FR-003).
+    private let single: [AppResult<Publication?>]
+    private let observedKeys = Mutex<[String]>([])
+    var observedPublicationKeys: [String] { observedKeys.withLock { $0 } }
+
     init(
         publications: AppResult<[Publication]> = .success([]),
         header: AppResult<BulletinHeader> = .success(.empty),
         refreshResult: AppResult<SyncSummary> = .success(SyncSummary(succeededFeeds: 19)),
-        stale: Bool = true
+        stale: Bool = true,
+        single: [AppResult<Publication?>] = [.success(nil)]
     ) {
         self.publications = publications
         self.header = header
         self.refreshResult = refreshResult
         self.stale = stale
+        self.single = single
+    }
+
+    func observePublication(externalKey: String) -> AsyncStream<AppResult<Publication?>> {
+        observedKeys.withLock { $0.append(externalKey) }
+        let values = single
+        return AsyncStream { continuation in
+            for value in values { continuation.yield(value) }
+            continuation.finish()
+        }
     }
 
     func observePublications(_ selection: HomeSelection) -> AsyncStream<AppResult<[Publication]>> {
@@ -286,6 +303,57 @@ final class FakePublicationRepository: PublicationRepository, @unchecked Sendabl
         calls.withLock { $0.append(force) }
         return refreshResult
     }
+}
+
+/// El repositorio de documentos, con el estado que la prueba le dicte.
+///
+/// **Emite el estado vigente al suscribirse**, igual que el de verdad: sin esa reproducción, una
+/// prueba que se suscriba después de disparar la descarga no recibiría nada y se colgaría en vez de
+/// fallar (research.md D-510).
+final class FakeDocumentRepository: DocumentRepository, @unchecked Sendable {
+    private let statuses: Mutex<[String: [DocumentStatus]]>
+    private let result: AppResult<OfficialDocument>
+    private let ensureCalls = Mutex<[String]>([])
+    private let releaseCalls = Mutex<Int>(0)
+
+    var ensuredKeys: [String] { ensureCalls.withLock { $0 } }
+    var releaseCount: Int { releaseCalls.withLock { $0 } }
+
+    init(
+        statuses: [String: [DocumentStatus]] = [:],
+        result: AppResult<OfficialDocument> = .failure(.network)
+    ) {
+        self.statuses = Mutex(statuses)
+        self.result = result
+    }
+
+    func observeDocument(externalKey: String) -> AsyncStream<DocumentStatus> {
+        let values = statuses.withLock { $0[externalKey] ?? [.absent] }
+        return AsyncStream { continuation in
+            for value in values { continuation.yield(value) }
+            continuation.finish()
+        }
+    }
+
+    func ensureLocalCopy(_ publication: Publication) async -> AppResult<OfficialDocument> {
+        ensureCalls.withLock { $0.append(publication.externalKey) }
+        return result
+    }
+
+    func releaseUnused() async { releaseCalls.withLock { $0 += 1 } }
+}
+
+func officialDocument(
+    externalKey: String = "boc:439765",
+    localPath: String = "/tmp/boc/documents/abc.pdf",
+    byteCount: Int64 = 609,
+    checksum: String = String(repeating: "a", count: 64),
+    lastUsedAt: Date = ImmediateClock.fixedNow
+) -> OfficialDocument {
+    OfficialDocument(
+        externalKey: externalKey, localPath: localPath, byteCount: byteCount,
+        checksum: checksum, lastUsedAt: lastUsedAt
+    )
 }
 
 func publication(

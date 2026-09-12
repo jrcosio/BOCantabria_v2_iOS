@@ -166,3 +166,32 @@ struct PublicationRepositoryImplTests {
         #expect(received.withLock { $0 } == afterFirst, "Cancelada, no puede llegar otro valor")
     }
 }
+
+extension PublicationRepositoryImplTests {
+
+    @Test("Observar una publicación que ya no está guardada emite un éxito con nulo")
+    func observingARetiredPublicationEmitsSuccessWithNil() async {
+        // El detalle lo convierte en «esta publicación ya no está disponible» (FR-004). Si esto
+        // fuera un fallo, la pantalla pintaría un error y ofrecería reintentar algo que no puede
+        // salir bien.
+        let provider = BocDatabaseProvider.inMemory(crashReporter: NoOpCrashReporter())
+        _ = provider.database()
+        let local = PublicationLocalDataSource(provider: provider, crashReporter: NoOpCrashReporter())
+        let repository = PublicationRepositoryImpl(
+            local: local,
+            coordinator: FeedSyncCoordinator(
+                local: local, downloader: FailingFeedDownloader(), clock: ImmediateClock(),
+                crashReporter: NoOpCrashReporter(), catalog: []
+            ),
+            clock: ImmediateClock()
+        )
+
+        var primero: AppResult<Publication?>?
+        for await value in repository.observePublication(externalKey: "boc:no-existe") {
+            primero = value
+            break
+        }
+
+        #expect(primero == .success(nil))
+    }
+}

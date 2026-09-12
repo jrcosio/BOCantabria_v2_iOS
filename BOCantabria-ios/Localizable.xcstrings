@@ -61,6 +61,18 @@
         }
       }
     },
+    "ask_title": {
+      "comment": "Título de la pantalla de preguntar, que todavía es un marcador de posición.",
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preguntar al BOC"
+          }
+        }
+      }
+    },
     "chip_todays_bulletin": {
       "comment": "Primer chip de la fila de secciones. Dice lo que muestra: la última edición, no el archivo entero.",
       "extractionState": "manual",
@@ -105,6 +117,330 @@
           "stringUnit": {
             "state": "translated",
             "value": "%1$lld de %2$@ de %3$lld"
+          }
+        }
+      }
+    },
+    "detail_action_ask": {
+      "comment": "Acción secundaria del detalle. Abre una pantalla que todavía anuncia «Próximamente».",
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preguntar"
+          }
+        }
+      }
+    },
+    "detail_action_open": {
+      "comment": "Acción principal del detalle. Es la de mayor jerarquía de la pantalla.",
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir PDF oficial"
+          }
+        }
+      }
+    },
+    "detail_back": {
+      "comment": "Acción de retroceso del detalle y del visor.",
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Volver"
+          }
+        }
+      }
+    },
+    "detail_date_description": {
+      "comment": "Descripción accesible del icono que acompaña a la fecha.",
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fecha de publicación"
+          }
+        }
+      }
+    },
+    "detail_field_date": {
+      "comment": "Rótulo de la ficha de metadatos.",
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fecha de publicación"
+          }
+        }
+      }
+    },
+    "detail_field_description": {
+      "comment": "Rótulo del primer bloque de la ficha de metadatos.",
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Descripción"
+          }
+        }
+      }
+    },
+    "detail_field_edition_extraordinary": {
+      "comment": "Valor del tipo de edición en la ficha.",
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edición extraordinaria"
+          }
+        }
+      }
+    },
+    "detail_field_edition_ordinary": {
+      "comment": "Valor del tipo de edición en la ficha.",
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edición ordinaria"
+          }
+        }
+      }
+    },
+    "detail_field_edition_unknown": {
+      "comment": "Valor del tipo de edición cuando el servicio no lo declara.",
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edición sin especificar"
+          }
+        }
+      }
+    },
+    "detail_field_issuer": {
+      "comment": "Rótulo de la ficha de metadatos.",
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Organismo"
+          }
+        }
+      }
+    },
+    "detail_field_official": {
+      "comment": "Rótulo del último bloque de la ficha de metadatos.",
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Documento oficial"
+          }
+        }
+      }
+    },
+    "detail_field_reference": {
+      "comment": "Rótulo de la ficha de metadatos. Su valor es la clave externa de la publicación.",
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Referencia"
+          }
+        }
+      }
+    },
+    "detail_field_section": {
+      "comment": "Rótulo de la ficha de metadatos.",
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sección"
+          }
+        }
+      }
+    },
+    "detail_issuer_description": {
+      "comment": "Descripción accesible del icono que acompaña al organismo.",
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Organismo emisor"
+          }
+        }
+      }
+    },
+    "detail_missing_action": {
+      "comment": "Salida de la publicación retirada.",
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Volver al boletín"
+          }
+        }
+      }
+    },
+    "detail_missing_body": {
+      "comment": "Explicación de la publicación retirada. No es un error: es un desenlace previsto.",
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Puede que se haya retirado al liberar espacio. Vuelve al boletín para buscarla de nuevo."
+          }
+        }
+      }
+    },
+    "detail_missing_title": {
+      "comment": "Título cuando la publicación no está entre lo guardado.",
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esta publicación ya no está disponible"
+          }
+        }
+      }
+    },
+    "detail_official_badge": {
+      "comment": "Distintivo perfilado de la cabecera del detalle.",
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Documento oficial"
+          }
+        }
+      }
+    },
+    "detail_preview_loading": {
+      "comment": "Estado de la previsualización mientras se obtiene el documento.",
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preparando el documento…"
+          }
+        }
+      }
+    },
+    "detail_preview_title": {
+      "comment": "Rótulo de la previsualización de la pestaña Documento.",
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Primera página"
+          }
+        }
+      }
+    },
+    "detail_preview_unavailable": {
+      "comment": "La previsualización falla pero el documento sirve: se dice, y no se convierte en un error de pantalla.",
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No hemos podido dibujar la primera página. El documento se abre igualmente."
+          }
+        }
+      }
+    },
+    "detail_share": {
+      "comment": "Acción de compartir de la barra superior del detalle.",
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compartir"
+          }
+        }
+      }
+    },
+    "detail_tab_document": {
+      "comment": "Primera pestaña del detalle.",
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Documento"
+          }
+        }
+      }
+    },
+    "detail_tab_summary": {
+      "comment": "Segunda pestaña del detalle. Todavía anuncia «Próximamente»: el resumen llega con su feature.",
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resumen IA"
+          }
+        }
+      }
+    },
+    "detail_title": {
+      "comment": "Título de la pantalla de detalle, en su barra superior.",
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Detalle de publicación"
+          }
+        }
+      }
+    },
+    "document_error_invalid": {
+      "comment": "Rechazo de validación. Cubre los siete motivos: nada que no se haya comprobado se presenta como oficial.",
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lo que ha devuelto el servicio no es el documento oficial."
+          }
+        }
+      }
+    },
+    "document_error_network": {
+      "comment": "Fallo de red al obtener el documento. La pantalla nunca dice códigos: el motivo exacto va al registro.",
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No hemos podido traer el documento. Comprueba tu conexión."
           }
         }
       }
@@ -421,6 +757,42 @@
         }
       }
     },
+    "pdf_viewer_error": {
+      "comment": "El visor no puede abrirlo: ilegible o truncado.",
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No hemos podido abrir el documento."
+          }
+        }
+      }
+    },
+    "pdf_viewer_loading": {
+      "comment": "Estado de carga del visor.",
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abriendo el documento…"
+          }
+        }
+      }
+    },
+    "pdf_viewer_locked": {
+      "comment": "Protegido con contraseña. Es un caso DISTINTO del ilegible, y por eso tiene texto propio.",
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El documento está protegido y no se puede abrir."
+          }
+        }
+      }
+    },
     "publication_save": {
       "comment": "Acción de guardar de la tarjeta. Todavía anuncia «Próximamente».",
       "extractionState": "manual",
@@ -513,6 +885,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "Desplegar %@"
+          }
+        }
+      }
+    },
+    "share_link_fallback": {
+      "comment": "El caso degradado se EXPLICA: sin el motivo, compartir un enlace en vez del documento sorprende.",
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sin conexión para traer el documento. Se comparte el enlace al original."
+          }
+        }
+      }
+    },
+    "share_preparing": {
+      "comment": "Se está obteniendo el documento para compartirlo.",
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preparando el documento…"
           }
         }
       }

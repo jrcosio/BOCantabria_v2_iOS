@@ -147,3 +147,22 @@ struct BocThemeTests {
         #expect(Color("AccentColor", bundle: .main).resolve(in: .init()) == BocTheme.colors.primary.resolve(in: .init()))
     }
 }
+
+// MARK: - Los colores que UIKit necesita
+
+@Suite("Colores de UIKit")
+struct BocUIColorsTests {
+
+    @Test("El fondo del lector vale lo mismo en las dos paletas")
+    func theReaderSurfaceMatchesItsToken() {
+        // Dos definiciones del mismo color se separan en cuanto alguien retoca una, y la que se
+        // quedaría atrás es la que casi nadie mira. Esta prueba es lo que lo impide.
+        let deUIKit = BocUIColors.readerSurface.cgColor.components ?? []
+        let deSwiftUI = UIColor(BocTheme.colors.readerSurface).cgColor.components ?? []
+
+        #expect(deUIKit.count == deSwiftUI.count)
+        for (uno, otro) in zip(deUIKit, deSwiftUI) {
+            #expect(abs(uno - otro) < 0.002, "Los componentes no coinciden: \(deUIKit) vs \(deSwiftUI)")
+        }
+    }
+}

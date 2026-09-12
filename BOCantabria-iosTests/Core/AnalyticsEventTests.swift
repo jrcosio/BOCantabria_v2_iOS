@@ -60,3 +60,43 @@ struct AnalyticsEventTests {
         #expect(String(repeating: "a", count: 41).wholeMatch(of: AnalyticsEvent.namePattern) == nil, "Máximo 40.")
     }
 }
+
+// MARK: - Los eventos del documento
+
+@Suite("Eventos del documento")
+struct DocumentAnalyticsEventTests {
+
+    @Test("Abrir un documento manda solo si venía de la caché")
+    func openingADocumentSendsOnlyWhetherItWasCached() {
+        let deCache = AnalyticsEvent.documentOpened(cached: true)
+        #expect(deCache.name == "document_opened")
+        #expect(deCache.parameters == ["cached": "true"])
+        #expect(AnalyticsEvent.documentOpened(cached: false).parameters == ["cached": "false"])
+    }
+
+    @Test("Compartir manda un enumerado de dos valores")
+    func sharingSendsATwoValuedEnum() {
+        #expect(AnalyticsEvent.documentShared(target: .document).parameters == ["target": "document"])
+        #expect(AnalyticsEvent.documentShared(target: .link).parameters == ["target": "link"])
+    }
+
+    @Test("Ningún evento del documento lleva nada de la publicación")
+    func noDocumentEventCarriesAnythingAboutThePublication() {
+        // Es el principio VI, y es la clase de cosa que se rompe al añadir un parámetro «para
+        // depurar». El motivo exacto de un rechazo va al registro, no aquí.
+        let eventos = [
+            AnalyticsEvent.documentOpened(cached: true),
+            AnalyticsEvent.documentOpened(cached: false),
+            AnalyticsEvent.documentShared(target: .document),
+            AnalyticsEvent.documentShared(target: .link),
+        ]
+        let prohibidos = ["boc:", "http", ".pdf", "cantabria", "AYUNTAMIENTO", "/"]
+        for evento in eventos {
+            #expect(evento.name.wholeMatch(of: AnalyticsEvent.namePattern) != nil)
+            let texto = evento.parameters.map { "\($0.key)=\($0.value)" }.joined(separator: " ")
+            for prohibido in prohibidos {
+                #expect(!texto.contains(prohibido), "«\(prohibido)» no puede viajar en \(evento.name)")
+            }
+        }
+    }
+}

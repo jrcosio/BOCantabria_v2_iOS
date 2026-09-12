@@ -132,6 +132,22 @@ enum PublicationQueries {
             .compactMap { $0.toDomain() }
     }
 
+    /// Una publicación concreta, o `nil` si ya no está guardada.
+    ///
+    /// **Es una consulta de LECTURA y nada más.** Si algún día aparece aquí una escritura, algo se
+    /// ha desviado: nada de esta feature toca `publications`, y la regla 13 y la prueba de
+    /// regresión del borrado siguen valiendo tal cual.
+    ///
+    /// El `nil` **no es un fallo** (FR-004): es lo que el detalle necesita para explicar que la
+    /// publicación se retiró y ofrecer volver.
+    static func publication(externalKey: String, in database: Database) throws -> Publication? {
+        try PublicationRecord.fetchOne(
+            database,
+            sql: "SELECT * FROM publications WHERE external_key = ?",
+            arguments: [externalKey]
+        )?.toDomain()
+    }
+
     static func count(for selection: HomeSelection, in database: Database) throws -> Int {
         let (clause, arguments) = filter(for: selection, in: database)
         return try Int.fetchOne(

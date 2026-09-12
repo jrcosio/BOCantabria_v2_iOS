@@ -30,6 +30,10 @@ struct PublicationRepositoryImpl: PublicationRepository {
 
     // MARK: - Observación
 
+    func observePublication(externalKey: String) -> AsyncStream<AppResult<Publication?>> {
+        local.observePublication(externalKey: externalKey)
+    }
+
     func observePublications(_ selection: HomeSelection) -> AsyncStream<AppResult<[Publication]>> {
         local.observePublications(selection)
     }

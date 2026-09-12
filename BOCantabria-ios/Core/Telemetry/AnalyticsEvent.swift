@@ -77,5 +77,32 @@ extension AnalyticsEvent {
     static func sectionSelected(code: String) -> AnalyticsEvent {
         AnalyticsEvent(name: "home_section_selected", parameters: ["section_code": code])
     }
+
+    /// Se ha resuelto la copia local de un documento.
+    ///
+    /// **Una bandera y nada más.** Ni el título, ni la dirección, ni la clave, ni el nombre del
+    /// fichero: lo que una persona lee es asunto suyo. Lo que hace falta saber desde fuera del
+    /// dispositivo es si la caché está sirviendo para algo.
+    ///
+    /// El motivo exacto de un rechazo **no viaja aquí**: va al registro, que es donde se
+    /// diagnostica y que no sale del dispositivo.
+    static func documentOpened(cached: Bool) -> AnalyticsEvent {
+        AnalyticsEvent(name: "document_opened", parameters: ["cached": String(cached)])
+    }
+
+    /// Qué se acabó ofreciendo al compartir.
+    ///
+    /// Un enumerado de dos valores. **No lleva el motivo de la degradación** porque no hace falta
+    /// para nada desde fuera: dentro del dispositivo, el registro ya lo dice.
+    static func documentShared(target: ShareTargetKind) -> AnalyticsEvent {
+        AnalyticsEvent(name: "document_share", parameters: ["target": target.rawValue])
+    }
+
+    /// Qué salió por la hoja de compartir. Vive aquí y no en `Domain` porque es vocabulario de
+    /// telemetría: `ShareTarget` lleva además el documento y el motivo, que **no pueden viajar**.
+    enum ShareTargetKind: String, Sendable {
+        case document
+        case link
+    }
 }
 

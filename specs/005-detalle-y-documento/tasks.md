@@ -30,7 +30,7 @@ Strategy*.
 cosas que esta feature tiene que demostrar al final son diferencias** —el árbol de accesibilidad y las
 cifras—, y una diferencia sin el antes no significa nada.
 
-- [ ] T001 Medir y anotar aquí mismo las **cifras de las cuatro puertas ANTES del cambio**, sobre la
+- [X] T001 Medir y anotar aquí mismo las **cifras de las cuatro puertas ANTES del cambio**, sobre la
       rama `005-detalle-y-documento` sin tocar, con datos derivados en `/tmp/boc-dd005`:
 
       | Puerta | Antes | Al cerrar la 004 |
@@ -51,21 +51,21 @@ cifras—, y una diferencia sin el antes no significa nada.
       `-quiet`**, porque con él no se imprimen; y la duración de las pruebas también, porque `-quiet`
       oculta la línea «Test run with N tests in M suites passed after X seconds» y deja solo el
       reloj de pared, que incluye el arranque del simulador y no es la misma medida.
-- [ ] T002 Volcar el **árbol de accesibilidad de Inicio antes del cambio** a
+- [X] T002 Volcar el **árbol de accesibilidad de Inicio antes del cambio** a
       `/tmp/boc-005-tree-antes.txt`: `print(app.debugDescription)` temporal en
       `UITEST/Home/HomeStatesUITests.swift`, ejecutar esa sola prueba con `-boc-data-scenario=today`,
       y retirar el `print`. Es **contra esto** contra lo que se compara en T075, y es el riesgo número
       uno de la feature (**D-519**, quickstart paso 3)
-- [ ] T003 [P] Añadir las **32 claves** de `contracts/internal-contracts.md` §6 a
+- [X] T003 [P] Añadir las **32 claves** de `contracts/internal-contracts.md` §6 a
       `APP/Localizable.xcstrings`, con los valores literales de
       `docs/referencia-android/res/strings.xml`, y sus enums `Detail`, `PdfViewer`, `Share` y `Ask` en
       `APP/Core/UI/Strings.swift` (FR-047)
-- [ ] T004 [P] Añadir las muestras de documento a `TEST/Fixtures/`: `documento_valido.pdf`,
+- [X] T004 [P] Añadir las muestras de documento a `TEST/Fixtures/`: `documento_valido.pdf`,
       `documento_dos_paginas.pdf`, `documento_protegido.pdf` (contraseña **de usuario**, no de
       propietario), `documento_truncado.pdf`, `pagina_error.html` y `declarado_pdf_no_lo_es.bin`; y
       un `enum PdfFixture` hermano en `TEST/Fixtures/FixtureLoader.swift`. **No se toca el enum de
       XML existente.** Para el tope de tamaño **no hay muestra**: los bytes los genera el doble
-- [ ] T005 [P] Comprobar que **no falta ningún icono**: los seis que la feature de origen añadió
+- [X] T005 [P] Comprobar que **no falta ningún icono**: los seis que la feature de origen añadió
       —`arrow_back`, `account_balance`, `verified_user`, `auto_awesome`, `chat_bubble`,
       `description`— están ya como `ic_arrow_back`, `ic_organization`, `ic_official`, `ic_ai`,
       `ic_ask` e `ic_document`. Si alguno faltara, se regenera con `Tools/vector-drawable-to-svg.py`.
@@ -82,47 +82,47 @@ el dominio existe, el contenedor lo resuelve y las dos reglas nuevas ya pueden p
 
 **⚠️ Ninguna historia puede empezar hasta que esta fase esté completa.**
 
-- [ ] T006 [P] Crear `APP/Domain/Model/OfficialDocument.swift` con `unknownChecksum` e
+- [X] T006 [P] Crear `APP/Domain/Model/OfficialDocument.swift` con `unknownChecksum` e
       `isValidChecksum(_:)`, y su prueba `TEST/Domain/OfficialDocumentTests.swift`. **La prueba de
       `isValidChecksum` es la que protege FR-024**: 64 hex válido; vacío, 63, 65, mayúsculas, con
       espacios y con un carácter no hexadecimal, todos inválidos (data-model.md §2)
-- [ ] T007 [P] Crear `APP/Domain/Model/DocumentStatus.swift` con `isTerminal`, y
+- [X] T007 [P] Crear `APP/Domain/Model/DocumentStatus.swift` con `isTerminal`, y
       `TEST/Domain/DocumentStatusTests.swift`: **`downloading` es el único no terminal**
-- [ ] T008 [P] Crear `APP/Domain/Model/ShareTarget.swift` (con `LinkReason`) y
+- [X] T008 [P] Crear `APP/Domain/Model/ShareTarget.swift` (con `LinkReason`) y
       `APP/Domain/Model/SharedDocument.swift`, con sus pruebas. `LinkReason` tiene **un solo caso** a
       propósito (FR-040)
-- [ ] T009 [P] Crear `APP/Domain/Model/DetailTab.swift` con `restored(from:)` **por nombre y con
+- [X] T009 [P] Crear `APP/Domain/Model/DetailTab.swift` con `restored(from:)` **por nombre y con
       respaldo**, y `TEST/Domain/DetailTabTests.swift`, que incluye el valor retirado `"ask"` → debe
       devolver `.document`, no tumbar nada (FR-017)
-- [ ] T010 Crear `APP/Domain/Repository/DocumentRepository.swift` y ampliar
+- [X] T010 Crear `APP/Domain/Repository/DocumentRepository.swift` y ampliar
       `APP/Domain/Repository/PublicationRepository.swift` con `observePublication(externalKey:)`
       (FR-002, FR-003, FR-004, D-512)
-- [ ] T011 [P] Crear los cuatro casos de uso en `APP/Domain/UseCase/` con su único `callAsFunction`, y
+- [X] T011 [P] Crear los cuatro casos de uso en `APP/Domain/UseCase/` con su único `callAsFunction`, y
       sus cuatro pruebas en `TEST/Domain/` (depende de T010)
-- [ ] T012 Añadir `publication(externalKey:in:)` a `APP/Data/Source/Local/PublicationQueries.swift` y
+- [X] T012 Añadir `publication(externalKey:in:)` a `APP/Data/Source/Local/PublicationQueries.swift` y
       su observación a `APP/Data/Source/Local/PublicationLocalDataSource.swift`; ampliar
       `TEST/Data/PublicationQueriesTests.swift`. **Es una consulta de LECTURA**: si la tarea acaba
       escribiendo, algo se ha desviado (FR-002)
-- [ ] T013 Implementar `observePublication` en `APP/Data/Repository/PublicationRepositoryImpl.swift`,
+- [X] T013 Implementar `observePublication` en `APP/Data/Repository/PublicationRepositoryImpl.swift`,
       con su prueba: la fila ausente emite `.success(nil)`, **no** un fallo (depende de T012)
-- [ ] T014 Añadir `case pdfViewer(externalKey:)` y `case ask(externalKey:)` a
+- [X] T014 Añadir `case pdfViewer(externalKey:)` y `case ask(externalKey:)` a
       `APP/UI/Navigation/Route.swift`. Las tres viajan **por clave** (contracts §4.4)
-- [ ] T015 [P] Crear `APP/Core/UI/Theme/BocUIColors.swift` con los pocos colores de UIKit que la
+- [X] T015 [P] Crear `APP/Core/UI/Theme/BocUIColors.swift` con los pocos colores de UIKit que la
       interoperabilidad necesita, y ampliar `TEST/Core/BocThemeTests.swift` afirmando que coinciden
       con sus tokens. **Va en el tema porque la regla 7 falla la build en cualquier otro sitio**
       (D-522)
-- [ ] T016 [P] Añadir `document_opened` y `document_share` a
+- [X] T016 [P] Añadir `document_opened` y `document_share` a
       `APP/Core/Telemetry/AnalyticsEvent.swift` y ampliar `TEST/Core/AnalyticsEventTests.swift`.
       **Solo banderas y enumerados**: ni título, ni dirección, ni clave, ni nombre de fichero (FR-047,
       principio VI)
-- [ ] T017 [P] Añadir el hito `timeToDocument` a `APP/Core/Util/AppSignposts.swift`. Es lo que mide
+- [X] T017 [P] Añadir el hito `timeToDocument` a `APP/Core/Util/AppSignposts.swift`. Es lo que mide
       SC-002 y SC-003; **XCUITest no sabe medir por debajo del segundo** (D-525)
-- [ ] T018 **Escribir la regla 14** en `TEST/Architecture/ArchitectureRulesTests.swift` —importaciones
+- [X] T018 **Escribir la regla 14** en `TEST/Architecture/ArchitectureRulesTests.swift` —importaciones
       **y** referencias por nombre, como la 10— y su prueba en
       `TEST/Architecture/SourceTreeTests.swift`. Subir «Nueve reglas» de la cabecera a **catorce**.
       **Provocar la violación a mano por las dos mitades y verla roja** antes de seguir (FR-052, SC-014,
       D-521, quickstart paso 2)
-- [ ] T019 **Arreglar FR-051**: en `APP/UI/Main/MainView.swift`, el modelo de pantalla de Inicio pasa
+- [X] T019 **Arreglar FR-051**: en `APP/UI/Main/MainView.swift`, el modelo de pantalla de Inicio pasa
       a construirse en el inicializador y a vivir en `@State`, como el del propio armazón. Ampliar
       `TEST/UI/MainViewModelTests.swift` con la **prueba de regresión**: un espía de analítica cuenta
       **exactamente una** visita de `home` tras varios redibujados. La prueba debe fallar **antes**
@@ -132,6 +132,16 @@ el dominio existe, el contenedor lo resuelve y las dos reglas nuevas ya pueden p
       ampliar `TEST/Integration/AppContainerTests.swift`. **El almacén y la caché son compartidos de
       proceso; los modelos de pantalla, nuevos en cada llamada.** Construir el contenedor **no** puede
       tocar el sistema de ficheros (depende de T010, T011)
+
+      > **Corrección de orden, anotada al implementar.** Esta tarea está escrita en la fase
+      > *Foundational* y **no puede ejecutarse ahí**: registra el descargador, la caché, el almacén,
+      > el repositorio y los dos modelos de pantalla, y esas seis piezas no existen hasta T022, T024,
+      > T026, T027, T030 y T034. Su «depende de T010, T011» era incompleto, y el análisis de
+      > coherencia no lo cazó porque solo comprobaba las dependencias **declaradas**.
+      >
+      > Se ejecuta **después de T034**. No se mueve de sitio en el documento: la fase 2 existe para
+      > decir qué desbloquea a las historias, y el contenedor lo hace — lo que estaba mal era suponer
+      > que se podía cablear antes de que hubiera algo que cablear.
 
 **Checkpoint**: el dominio existe y está probado, el grafo lo resuelve, la regla 14 se pone roja
 cuando debe y el defecto de la visita espuria está corregido con su regresión.
