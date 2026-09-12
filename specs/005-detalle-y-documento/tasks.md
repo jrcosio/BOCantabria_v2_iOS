@@ -258,7 +258,7 @@ mensaje comprensible con reintento y **nunca** un estado de carga perpetuo.
       al comprobador de tipos—: rechazo por tipo, por bytes, por tope, HTTP 500, fallo de escritura,
       fallo al guardar y cancelación. Aserción única: el último estado es terminal. **Y que cancelar
       publica `absent`, nunca `failed`** (FR-027, FR-029, SC-006)
-- [ ] T044 [US2] Cerrar `DocumentStore` contra T042 y T043: recuento de espectadores, guardián de
+- [ ] T044 [US2] Cerrar `APP/Data/Repository/DocumentStore.swift` contra T042 y T043: recuento de espectadores, guardián de
       identidad al publicar `absent`, y **`settle()` síncrona y aislada al actor**, con el comentario
       que prohíbe meter un `await` dentro (D-508, D-509)
 - [ ] T045 [P] [US2] Ampliar `TEST/UI/PublicationDetailViewModelTests.swift` y
@@ -306,8 +306,9 @@ conexión, y sin él en modo avión.
       exportación de fichero de **cierre asíncrono** —es lo que da el «preparando» sin escribir una
       pantalla de UIKit—, `allowAccessingOriginalFile` en **falso** —la caché puede vaciarse con la
       hoja abierta— y **nombre de fichero sugerido legible**, nunca la huella (FR-039, FR-042, D-517)
-- [ ] T054 [US3] Conectar compartir en el detalle y en el visor, con `ShareState` como **evento de un
-      solo uso**, y emitir `document_share` con el destino (FR-037, FR-038) (depende de T052, T053)
+- [ ] T054 [US3] Conectar compartir en `APP/UI/Detail/PublicationDetailViewModel.swift`,
+      `APP/UI/Detail/PublicationDetailContentView.swift` y `APP/UI/PDF/PdfViewerContentView.swift`,
+      con `ShareState` como **evento de un solo uso**, y emitir `document_share` con el destino (FR-037, FR-038) (depende de T052, T053)
 - [ ] T055 [US3] **Sustituir** el compartir por enlace de `APP/Core/UI/Component/PublicationCard.swift`
       por el destino que llega como parámetro, derivado en `APP/UI/Home/HomeContentView.swift` de
       `state.isOffline`. La tarjeta **sigue sin estado**. Anotar en el fichero la contrapartida
@@ -326,7 +327,8 @@ conexión, y sin él en modo avión.
 **Independent Test**: recorrer las dos pestañas y las tres acciones aplazadas sin quedarse sin
 respuesta.
 
-- [ ] T057 [P] [US4] Conectar la segunda pestaña a `ComingSoonMessage` conservando **el icono y la
+- [ ] T057 [P] [US4] Conectar la segunda pestaña de
+      `APP/UI/Detail/PublicationDetailContentView.swift` a `ComingSoonMessage` conservando **el icono y la
       etiqueta de IA**, con `aiAccent` y `aiContainer`, que ya existen sin usar (FR-043, FR-048)
 - [ ] T058 [P] [US4] Crear `APP/UI/Ask/AskView.swift`: barra del apartado 21.1 y el aviso de
       próximamente. **Pantalla propia con su sitio en la pila**, no un diálogo (FR-044)
@@ -334,8 +336,8 @@ respuesta.
       `surface` con borde superior, «Abrir PDF oficial» **principal** y «Preguntar» secundario,
       **apilados si no caben**, y el margen inferior **dentro de su propia superficie** (FR-046,
       FR-049, FR-050)
-- [ ] T060 [P] [US4] Conectar guardar a «Próximamente» en la barra superior del detalle, igual que la
-      tarjeta ya hace (FR-045)
+- [ ] T060 [P] [US4] Conectar guardar a «Próximamente» en la barra superior de
+      `APP/UI/Detail/PublicationDetailView.swift`, igual que la tarjeta ya hace (FR-045)
 - [ ] T061 [P] [US4] Escribir `UITEST/Detail/DetailContentUITests.swift`: las dos pestañas con su
       contenido, la barra de acciones, y que ninguna acción aplazada deja sin respuesta (FR-057,
       SC-012)

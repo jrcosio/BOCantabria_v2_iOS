@@ -1,5 +1,12 @@
 # Contratos internos: el detalle, el documento validado y el visor
 
+**Un apunte de vocabulario, porque los tres documentos hablan a públicos distintos.** La
+especificación nombra las cosas por su función —«suma de verificación», «documento portátil», «canal
+seguro», «el marco del visor»— porque describe qué debe ocurrir y tiene que sobrevivir a un cambio de
+tecnología. Aquí y en `tasks.md` se llaman por su nombre técnico —huella SHA-256, PDF, HTTPS,
+PDFKit—. **Son las mismas cosas**, y decirlo evita que alguien que lea solo uno de los dos crea que
+son dos.
+
 La aplicación no expone interfaces externas. Los contratos que importan son **los límites entre
 capas**, y esta feature toca casi todos. Los bloques de código son **firmas, no implementaciones**.
 

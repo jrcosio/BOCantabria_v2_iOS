@@ -160,12 +160,14 @@ BOCantabria-ios/
 │            · OpenOfficialDocumentUseCase.swift
 │            · ShareOfficialDocumentUseCase.swift               # NUEVOS
 └── UI/
-    ├── Detail/PublicationDetailView.swift · …ContentView · …UiState · …ViewModel   # NUEVOS
+    ├── Detail/PublicationDetailView.swift · PublicationDetailContentView.swift
+    │          · PublicationDetailUiState.swift · PublicationDetailViewModel.swift   # NUEVOS
     ├── Detail/Component/DetailHeader.swift · DetailTabBar.swift · DocumentTab.swift
     │          · MetadataCard.swift · DetailActionBar.swift · MissingPublication.swift
-    ├── PDF/PdfViewerView.swift · …ContentView · …UiState · …ViewModel
-    │      · PdfDocumentView.swift · PdfDocumentProbe.swift · PdfPageRenderer.swift
-    │      · DocumentFirstPagePreview.swift          # NUEVOS. ÚNICO sitio con PDFKit
+    ├── PDF/PdfViewerView.swift · PdfViewerContentView.swift · PdfViewerUiState.swift
+    │      · PdfViewerViewModel.swift · PdfDocumentView.swift · PdfDocumentProbe.swift
+    │      · PdfPageRenderer.swift · DocumentFirstPagePreview.swift
+    │                                                # NUEVOS. ÚNICO sitio con PDFKit
     ├── Ask/AskView.swift                            # NUEVO: marcador de posición
     ├── Share/SharedDocumentTransfer.swift           # NUEVO: el tipo transferible
     ├── Home/HomeView.swift · HomeContentView.swift  # MODIFICADOS: la tarjeta abre y comparte
