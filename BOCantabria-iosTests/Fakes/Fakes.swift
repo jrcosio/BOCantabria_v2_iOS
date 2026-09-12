@@ -12,6 +12,7 @@
 
 import Foundation
 import Synchronization
+import Testing
 @testable import BOCantabria_ios
 
 // MARK: - Transversales
@@ -638,4 +639,29 @@ struct FailingFeedDownloader: FeedDownloader {
     func fetch(_ definition: BocFeedDefinition, knownBodyHash: String?) async -> FeedFetchResult {
         .failed(failure)
     }
+}
+
+
+// MARK: - Esperar el estado, no asumirlo
+
+/// Cede el turno hasta que la condición se cumpla.
+///
+/// **Existe porque leer el estado justo después de disparar una operación asíncrona es la trampa
+/// que este proyecto ya tiene anotada**: una prueba que «funcionaba» porque el trabajo era síncrono
+/// deja de funcionar en cuanto deja de serlo. Hay que **esperar** el estado.
+///
+/// Y cede el turno en vez de dormir: un `sleep` convierte la prueba en una carrera contra el
+/// planificador, y una carrera en verde es peor que una roja. El tope existe para que una condición
+/// que nunca se cumpla **falle** en vez de colgar la suite, que es la forma más cara de equivocarse.
+@MainActor
+func until(
+    _ description: String,
+    limit: Int = 10_000,
+    _ condition: () -> Bool
+) async {
+    for _ in 0..<limit {
+        if condition() { return }
+        await Task.yield()
+    }
+    Issue.record(Comment(rawValue: "Nunca se cumplió: \(description)"))
 }

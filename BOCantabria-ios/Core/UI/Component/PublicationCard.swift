@@ -11,6 +11,12 @@
 //  color va siempre acompañado de texto** (FR-040): el color agrupa nueve secciones en cinco, así
 //  que por sí solo no identifica nada.
 //
+//  **Es pulsable con un gesto, no con un enlace de navegación**, y es una decisión medida. La
+//  tarjeta se declara elemento combinado y lleva dentro dos controles; un enlace la envolvería en un
+//  segundo contenedor declarado, y este proyecto ya tiene anotado que entonces **el de dentro
+//  desaparece**. Ocho aserciones penden de este árbol, y dos miden el alto de la tarjeta y el marco
+//  de su acción de compartir. Con el gesto, el árbol queda igual (research.md D-519).
+//
 //  **Los cuatro datos tienen que distinguirse por tamaño** (FR-001), y no basta con declararlo:
 //  los cuatro peldaños viven en `PublicationCard.Typography`, al final del fichero, porque es lo
 //  único que permite afirmarlos desde una prueba. La tarjeta se combina en un solo elemento de
@@ -21,6 +27,8 @@ import SwiftUI
 
 struct PublicationCard: View {
     let publication: Publication
+    /// Abrir el detalle. **Un gesto, no un enlace** (research.md D-519).
+    var onOpen: (() -> Void)?
     var onShare: (() -> Void)?
     var onSave: (() -> Void)?
 
@@ -46,7 +54,15 @@ struct PublicationCard: View {
         .background(BocTheme.colors.surface)
         .clipShape(RoundedRectangle(cornerRadius: BocTheme.shape.medium))
         .shadow(color: .black.opacity(0.06), radius: BocTheme.elevation.level1, y: 1)
+        // Toda la tarjeta responde, no solo su texto.
+        .contentShape(Rectangle())
         .accessibilityElement(children: .combine)
+        // Los dos controles de dentro **consumen el toque antes** de que llegue aquí, así que
+        // compartir y guardar siguen funcionando sin nada especial. Y el gesto no compite con el
+        // desplazamiento: el arrastre lo cancela.
+        .onTapGesture { onOpen?() }
+        .accessibilityAddTraits(.isButton)
+        .accessibilityAction { onOpen?() }
     }
 
     private var sectionLabel: some View {
@@ -137,21 +153,17 @@ struct PublicationCard: View {
 
     private var actions: some View {
         HStack(spacing: BocTheme.spacing.xs) {
-            // Se comparte **el enlace del documento oficial**, no el título: lo que sirve al otro
-            // lado es poder abrir el documento (FR-075). El asunto lleva el título **entero**,
-            // con su organismo: fuera de la aplicación no hay una línea encima que lo diga.
-            ShareLink(
-                item: publication.documentUrl,
-                subject: Text(publication.title),
-                message: Text(Strings.Card.shareChooser)
-            ) {
-                icon(.icShare)
+            // **Ya no lleva el enlace dentro, y es la corrección de D-518.**
+            //
+            // Hasta aquí la tarjeta era un `ShareLink` con la dirección del documento. Desde
+            // FR-037 lo que se comparte es **el documento**, y decidir entre documento y enlace es
+            // cosa del caso de uso —que puede tener que descargarlo—, no de una vista sin estado.
+            // Así que la tarjeta **emite el evento** y quien la usa resuelve y presenta, igual que
+            // el detalle y el visor: es lo que hace que FR-038 se cumpla por construcción en vez
+            // de por parecido.
+            action(.icShare, label: Strings.Card.share, identifier: "publication_share") {
+                onShare?()
             }
-            .buttonStyle(.plain)
-            .foregroundStyle(BocTheme.colors.textSecondary)
-            .accessibilityLabel(Text(Strings.Card.share))
-            .accessibilityIdentifier("publication_share")
-            .simultaneousGesture(TapGesture().onEnded { onShare?() })
 
             action(.icBookmark, label: Strings.Card.save, identifier: "publication_save") {
                 onSave?()

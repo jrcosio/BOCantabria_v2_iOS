@@ -23,6 +23,15 @@ struct HomeUiState: Equatable {
     var isRefreshing: Bool = false
     /// No hay conexión. El aviso **no oculta el contenido** (FR-043).
     var isOffline: Bool = false
+    /// Qué se ha decidido compartir, y por qué.
+    ///
+    /// **Gana un campo, y el plan decía que no lo ganaría.** Aquella previsión suponía que la
+    /// tarjeta derivaría su destino de `isOffline` y lo llevaría dentro; al implementarlo se vio
+    /// que decidir entre documento y enlace exige el caso de uso —que puede tener que descargar—,
+    /// y una vista sin estado no puede llamarlo. Así que la tarjeta emite el evento y esta
+    /// pantalla resuelve, exactamente igual que el detalle: es lo que hace que FR-038 se cumpla
+    /// por construcción (research.md D-518, corregida al implementar).
+    var share: ShareState = .idle
 
     var hasSubsectionRow: Bool { !subsectionChips.isEmpty }
 }

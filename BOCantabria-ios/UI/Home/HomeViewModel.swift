@@ -22,6 +22,7 @@ final class HomeViewModel {
     private let observePublications: ObservePublicationsUseCase
     private let observeHeader: ObserveBulletinHeaderUseCase
     private let refreshPublications: RefreshPublicationsUseCase
+    private let shareDocument: ShareOfficialDocumentUseCase
     private let analytics: AnalyticsTracker
 
     /// Las dos observaciones vivas. **Tienen dueño**: se cancelan al cambiar de selección y al
@@ -51,11 +52,13 @@ final class HomeViewModel {
         observePublications: ObservePublicationsUseCase,
         observeHeader: ObserveBulletinHeaderUseCase,
         refreshPublications: RefreshPublicationsUseCase,
+        shareDocument: ShareOfficialDocumentUseCase,
         analytics: AnalyticsTracker
     ) {
         self.observePublications = observePublications
         self.observeHeader = observeHeader
         self.refreshPublications = refreshPublications
+        self.shareDocument = shareDocument
         self.analytics = analytics
         // Exactamente una vez por instancia, no una por aparición de la vista: la vista aparece
         // otra vez al volver de segundo plano, y eso no es una visita nueva.
@@ -76,6 +79,20 @@ final class HomeViewModel {
     }
 
     /// El gesto de deslizar hacia abajo. **Siempre** sale a la red (FR-024).
+    /// Compartir desde una tarjeta. **La decisión la toma el caso de uso**, no la pantalla
+    /// (FR-041): aquí solo se pide y se presenta.
+    func onShare(_ publication: Publication) async {
+        state.share = .preparing
+        let destino = await shareDocument(publication)
+        analytics.track(.documentShared(target: destino.analyticsKind))
+        state.share = .ready(destino)
+    }
+
+    /// La hoja se ha presentado: el evento se consume y vuelve a reposo.
+    func onShareConsumed() {
+        state.share = .idle
+    }
+
     func onRefresh() async {
         await sync(force: true)
     }
@@ -223,6 +240,16 @@ private final class ObservationBox: Sendable {
             tasks.publications?.cancel()
             tasks.header?.cancel()
             tasks = (nil, nil)
+        }
+    }
+}
+
+
+private extension ShareTarget {
+    var analyticsKind: AnalyticsEvent.ShareTargetKind {
+        switch self {
+        case .document: .document
+        case .link: .link
         }
     }
 }

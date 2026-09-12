@@ -39,6 +39,10 @@ struct MainView: View {
     @State private var homeViewModel: HomeViewModel
     /// Efímero y no sobrevive a nada, así que es `@State` de la vista y no de un modelo.
     @State private var isDrawerOpen = false
+    /// La pila de la pestaña de Inicio. **Las tres rutas viven aquí dentro**, no en un contenedor
+    /// que envuelva al `TabView`: un `NavigationStack` por encima rompería la barra de pestañas y
+    /// dejaría una sola pila para tres destinos.
+    @State private var homePath = NavigationPath()
     /// La pestaña se restaura **por nombre**, con su alternativa explícita detrás.
     @SceneStorage("main_tab") private var storedTab: String = MainTab.home.rawValue
 
@@ -63,14 +67,17 @@ struct MainView: View {
     private var tabs: some View {
         TabView(selection: tabBinding) {
             Tab(value: MainTab.home) {
-                NavigationStack {
+                NavigationStack(path: $homePath) {
                     HomeView(
                         viewModel: homeViewModel,
                         selection: viewModel.state.selection,
                         onSelect: { viewModel.onSelect($0) },
-                        onOpenSections: { isDrawerOpen = true }
+                        onOpenSections: { isDrawerOpen = true },
+                        // **Por clave, no por objeto**: el detalle observa la fila (D-512).
+                        onOpen: { homePath.append(Route.publicationDetail(externalKey: $0.externalKey)) }
                     )
                     .toolbar(.hidden, for: .navigationBar)
+                    .navigationDestination(for: Route.self) { destination($0) }
                 }
             } label: {
                 Label {
@@ -105,6 +112,27 @@ struct MainView: View {
         .toolbarBackground(BocTheme.colors.surface, for: .tabBar)
         .toolbarBackground(.visible, for: .tabBar)
         .tint(BocTheme.colors.secondary)
+    }
+
+    /// Los tres destinos de la pila.
+    ///
+    /// **Cada uno construye su modelo de pantalla aquí**, y eso está bien: a diferencia de `tabs`,
+    /// este cierre solo se evalúa cuando el destino entra en la pila, no en cada redibujado. Es la
+    /// distinción que FR-051 corrigió arriba.
+    @ViewBuilder
+    private func destination(_ route: Route) -> some View {
+        switch route {
+        case .publicationDetail(let externalKey):
+            PublicationDetailView(
+                viewModel: container.makePublicationDetailViewModel(externalKey: externalKey),
+                onOpenDocument: { homePath.append(Route.pdfViewer(externalKey: externalKey)) },
+                onAsk: { homePath.append(Route.ask(externalKey: externalKey)) }
+            )
+        case .pdfViewer(let externalKey):
+            PdfViewerView(viewModel: container.makePdfViewerViewModel(externalKey: externalKey))
+        case .ask(let externalKey):
+            AskView(externalKey: externalKey)
+        }
     }
 
     private var tabBinding: Binding<MainTab> {

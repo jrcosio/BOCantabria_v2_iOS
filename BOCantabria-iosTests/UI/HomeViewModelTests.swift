@@ -17,7 +17,9 @@ struct HomeViewModelTests {
         publications: AppResult<[Publication]> = .success([]),
         header: AppResult<BulletinHeader> = .success(.empty),
         refreshResult: AppResult<SyncSummary> = .success(SyncSummary(succeededFeeds: 19)),
-        analytics: AnalyticsTracker = NoOpAnalyticsTracker()
+        analytics: AnalyticsTracker = NoOpAnalyticsTracker(),
+        documents: DocumentRepository = FakeDocumentRepository(),
+        online: Bool = true
     ) -> HomeViewModel {
         let repository = FakePublicationRepository(
             publications: publications, header: header, refreshResult: refreshResult
@@ -26,6 +28,9 @@ struct HomeViewModelTests {
             observePublications: ObservePublicationsUseCase(repository: repository),
             observeHeader: ObserveBulletinHeaderUseCase(repository: repository),
             refreshPublications: RefreshPublicationsUseCase(repository: repository),
+            shareDocument: ShareOfficialDocumentUseCase(
+                documents: documents, connectivity: FakeConnectivityRepository(online: online)
+            ),
             analytics: analytics
         )
     }
@@ -210,5 +215,79 @@ struct HomeViewModelTests {
 
         let selected = analytics.events.first { $0.name == "home_section_selected" }
         #expect(selected?.parameters["section_code"] == "2.2")
+    }
+}
+
+// MARK: - Compartir desde la tarjeta
+
+/// **La tarjeta comparte lo mismo que el detalle y que el visor** (FR-038), y por el mismo camino:
+/// la regla de degradación vive en el caso de uso, y esta pantalla solo pide y presenta.
+@Suite("Inicio: compartir")
+@MainActor
+struct HomeShareTests {
+
+    @Test("Con el documento en caché se comparte el documento")
+    func withACachedDocumentTheDocumentIsShared() async {
+        let viewModel = make(documents: FakeDocumentRepository(result: .success(officialDocument())))
+
+        await viewModel.onShare(publication(externalKey: "boc:439765"))
+
+        guard case .ready(.document(let compartido)) = viewModel.state.share else {
+            Issue.record("Debería ofrecer el documento, y ofrece \(viewModel.state.share)")
+            return
+        }
+        #expect(compartido.fileName == "boc-439765.pdf")
+    }
+
+    @Test("Sin documento y sin conexión se ofrece el enlace, con su motivo")
+    func withoutADocumentAndOfflineTheLinkIsOffered() async {
+        let viewModel = make(documents: FakeDocumentRepository(result: .failure(.network)), online: false)
+        let publicacion = publication(externalKey: "boc:1")
+
+        await viewModel.onShare(publicacion)
+
+        #expect(viewModel.state.share == .ready(.link(url: publicacion.documentUrl, reason: .noConnection)))
+    }
+
+    @Test("El evento se consume y vuelve a reposo")
+    func theEventIsConsumedAndReturnsToIdle() async {
+        // Sin consumirlo, volver a la pantalla reabriría la hoja sin que nadie la hubiera pedido.
+        let viewModel = make(documents: FakeDocumentRepository(result: .success(officialDocument())))
+
+        await viewModel.onShare(publication())
+        viewModel.onShareConsumed()
+
+        #expect(viewModel.state.share == .idle)
+    }
+
+    @Test("Compartir emite su evento, con el destino y nada más")
+    func sharingEmitsItsEventWithTheTargetAndNothingElse() async {
+        let analytics = RecordingAnalyticsTracker()
+        let viewModel = make(
+            analytics: analytics,
+            documents: FakeDocumentRepository(result: .success(officialDocument()))
+        )
+
+        await viewModel.onShare(publication(externalKey: "boc:439765"))
+
+        let evento = analytics.events.first { $0.name == "document_share" }
+        #expect(evento?.parameters == ["target": "document"])
+    }
+
+    private func make(
+        analytics: AnalyticsTracker = NoOpAnalyticsTracker(),
+        documents: DocumentRepository = FakeDocumentRepository(),
+        online: Bool = true
+    ) -> HomeViewModel {
+        let repository = FakePublicationRepository()
+        return HomeViewModel(
+            observePublications: ObservePublicationsUseCase(repository: repository),
+            observeHeader: ObserveBulletinHeaderUseCase(repository: repository),
+            refreshPublications: RefreshPublicationsUseCase(repository: repository),
+            shareDocument: ShareOfficialDocumentUseCase(
+                documents: documents, connectivity: FakeConnectivityRepository(online: online)
+            ),
+            analytics: analytics
+        )
     }
 }

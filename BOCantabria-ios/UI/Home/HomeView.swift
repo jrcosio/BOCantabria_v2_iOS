@@ -13,17 +13,21 @@ struct HomeView: View {
     let selection: HomeSelection
     var onSelect: (HomeSelection) -> Void = { _ in }
     var onOpenSections: () -> Void = {}
+    /// Abrir el detalle. Lo resuelve el armazón, que es quien tiene la pila.
+    var onOpen: (Publication) -> Void = { _ in }
 
     init(
         viewModel: HomeViewModel,
         selection: HomeSelection = .todaysBulletin,
         onSelect: @escaping (HomeSelection) -> Void = { _ in },
-        onOpenSections: @escaping () -> Void = {}
+        onOpenSections: @escaping () -> Void = {},
+        onOpen: @escaping (Publication) -> Void = { _ in }
     ) {
         _viewModel = State(initialValue: viewModel)
         self.selection = selection
         self.onSelect = onSelect
         self.onOpenSections = onOpenSections
+        self.onOpen = onOpen
     }
 
     /// Lo que todavía no existe **lo dice**, en vez de no responder (FR-073, FR-076).
@@ -39,8 +43,12 @@ struct HomeView: View {
             onSelect: { chip in onSelect(Self.selection(for: chip)) },
             onOpenSections: onOpenSections,
             onSearch: { comingSoon = String(localized: Strings.Nav.search) },
+            onOpen: onOpen,
+            onShare: { publication in Task { await viewModel.onShare(publication) } },
             onSave: { _ in comingSoon = String(localized: Strings.Card.save) }
         )
+        // La misma hoja que el detalle y el visor, presentada desde el mismo sitio (FR-038).
+        .shareSheet(state: viewModel.state.share, onConsumed: { viewModel.onShareConsumed() })
         .alert(
             Text(Strings.Common.comingSoon),
             isPresented: Binding(get: { comingSoon != nil }, set: { if !$0 { comingSoon = nil } })

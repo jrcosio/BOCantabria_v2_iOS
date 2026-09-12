@@ -127,7 +127,7 @@ el dominio existe, el contenedor lo resuelve y las dos reglas nuevas ya pueden p
       `TEST/UI/MainViewModelTests.swift` con la **prueba de regresión**: un espía de analítica cuenta
       **exactamente una** visita de `home` tras varios redibujados. La prueba debe fallar **antes**
       del arreglo (D-523)
-- [ ] T020 Registrar en `APP/Core/DI/AppContainer.swift` el descargador, la caché, el almacén, el
+- [X] T020 Registrar en `APP/Core/DI/AppContainer.swift` el descargador, la caché, el almacén, el
       repositorio de documentos, los cuatro casos de uso y los dos modelos de pantalla nuevos; y
       ampliar `TEST/Integration/AppContainerTests.swift`. **El almacén y la caché son compartidos de
       proceso; los modelos de pantalla, nuevos en cada llamada.** Construir el contenedor **no** puede
@@ -188,54 +188,54 @@ comprobar la cabecera y sus datos, abrir el documento y retroceder al mismo siti
 
 ### El visor
 
-- [ ] T028 [P] [US1] Escribir `TEST/UI/PdfViewerViewModelTests.swift`: cargando → listo con el número
+- [X] T028 [P] [US1] Escribir `TEST/UI/PdfViewerViewModelTests.swift`: cargando → listo con el número
       de páginas de `documento_dos_paginas.pdf`; y los dos errores, con `documento_protegido.pdf` y
       `documento_truncado.pdf`, que **no** son el mismo caso (FR-035, FR-036, FR-056)
-- [ ] T029 [US1] Crear `APP/UI/PDF/PdfDocumentProbe.swift` marcado **`@concurrent`**, con los cuatro
+- [X] T029 [US1] Crear `APP/UI/PDF/PdfDocumentProbe.swift` marcado **`@concurrent`**, con los cuatro
       desenlaces de la tabla de **D-514**. Un documento **cifrado pero no bloqueado se abre**:
       rechazarlo mutilaría documentos oficiales legítimos
-- [ ] T030 [US1] Crear `APP/UI/PDF/PdfViewerUiState.swift` y `APP/UI/PDF/PdfViewerViewModel.swift`
+- [X] T030 [US1] Crear `APP/UI/PDF/PdfViewerUiState.swift` y `APP/UI/PDF/PdfViewerViewModel.swift`
       hasta hacer pasar T028. **Ni `PDFDocument` ni `PDFPage` en el estado**: no son `Sendable` y no
       compilarían (depende de T029)
-- [ ] T031 [US1] Crear `APP/UI/PDF/PdfDocumentView.swift`, el envoltorio sobre la vista de PDFKit, con
+- [X] T031 [US1] Crear `APP/UI/PDF/PdfDocumentView.swift`, el envoltorio sobre la vista de PDFKit, con
       el fondo `readerSurface`, sin sombras de página, desplazamiento continuo vertical y ajuste
       automático: se lee **dentro de la aplicación** y se amplía y recorre con los gestos habituales
       (FR-031, FR-032). **El factor mínimo se fija DESPUÉS de asignar el documento**: antes vale cero y el
       pellizco deja reducirlo a nada (D-515)
-- [ ] T032 [US1] Crear `APP/UI/PDF/PdfViewerContentView.swift` y `APP/UI/PDF/PdfViewerView.swift` con
+- [X] T032 [US1] Crear `APP/UI/PDF/PdfViewerContentView.swift` y `APP/UI/PDF/PdfViewerView.swift` con
       la barra del apartado 24.1 —**tres** controles: atrás, título abreviado y compartir— y la página
       visible en almacenamiento de escena. El título abreviado es `titleWithoutIssuer` (FR-033, FR-034)
 
 ### El detalle
 
-- [ ] T033 [P] [US1] Escribir `TEST/UI/PublicationDetailViewModelTests.swift` para US1: la publicación
+- [X] T033 [P] [US1] Escribir `TEST/UI/PublicationDetailViewModelTests.swift` para US1: la publicación
       observada se publica en el estado; un cambio posterior se refleja **sin volver a entrar**
       (FR-003); `nil` pone `isMissing` (FR-004); y **el documento se pide en `onDocumentTabShown()`,
       no en `onAppear()`** (FR-016, FR-056)
-- [ ] T034 [US1] Crear `APP/UI/Detail/PublicationDetailUiState.swift` y
+- [X] T034 [US1] Crear `APP/UI/Detail/PublicationDetailUiState.swift` y
       `APP/UI/Detail/PublicationDetailViewModel.swift` hasta hacer pasar T033. `document` y `share`
       van **fuera** de un enumerado único: son ejes ortogonales (data-model.md §6.1)
-- [ ] T035 [P] [US1] Crear `APP/UI/Detail/Component/DetailHeader.swift` con los cinco elementos **en
+- [X] T035 [P] [US1] Crear `APP/UI/Detail/Component/DetailHeader.swift` con los cinco elementos **en
       el orden de FR-007**: sección, **título**, organismo, fecha, distintivo. El título en
       `headlineSmall`, **completo y sin recortar**, y con el organismo incluido si lo trae (FR-008).
       El organismo y la fecha, **cada uno con su icono** (FR-009). Sin hueco cuando no hay organismo (FR-010)
-- [ ] T036 [P] [US1] Crear `APP/UI/Detail/Component/DetailTabBar.swift` según el apartado 11.7: alto
+- [X] T036 [P] [US1] Crear `APP/UI/Detail/Component/DetailTabBar.swift` según el apartado 11.7: alto
       56, indicador inferior de 3, activa en `primary`. El icono de IA en la segunda (FR-014)
-- [ ] T037 [P] [US1] Crear `APP/UI/Detail/Component/MetadataCard.swift` con los **seis bloques** del
+- [X] T037 [P] [US1] Crear `APP/UI/Detail/Component/MetadataCard.swift` con los **seis bloques** del
       apartado 19.2 en su orden, etiquetas en `labelMedium` y valores en `bodyLarge` (FR-015)
-- [ ] T038 [US1] Crear `APP/UI/PDF/PdfPageRenderer.swift` marcado **`@concurrent`**, con la escala **por
+- [X] T038 [US1] Crear `APP/UI/PDF/PdfPageRenderer.swift` marcado **`@concurrent`**, con la escala **por
       parámetro** y tope de píxeles, y `APP/UI/PDF/DocumentFirstPagePreview.swift`, que es lo que el
       detalle embebe —**no una imagen**, para que ningún tipo de PDFKit salga de la carpeta—. Y
       `TEST/UI/PdfPageRendererTests.swift` con **la prueba que afirma desde el actor principal que la
       rasterización NO ocurre en él**: sin ella, `@concurrent` es una convención (D-516)
-- [ ] T039 [US1] Crear `APP/UI/Detail/PublicationDetailContentView.swift` y
+- [X] T039 [US1] Crear `APP/UI/Detail/PublicationDetailContentView.swift` y
       `APP/UI/Detail/PublicationDetailView.swift`, con la barra superior del apartado 18.1
       —retroceso, escudo, título, guardar y compartir (FR-013)— y **la
       cabecera dentro del desplazamiento y las pestañas como encabezado fijado** (FR-011). Fondo
       opaco y divisor bajo las pestañas (FR-012), **orden de dibujado explícito** para que el
       contenido perezoso no se pinte encima, y **una sola sección** con el contenido conmutado dentro
       (D-520). Los identificadores, los de `contracts` §4.3 (depende de T034 … T038)
-- [ ] T040 [US1] Hacer que **la tarjeta abra el detalle**: `APP/Core/UI/Component/PublicationCard.swift`
+- [X] T040 [US1] Hacer que **la tarjeta abra el detalle**: `APP/Core/UI/Component/PublicationCard.swift`
       gana `onOpen` con **forma de contacto, gesto de toque, rasgo de botón y acción de
       accesibilidad** —**no** un enlace de navegación (**D-519**)—;
       `APP/UI/Home/HomeContentView.swift` y `APP/UI/Home/HomeView.swift` lo propagan; y
@@ -271,9 +271,9 @@ mensaje comprensible con reintento y **nunca** un estado de carga perpetuo.
 - [X] T044 [US2] Cerrar `APP/Data/Repository/DocumentStore.swift` contra T042 y T043: recuento de espectadores, guardián de
       identidad al publicar `absent`, y **`settle()` síncrona y aislada al actor**, con el comentario
       que prohíbe meter un `await` dentro (D-508, D-509)
-- [ ] T045 [P] [US2] Ampliar `TEST/UI/PublicationDetailViewModelTests.swift` y
+- [X] T045 [P] [US2] Ampliar `TEST/UI/PublicationDetailViewModelTests.swift` y
       `TEST/UI/PdfViewerViewModelTests.swift` con los estados de error y el reintento (FR-025)
-- [ ] T046 [P] [US2] Crear `APP/UI/Detail/Component/MissingPublication.swift` —título, explicación y
+- [X] T046 [P] [US2] Crear `APP/UI/Detail/Component/MissingPublication.swift` —título, explicación y
       «Volver al boletín»— y conectar el estado de error del detalle y del visor **al componente de
       error común**: el error del visor **no** puede tener estilo propio (FR-004, FR-025, apartado 34)
 - [ ] T047 [US2] Comprobar que **todo `catch` de la feature informa por `CrashReporter.log`**, con la
@@ -284,7 +284,7 @@ mensaje comprensible con reintento y **nunca** un estado de carga perpetuo.
       dobles **solo en la frontera de red**: camino feliz completo; rechazo que no deja restos; **copia
       con lateral vacío que se sirve igual**; y la retirada de la caché que devuelve el estado a
       `absent` (FR-054, FR-055, SC-007)
-- [ ] T049 [US2] Añadir los cuatro casos a `DataScenario` en
+- [X] T049 [US2] Añadir los cuatro casos a `DataScenario` en
       `APP/Data/Sync/ScenarioDatabaseSeeder.swift` —`documentReady`, `documentRejected`,
       `documentTooLarge`, `documentUnavailable`—, crear
       `APP/Data/Source/Remote/ScenarioDocumentDownloader.swift` con **el documento sintetizado en
@@ -306,24 +306,24 @@ mensaje comprensible con reintento y **nunca** un estado de carga perpetuo.
 **Independent Test**: compartir desde las tres pantallas con el documento en caché, sin él con
 conexión, y sin él en modo avión.
 
-- [ ] T051 [P] [US3] Escribir `TEST/Domain/ShareOfficialDocumentUseCaseTests.swift`: en caché →
+- [X] T051 [P] [US3] Escribir `TEST/Domain/ShareOfficialDocumentUseCaseTests.swift`: en caché →
       documento; sin caché con conexión → documento; sin caché sin conexión → enlace con
       `noConnection`; y **un fallo que no sea la falta de conexión NO devuelve enlace**. **Nunca deja sin nada** (FR-037,
       FR-040, SC-009)
-- [ ] T052 [US3] Crear `APP/Domain/UseCase/ShareOfficialDocumentUseCase.swift` hasta hacer pasar T051.
+- [X] T052 [US3] Crear `APP/Domain/UseCase/ShareOfficialDocumentUseCase.swift` hasta hacer pasar T051.
       Es **el único sitio** donde vive la regla de degradación (FR-041)
-- [ ] T053 [US3] Crear `APP/UI/Share/SharedDocumentTransfer.swift`: el tipo transferible con
+- [X] T053 [US3] Crear `APP/UI/Share/SharedDocumentTransfer.swift`: el tipo transferible con
       exportación de fichero de **cierre asíncrono** —es lo que da el «preparando» sin escribir una
       pantalla de UIKit—, `allowAccessingOriginalFile` en **falso** —la caché puede vaciarse con la
       hoja abierta— y **nombre de fichero sugerido legible**, nunca la huella (FR-039, FR-042, D-517)
-- [ ] T054 [US3] Conectar compartir en `APP/UI/Detail/PublicationDetailViewModel.swift`,
+- [X] T054 [US3] Conectar compartir en `APP/UI/Detail/PublicationDetailViewModel.swift`,
       `APP/UI/Detail/PublicationDetailContentView.swift` y `APP/UI/PDF/PdfViewerContentView.swift`,
       con `ShareState` como **evento de un solo uso**, y emitir `document_share` con el destino (FR-037, FR-038) (depende de T052, T053)
-- [ ] T055 [US3] **Sustituir** el compartir por enlace de `APP/Core/UI/Component/PublicationCard.swift`
+- [X] T055 [US3] **Sustituir** el compartir por enlace de `APP/Core/UI/Component/PublicationCard.swift`
       por el destino que llega como parámetro, derivado en `APP/UI/Home/HomeContentView.swift` de
       `state.isOffline`. La tarjeta **sigue sin estado**. Anotar en el fichero la contrapartida
       aceptada: sin conexión pero con el documento en caché, la tarjeta ofrece el enlace (D-518)
-- [ ] T056 [P] [US3] Ampliar `TEST/UI/PublicationDetailViewModelTests.swift` con `ShareState`:
+- [X] T056 [P] [US3] Ampliar `TEST/UI/PublicationDetailViewModelTests.swift` con `ShareState`:
       `idle` → `preparing` → `ready`, y que **se consume y vuelve a `idle`**
 
 **Checkpoint**: las tres historias entregables funcionan por separado.
@@ -337,16 +337,16 @@ conexión, y sin él en modo avión.
 **Independent Test**: recorrer las dos pestañas y las tres acciones aplazadas sin quedarse sin
 respuesta.
 
-- [ ] T057 [P] [US4] Conectar la segunda pestaña de
+- [X] T057 [P] [US4] Conectar la segunda pestaña de
       `APP/UI/Detail/PublicationDetailContentView.swift` a `ComingSoonMessage` conservando **el icono y la
       etiqueta de IA**, con `aiAccent` y `aiContainer`, que ya existen sin usar (FR-043, FR-048)
-- [ ] T058 [P] [US4] Crear `APP/UI/Ask/AskView.swift`: barra del apartado 21.1 y el aviso de
+- [X] T058 [P] [US4] Crear `APP/UI/Ask/AskView.swift`: barra del apartado 21.1 y el aviso de
       próximamente. **Pantalla propia con su sitio en la pila**, no un diálogo (FR-044)
-- [ ] T059 [US4] Crear `APP/UI/Detail/Component/DetailActionBar.swift` según el apartado 18.5: fondo
+- [X] T059 [US4] Crear `APP/UI/Detail/Component/DetailActionBar.swift` según el apartado 18.5: fondo
       `surface` con borde superior, «Abrir PDF oficial» **principal** y «Preguntar» secundario,
       **apilados si no caben**, y el margen inferior **dentro de su propia superficie** (FR-046,
       FR-049, FR-050)
-- [ ] T060 [P] [US4] Conectar guardar a «Próximamente» en la barra superior de
+- [X] T060 [P] [US4] Conectar guardar a «Próximamente» en la barra superior de
       `APP/UI/Detail/PublicationDetailView.swift`, igual que la tarjeta ya hace (FR-045)
 - [ ] T061 [P] [US4] Escribir `UITEST/Detail/DetailContentUITests.swift`: las dos pestañas con su
       contenido, la barra de acciones, y que ninguna acción aplazada deja sin respuesta (FR-057,

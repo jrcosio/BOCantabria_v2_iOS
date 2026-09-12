@@ -537,6 +537,46 @@ uso, modelos de pantalla y visor—, que es lo que hace que la prueba de interfa
 el bundle de pruebas y **el proceso de la aplicación no las ve**, como el sembrador de la 003 ya
 explica. Además, un documento literal da una huella constante que las pruebas pueden afirmar.
 
+### D-518 · Corrección al implementar: la tarjeta NO lleva el destino dentro
+
+**Lo que decía esta decisión**: `PublicationCard` gana un parámetro `share: ShareTarget`, derivado
+por Inicio de su bandera de conexión, y sigue llevando el enlace de compartir dentro.
+
+**Por qué no se sostiene**: decidir entre documento y enlace exige el **caso de uso**, porque puede
+tener que descargar. Una vista sin estado no puede llamarlo, así que el destino que la tarjeta
+recibiera nunca podría ser `document(localPath:)` de verdad —solo la promesa de uno— y el cierre de
+exportación fallaría sin que nadie pudiera enseñar la explicación de FR-040.
+
+**Lo que se hizo**: la tarjeta **emite el evento** y quien la usa resuelve y presenta, con la misma
+hoja que el detalle y el visor. Consecuencias, las dos declaradas:
+
+- `HomeUiState` **gana un campo**, `share`, y el `plan.md` decía que no ganaría ninguno.
+- La tarjeta deja de llevar un `ShareLink` dentro y pasa a llevar un botón con el mismo
+  identificador, la misma etiqueta y el mismo marco de cuarenta y ocho puntos.
+
+**Y sale ganando**: FR-038 —«compartir se comporta igual desde las tres pantallas»— pasa a cumplirse
+**por construcción** en vez de por parecido, porque las tres recorren exactamente el mismo camino.
+
+### D-526: Escribir el mismo campo desde dos observaciones es una carrera, otra vez
+
+**Decisión**: el fallo al **leer la publicación** tiene su propio campo en el estado del detalle
+—`loadFailed`—, y no se escribe dentro de `document`.
+
+**Rationale**: la primera versión lo metía en `document` con el argumento de que así reutilizaba el
+error con reintento que ya estaba pintado. Y funcionaba, salvo que **la observación del documento
+escribe ese mismo campo**: emite `absent` un instante después y borra el fallo que acababa de
+aparecer. Lo destapó la prueba «un fallo de lectura sí es un error», que leía `.absent` donde
+esperaba `.failed`.
+
+Es **literalmente** la trampa que la feature del boletín dejó escrita —«escribir dos veces el mismo
+estado desde dos sitios es una carrera aunque los dos sean correctos»—, y volvió a morder en la
+feature siguiente. Se anota por segunda vez porque la primera no bastó.
+
+**Alternativa descartada**: derivar `document` de las dos observaciones en una sola función, como
+hizo Inicio con su contenido. Aquí no aplica: no son dos vistas del mismo dato, son **dos datos**
+—si se pudo leer la publicación, y en qué punto está su documento—, y fundirlos obligaría a
+desenredarlos otra vez en la pantalla.
+
 ### D-525: El tiempo hasta el documento se mide con un hito, no con la espera de la prueba
 
 **Decisión**: un *signpost* nuevo, hermano del que la 003 usa para el tiempo hasta el contenido.
