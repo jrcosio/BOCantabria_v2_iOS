@@ -183,13 +183,32 @@ final class MainViewModel {
 - **Ningún error de dominio se pinta como código.** La pantalla dice frases; el registro dice motivos.
 - **El abierto/cerrado del panel no está en ningún modelo de pantalla**: es `@State` de `MainView`.
 
+> **Corregido el 12 de septiembre de 2026, desde la feature 004.** Dos de estas firmas **no
+> coincidían con el código**, y no por culpa de la 004: ya estaban desalineadas al cerrar esta
+> misma feature.
+>
+> - `PublicationCard` se declaraba `(publication:sectionName:colorGroup:onShare:onSave:)`. Al
+>   implementar se vio que pasar el nombre de la sección y el grupo de color desde fuera obligaba a
+>   las tres pantallas que usan la tarjeta a resolver el catálogo por su cuenta —y a que las tres
+>   pudieran resolverlo distinto—, así que la tarjeta pasó a derivarlos de
+>   `publication.mostSpecificSectionCode`. El documento se quedó atrás.
+> - `HomeContentView` declaraba `onOpenDrawer:` y el código dice `onOpenSections:`: el panel se
+>   llama «panel de secciones» en la interfaz y «drawer» en la arquitectura, y cada documento se
+>   quedó con un nombre.
+>
+> **Nada en el proyecto compara estas firmas con el código**, y no se propone montarlo: serían
+> siete líneas de análisis de texto para vigilar un documento que se lee tres veces al año. Lo que
+> se hace es mirarlo cada vez que una feature toque una de estas vistas, que es como aparecieron
+> estas dos. **La especificación de esta feature no se toca**: está cerrada e integrada, y
+> reescribirla convertiría su historia en algo que nunca ocurrió.
+
 **Vistas sin estado**, todas previsualizables y con todos sus datos por parámetro:
 
 ```swift
-HomeContentView(state:onRefresh:onRetry:onSelect:onOpenDrawer:onSearch:onInfo:onShare:onSave:)
+HomeContentView(state:onRefresh:onRetry:onSelect:onOpenSections:onSearch:onInfo:onShare:onSave:)
 BulletinHeaderView(header:)
 SectionChipRow(chips:selectedCode:style:onSelect:)      // sirve a las dos filas
-PublicationCard(publication:sectionName:colorGroup:onShare:onSave:)
+PublicationCard(publication:onShare:onSave:)
 PublicationCardSkeleton()
 OfflineBanner()
 SectionsDrawer(state:onSelect:onToggleExpanded:onDismiss:)

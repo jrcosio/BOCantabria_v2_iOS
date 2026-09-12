@@ -62,15 +62,23 @@ El mismo que en Android, y por la misma razón: cada feature se apoya en la ante
 | 001 | `001-esqueleto-arquitectura` | Capas, contenedor, tema, telemetría, reglas de arquitectura |
 | 002 | `002-pantalla-arranque` | Portada, versión mínima y mantenimiento (Remote Config) |
 | 003 | `003-boletin-del-dia` | Las diecinueve fuentes, analizador RSS, GRDB, Inicio |
-| 004 | `004-detalle-publicacion` | Detalle, descarga validada del PDF y visor |
-| 005 | `005-publicaciones-guardadas` | Guardados |
-| 006 | `006-buscar` | Buscar global con filtros y orden |
-| 007 + 009 + 010 | `007`, `009-resumen-gemini`, `010-gemini-sdk-oficial` | Resumen IA sobre el documento subido |
-| 008 | `008-acerca-de` | Acerca de |
-| 011 | `011-preguntar-al-boc` | Preguntar sobre el documento |
-| 012 | `012-avisos` | Avisos: reglas, coincidencias y notificaciones |
+| **004** | **— (nativa)** | **Jerarquía de la tarjeta y cabecera fija en Inicio** |
+| 005 | `004-detalle-publicacion` | Detalle, descarga validada del PDF y visor |
+| 006 | `005-publicaciones-guardadas` | Guardados |
+| 007 | `006-buscar` | Buscar global con filtros y orden |
+| 008 + 009 + 010 | `007`, `009-resumen-gemini`, `010-gemini-sdk-oficial` | Resumen IA sobre el documento subido |
+| 011 | `008-acerca-de` | Acerca de |
+| 012 | `011-preguntar-al-boc` | Preguntar sobre el documento |
+| 013 | `012-avisos` | Avisos: reglas, coincidencias y notificaciones |
 | 014 | `014-estabilidad-auditoria` | Las correcciones de estabilidad que sigan aplicando |
 | 015 | `015-buscar-solo-filtros` | Filtros que bastan para buscar |
+
+**La 004 es la primera feature sin origen en Android**, y por eso la columna de origen dice
+«— (nativa)»: nació de mirar la pantalla que la 003 dejó funcionando, con publicaciones reales
+delante. A partir de ella la numeración de iOS y la de Android **dejan de coincidir**; la tabla ya
+estaba desacoplada desde que la 013 se absorbió en la 003, y esto lo hace explícito. Al leer una
+enmienda del documento de diseño firmada «feature 004», hay que mirar si dice «(iOS)»: sin el
+paréntesis es la de Android, el detalle de la publicación, que aquí es la **005**.
 
 **La 013 de Android no tiene feature propia aquí: la absorbió la 003.** Aquella fue una corrección
 de Inicio y del panel —el chip que decía «Todo» y no mostraba todo, la fecha sin rótulo, la
@@ -605,6 +613,16 @@ siendo posible aquí; las demás son propias de esta plataforma.
   cerrado se seguía encontrando. Se desmonta, y la animación de entrada se conserva con una
   transición. Y el rasgo `.isModal`, aplicado siempre, deja fuera del árbol **todo lo que hay
   detrás**, así que solo se pone mientras el panel está montado.
+- **El marco que XCUITest da a un contenedor de desplazamiento es el de su CONTENIDO, no el de lo
+  que se ve**, y `swipeUp()` calcula el gesto desde el centro de ese marco. En un iPhone SE con diez
+  publicaciones, `home_content` mide 665 puntos sobre una ventana de 667: su centro cae **encima de
+  la barra de pestañas** y el gesto **cambia de pestaña** en vez de desplazar. La prueba falla
+  diciendo que el aviso de falta de conexión ha desaparecido; lo que ha desaparecido es la pantalla.
+  En el simulador de referencia no pasa, porque la pantalla es más alta. Los gestos de desplazamiento
+  se hacen con **coordenadas de la ventana**, no sobre el elemento.
+- **Una feature no está probada hasta que se ejecuta en el teléfono más pequeño soportado.** El
+  iPhone SE (3.ª generación) —375 × 667— **no viene creado** en el simulador y hay que darlo de alta
+  con `xcrun simctl create`. La trampa de arriba solo aparece ahí.
 - **`Font.system(size:)` NO escala con el ajuste de tamaño de letra del dispositivo.** En Android
   `sp` escalaba por su cuenta, así que al portar la tabla tipográfica tal cual el texto dejó de
   crecer **sin que nada fallara**: la tarjeta medía exactamente lo mismo al 100 % y al 200 %. Cada

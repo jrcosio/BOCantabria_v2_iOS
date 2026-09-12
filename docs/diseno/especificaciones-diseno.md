@@ -254,6 +254,17 @@ No se combinarán varias familias tipográficas. El carácter editorial se conse
 - No usar cuerpos inferiores a 12 sp.
 - No utilizar mayúsculas en párrafos completos.
 - Reservar mayúsculas para categorías cortas.
+
+> **Enmienda (12 de septiembre de 2026, feature 004 (iOS)).** La regla de arriba gana **una
+> excepción declarada**: el **organismo emisor de la tarjeta de publicación** va en mayúsculas
+> aunque no sea corto. Los hay de setenta y dos caracteres —«Consejería de Fomento, Vivienda,
+> Ordenación del Territorio y Medio Ambiente»—, y en caja alta se leen peor; se acepta a cambio de
+> que el organismo se distinga de un vistazo del título, que es lo que permite descartar un anuncio
+> sin llegar a leerlo. La contrapartida se acota con el **tope de dos líneas** del apartado 12.1: lo
+> que no cabe se recorta ahí, nunca en el título.
+>
+> Sin esta excepción escrita, la regla y la tarjeta se contradirían en silencio, que es la peor
+> forma de contradecirse.
 - Los títulos de publicaciones pueden ocupar varias líneas.
 - Evitar cortar títulos con puntos suspensivos en la pantalla de detalle.
 - Usar cifras tabulares en fechas y números de boletín si la fuente lo permite.
@@ -583,6 +594,23 @@ Orden de lectura:
 3. Fecha o metadatos.
 4. Acciones secundarias.
 
+> **Enmienda (12 de septiembre de 2026, feature 004 (iOS)).** El orden de lectura pasa a ser
+> **cinco elementos y cuatro filas**, porque los dos últimos comparten la suya:
+>
+> 1. **Etiqueta de sección.**
+> 2. Organismo emisor.
+> 3. Título de la publicación.
+> 4. Fecha **y** acciones secundarias, en la misma fila.
+>
+> **La etiqueta de sección es una omisión que se corrige, no un elemento nuevo.** La tarjeta la
+> pinta desde la feature 003 porque el indicador de color agrupa las nueve secciones en cinco
+> familias y por sí solo no identifica ninguna; este apartado nunca la recogió. Se descubrió al
+> inventariar qué contradecía la feature 004.
+>
+> **Y los tamaños que este apartado fijaba no hacían visible el orden que declaraba**: los cuatro
+> datos salían casi del mismo cuerpo, así que el ojo no encontraba por dónde empezar y había que
+> leerlos todos. Los peldaños nuevos están en cada subapartado.
+
 ### Composición
 
 - Fondo `Surface`.
@@ -593,31 +621,68 @@ Orden de lectura:
 - Separación de 12 dp entre la línea y el contenido.
 - Guardar y compartir alineados en la zona inferior derecha.
 
+### Etiqueta de sección
+
+> **Añadido (12 de septiembre de 2026, feature 004 (iOS)).** El apartado no la describía, y la
+> tarjeta la pinta desde la 003.
+
+- Estilo **`TitleSmall`**.
+- Color: el de la familia de la sección, el mismo de la línea vertical.
+- Una línea. Es lo primero que se mira para descartar.
+- **Acompaña siempre al indicador de color, nunca lo sustituye**: el color agrupa nueve secciones
+  en cinco, así que por sí solo no identifica nada.
+
 ### Organismo
 
-- Estilo `LabelMedium` o `TitleSmall`.
-- Color `TextSecondary`.
-- Mayúsculas opcionales si el texto es corto.
+- Estilo **`BodyLarge`** (era `LabelMedium` o `TitleSmall`).
+- Color **`TextPrimary`** (era `TextSecondary`).
+- **En mayúsculas**, con la excepción declarada en el apartado 6.3.
 - Máximo dos líneas.
+- **Peso regular**, no semibold: sube de cuerpo y de caja a la vez, y con las tres cosas juntas
+  pesaría más que el título, que es el dato.
+
+> **Enmienda (12 de septiembre de 2026, feature 004 (iOS)).** «Quién publica» es la mitad de la
+> decisión de leer o no un anuncio, y a doce puntos en color secundario parecía un metadato. Las
+> mayúsculas son **de presentación**: lo almacenado no cambia, y por eso compartir y buscar siguen
+> viendo el texto original.
 
 ### Título
 
-- Estilo `TitleMedium`.
-- Color `TextPrimary`.
+- Estilo **`TitleLarge`** (era `TitleMedium`).
+- Color `TextPrimary`. **No se pinta en el color institucional.**
 - Interlineado amplio.
 - Máximo cuatro líneas en listado.
+- **Sin repetir el organismo.** Cuando el título empieza exactamente por el organismo emisor
+  —«CONSEJERÍA DE SALUD: Convocatoria…»—, ese prefijo **no se vuelve a pintar**: la línea de encima
+  ya lo dice. Un prefijo que solo se parezca se conserva entero.
+
+> **Enmienda (12 de septiembre de 2026, feature 004 (iOS)).** El BOC publica el organismo dos veces
+> —en la clasificación y al principio del título—, y hasta esta feature se pintaban las dos. Con el
+> organismo a dieciséis puntos y en caja alta, la tarjeta habría quedado con dos líneas seguidas
+> diciendo lo mismo. El recorte es **de presentación**: lo almacenado conserva el título íntegro, y
+> lo que se comparte también.
 
 ### Metadatos
 
 - Icono de calendario de 18–20 dp.
-- Estilo `BodySmall`.
+- Estilo **`BodyMedium`** (era `BodySmall`).
 - Color `TextSecondary`.
+- **Comparte fila con las acciones**, la fecha al inicio y las acciones al final.
 
 ### Acciones
 
-- Iconos outlined de 24 dp.
+- Iconos outlined de 24 dp, con área táctil de 48 dp.
 - Separación de 8 dp.
 - Guardado activo con icono relleno y color `Primary`.
+- **Al final de la fila de la fecha**, y **apiladas debajo cuando no caben**: con el tamaño de letra
+  del sistema al 200 %, la fecha y dos áreas táctiles de 48 dp no entran en una línea. Lo pide el
+  apartado 31.3 y lo exige el 31.2.
+
+> **Enmienda (12 de septiembre de 2026, feature 004 (iOS)).** «Guardar y compartir alineados en la
+> zona inferior derecha» se mantiene; lo que cambia es que la fecha deja de ocupar una fila entera
+> para sí sola encima de ellos, con la mitad vacía. Fundir las dos filas devuelve más alto del que
+> ganan los cuerpos nuevos: medida sobre el simulador de referencia, la tarjeta pasó de **207,0 a
+> 199,7 puntos**.
 
 ## 12.2. Variantes
 
@@ -804,10 +869,48 @@ Etiquetas: `Boletín de hoy` y las **nueve secciones** con su nombre corto, en o
 
 ## 14.6. Apariencia al desplazarse
 
-- La cabecera editorial sale de la pantalla de forma natural.
-- La barra superior puede mantenerse fija.
-- Los filtros pueden fijarse bajo la barra superior con fondo sólido y una línea inferior.
+- La cabecera editorial **se mantiene y encoge acompañando al gesto**.
+- La barra superior se mantiene fija.
+- Los filtros se fijan bajo la barra superior con fondo sólido y una línea inferior.
 - No usar cambios bruscos de color.
+
+> **Enmienda (12 de septiembre de 2026, feature 004 (iOS)).** Donde decía «la cabecera editorial
+> sale de la pantalla de forma natural», ahora dice que se queda. Con contenido real, a las dos
+> tarjetas ya no se sabía qué se estaba viendo ni cuántos anuncios había, y cambiar de sección
+> obligaba a subir del todo.
+>
+> **Se compacta, no se queda entera**: fija y entera se come unos cuatrocientos de los seiscientos
+> sesenta y siete puntos de alto del teléfono más pequeño soportado, y con la segunda fila de
+> subsecciones caben una o dos tarjetas. Compactada **conserva la denominación y el recuento** —que
+> son la respuesta a «qué estoy viendo» y «cuánto hay»— y **repliega la fecha rotulada**, que es el
+> único de los tres que puede irse sin dejar la cabecera muda.
+>
+> **El aviso de falta de conexión va con la zona fija**, y no es un detalle de disposición: habla de
+> toda la pantalla —de que lo que se lee es lo último descargado—, así que perderlo de vista al
+> desplazar haría creer que se está leyendo lo de hoy.
+
+> **Enmienda (12 de septiembre de 2026, feature 004 (iOS)). La compactación no tiene dos estados:
+> sigue al gesto.** La primera implementación conmutaba entre entera y compacta al cruzar un umbral,
+> y se rechazó al verla: encogía cincuenta puntos de golpe cuando el dedo había recorrido
+> veinticuatro, y como la cabecera está fuera del área que se desplaza, **arrastraba el listado con
+> ella** —medido, el contenido se movía setenta y cuatro puntos cuando la cabecera solo liberaba
+> cuarenta y nueve—.
+>
+> Las dos reglas que sustituyen a aquello:
+>
+> - **A cualquier punto intermedio del desplazamiento le corresponde un tamaño intermedio de la
+>   cabecera**, y se puede detener a medio camino.
+> - **El listado se desplaza exactamente lo que se arrastra.** Lo que la cabecera libera al encoger
+>   se le devuelve al contenido, de modo que su cambio de tamaño no mueve nada.
+>
+> Y dos cosas que **no** se tocan al encoger, por el mismo motivo: ni el cuerpo de la denominación
+> ni su número de líneas. Ninguna de las dos se interpola —se resuelven con un fundido—, así que
+> cualquiera de las dos reintroduce el salto. Lo que encoge es relleno y una línea que se repliega.
+>
+> Los otros tres puntos del apartado **no cambian de contenido, solo de tiempo verbal**: ya
+> autorizaban la barra superior fija y los filtros fijados con fondo sólido y línea inferior. Lo que
+> hace esta feature es ejercerlos. Y el fondo sólido no es adorno: sin él, las tarjetas pasarían por
+> debajo de unos chips transparentes y se leerían las dos cosas a la vez.
 
 ## 14.7. Segunda fila: subsecciones
 
@@ -1048,6 +1151,18 @@ En móviles estrechos puede omitirse el escudo para asegurar espacio suficiente.
 > superior. Así, con cualquier título, el contenido acaba disponiendo de la pantalla entera; sin eso,
 > encoger la letra solo aplaza el problema hasta el siguiente título más largo.
 
+> **Nota (12 de septiembre de 2026, feature 004 (iOS)). No decide nada; señala una divergencia.**
+> La enmienda de arriba está firmada «feature 004» y es la **004 de Android**, el detalle de la
+> publicación; la 004 de este proyecto es otra —la tarjeta y la cabecera de Inicio— y el detalle
+> pasa aquí a la **005**. Por eso las firmas nuevas llevan «(iOS)».
+>
+> Lo que hay que decidir en la 005: aquella enmienda dice que la cabecera del detalle **se desplaza
+> con el contenido**, y desde la 004 (iOS) la de **Inicio se queda y se compacta**. Si una se va y
+> la otra no, las dos pantallas dejan de hablar el mismo idioma. Los motivos de cada una son buenos
+> y opuestos —allí el título es larguísimo y necesita la pantalla entera; aquí la cabecera dice qué
+> se está mirando y perderla es el problema que se vino a arreglar—, así que **no se resuelve
+> aquí**: se resuelve mirando las dos pantallas juntas, que es lo que se podrá hacer en la 005.
+
 ## 18.3. Jerarquía
 
 La secuencia visual será:
@@ -1058,6 +1173,14 @@ La secuencia visual será:
 4. Fecha.
 5. Distintivo oficial.
 6. Pestañas.
+
+> **Nota (12 de septiembre de 2026, feature 004 (iOS)). Segunda divergencia con Inicio, y tampoco
+> se decide aquí.** Este apartado pone el **título antes que el organismo**; la tarjeta de Inicio,
+> desde la 004 (iOS), los pone al revés —sección, **organismo**, **título**, fecha— porque en un
+> listado el organismo es lo que permite descartar sin leer, y en el detalle ya se ha decidido leer.
+> El argumento de cada una es bueno en su sitio, y aun así dos pantallas de la misma aplicación que
+> ordenan los mismos cuatro datos de dos maneras distintas necesitan una razón escrita o una de las
+> dos está mal. **Se decide en la 005**, junto con la divergencia del apartado 18.2.
 
 ## 18.4. Pestañas
 
