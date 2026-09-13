@@ -288,7 +288,8 @@ que se está limpiando **sigue siendo el registrado**. Sin él, la limpieza de u
 struct PublicationDetailUiState: Equatable {
     var publication: Publication?          // nil mientras carga
     var section: BocSection?
-    var isMissing: Bool                    // ya no está guardada (FR-004)
+    var isMissing: Bool                    // ya no está guardada (FR-004). NO es un error
+    var loadFailed: Bool                   // no se pudo LEER lo guardado. Esto sí lo es
     var selectedTab: DetailTab
     var document: DocumentStatus
     var share: ShareState
@@ -302,6 +303,15 @@ tomó: son ejes **ortogonales**. Se puede estar preparando algo para compartir m
 está disponible, y meterlo todo en una jerarquía multiplicaría los casos sin que ninguno aportara.
 
 `ready` es un **evento de un solo uso**: se consume y vuelve a `idle`.
+
+> **`loadFailed` se añadió al implementar** y no estaba previsto aquí. El fallo de lectura se
+> escribía dentro de `document`, y la observación del documento lo pisaba un instante después: dos
+> escrituras del mismo campo desde dos sitios, que es la trampa que la feature del boletín ya dejó
+> anotada y que ha vuelto a morder. Cada dato, su campo (`research.md` **D-526**).
+>
+> **Y `HomeUiState` gana `share`**, que el plan decía que no ganaría: la tarjeta no puede resolver su
+> destino de compartir porque hace falta el caso de uso, y una vista sin estado no puede llamarlo.
+> Emite el evento y Inicio resuelve, igual que el detalle (`research.md` **D-518**, corregida).
 
 ### 6.2 Visor — `UI/PDF/`
 
@@ -334,7 +344,8 @@ de lectura y no algo que el modelo de pantalla decida (D-515).
 - **El esquema de GRDB no se toca.** Ni migración, ni columna, ni índice. `PublicationQueries` gana una
   consulta de lectura y **ninguna** de escritura.
 - **`DomainError` sigue teniendo cuatro casos.**
-- **`HomeUiState` no gana ningún campo**: el destino de compartir de la tarjeta se deriva de
-  `isOffline`, que ya existe (D-518).
+- ~~**`HomeUiState` no gana ningún campo**~~ — **corregido al implementar: gana `share`.** La
+  previsión suponía que la tarjeta derivaría su destino de `isOffline` y lo llevaría dentro, y eso
+  no se sostiene. Ver arriba y `research.md` D-518.
 - **La regla 13 y la prueba de regresión del borrado siguen valiendo tal cual**: esta feature no añade
   ni una sentencia de escritura sobre `publications`.

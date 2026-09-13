@@ -23,11 +23,18 @@ struct Publication { … }                                          // sin un ca
 // BocMigrations: sin migración. El esquema se queda en "v1"
 // PublicationQueries: gana UNA consulta de lectura y NINGUNA de escritura
 
-// UI
-struct HomeUiState { … }                                          // sin un campo nuevo
 ```
 
 Si una tarea acaba abriendo `BocMigrations.swift`, algo se ha desviado del plan.
+
+> **Corrección al implementar: `HomeUiState` SÍ gana un campo.** Aquí decía que no ganaría ninguno,
+> y esa previsión dependía de que la tarjeta llevara dentro el destino de compartir. No se sostiene:
+> resolver ese destino exige el caso de uso —que puede tener que descargar— y una vista sin estado
+> no puede llamarlo. La tarjeta **emite el evento** y la pantalla resuelve, así que `HomeUiState`
+> gana `share: ShareState`, igual que el detalle. Ver `research.md` **D-518**, corregida.
+>
+> Y de rebote sale ganando: FR-038 —«compartir se comporta igual desde las tres pantallas»— pasa a
+> cumplirse **por construcción**, porque las tres recorren el mismo camino.
 
 ---
 
@@ -163,11 +170,22 @@ cualquier otra cosa es `unknownChecksum` y el documento **se sirve**.
 
 ### 3.3 El almacén
 
-`DocumentStore` es un `actor` y **el tipo de su trabajo en vuelo es parte del contrato**:
+`DocumentStore` es un `actor` y **la forma de su trabajo en vuelo es parte del contrato**:
 
 ```swift
-Task<AppResult<OfficialDocument>, Never>    // Never. Si alguien pone Error, vuelve el bug de STAB-002
+private struct Job {
+    let id: UUID                                          // identidad: una limpieza vieja no puede
+    let task: Task<AppResult<OfficialDocument>, Never>    //   borrar a un trabajo nuevo
+    var watchers: Int                                     // se cancela cuando llega a cero
+}
 ```
+
+`Never` no es estilo: con `Failure == Never`, `await task.value` **no lanza**, y por ahí es por donde
+la aplicación de origen heredaba la cancelación. Si alguien pone `Error`, vuelve el defecto entero.
+
+`id` y `watchers` se añadieron al implementar, y cierran dos carreras que ninguna prueba miraba:
+`claim` **no se engancha a un trabajo cancelado**, y `settle` solo retira del diccionario y publica
+su fallo **si el trabajo sigue siendo el suyo** (`research.md` **D-527**).
 
 ---
 
@@ -223,11 +241,12 @@ Los **nuevos**:
 | Barra superior | `detail_back` · `detail_save` · `detail_share` |
 | Cabecera | `detail_header` · `detail_section` · `detail_title` · `detail_issuer` · `detail_date` · `detail_official_badge` |
 | Pestañas | `detail_tabs` · `detail_tab_document` · `detail_tab_summary` |
-| Contenido | `detail_scroll` · `detail_metadata` · `detail_preview` · `detail_preview_loading` · `detail_preview_error` |
+| Contenido | `detail_scroll` · `detail_metadata` · `detail_preview` · `detail_preview_loading` · `detail_preview_error` · `detail_preview_unavailable` |
 | Barra de acciones | `detail_actions` · `detail_action_open` · `detail_action_ask` |
 | Estados | `detail_missing` · `detail_missing_action` · `detail_error` · `detail_retry` |
 | Preguntar | `ask_root` · `ask_back` |
-| Visor | `pdf_viewer` · `pdf_viewer_loading` · `pdf_viewer_error` · `pdf_viewer_retry` · `pdf_viewer_back` · `pdf_viewer_share` |
+| Compartir | `share_sheet` · `share_document` · `share_link` · `share_link_reason` · `share_preparing` |
+| Visor | `pdf_viewer` · `pdf_viewer_title` · `pdf_viewer_loading` · `pdf_viewer_error` · `pdf_viewer_retry` · `pdf_viewer_exit` · `pdf_viewer_back` · `pdf_viewer_share` · `pdf_viewer_page_indicator` |
 
 **Las dos reglas del árbol, que en este proyecto han costado tres trampas**: un identificador sobre un
 contenedor **se propaga a sus descendientes** salvo que se declare `.accessibilityElement(children:
