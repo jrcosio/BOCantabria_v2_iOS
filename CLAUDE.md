@@ -698,6 +698,14 @@ siendo posible aquí; las demás son propias de esta plataforma.
   documento.** Antes vale mal, y el documento aparece **más ancho que la pantalla** con el texto
   cortado por la derecha. Y con el factor mínimo a cero, el pellizco deja reducirlo a nada sin forma
   de recuperarlo. Las dos cosas se ven mirando un boletín de verdad; ninguna prueba las alcanza.
+- **Un enlace bidireccional entre una vista de UIKit y un estado de SwiftUI es un bucle esperando a
+  que alguien lo cierre, y NO falla: mata la aplicación.** El visor cambia de página → la
+  notificación escribe el estado → SwiftUI redibuja → el redibujado mueve el visor → la notificación
+  escribe otra vez. Un guardián de «estoy restaurando» **no lo corta**, porque la notificación llega
+  en la cola principal, cuando el guardián ya se ha bajado. Lo que se ve desde fuera son **toques
+  que dejan de sintetizarse**, que parece una intermitencia del simulador; solo al reproducirlo en
+  uno limpio aparece el síntoma real, «Application … is not running». La dirección tiene que ser
+  **una**: el estado entra una vez, al cargar, y a partir de ahí solo sale.
 - **`isLocked` e `isEncrypted` no son lo mismo.** Un PDF **cifrado pero no bloqueado** —con
   restricción de impresión o copia— se lee perfectamente, y rechazarlo mutilaría documentos
   oficiales legítimos. Lo que cierra la puerta es `isLocked`. Y **no vale mirar si el dibujado

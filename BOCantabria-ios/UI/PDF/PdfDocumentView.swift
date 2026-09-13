@@ -34,16 +34,26 @@ struct PdfDocumentView: UIViewRepresentable {
         return view
     }
 
+    /// **Solo hace algo cuando cambia el documento**, y eso es una decisión, no una simplificación.
+    ///
+    /// La versión anterior también restauraba la página cuando el índice de fuera no coincidía con
+    /// el de dentro, y eso cierra un bucle: el visor cambia de página → la notificación escribe el
+    /// enlace → SwiftUI redibuja → esto mueve el visor → la notificación escribe otra vez. El
+    /// guardián de «estoy restaurando» no lo corta, porque la notificación llega **en la cola
+    /// principal**, después de que el guardián se haya bajado.
+    ///
+    /// Un bucle así no falla: deja la aplicación sin llegar nunca a reposo, y lo que se ve desde
+    /// fuera es que los toques **dejan de sintetizarse**.
+    ///
+    /// El flujo correcto es de una sola dirección: la página guardada entra **una vez**, al cargar
+    /// el documento, y a partir de ahí solo sale.
     func updateUIView(_ view: BocPdfView, context: Context) {
-        if context.coordinator.loadedUrl != fileUrl {
-            view.document = PDFDocument(url: fileUrl)
-            context.coordinator.loadedUrl = fileUrl
-            // El ajuste lo fija la vista **cuando tiene su tamaño**, no aquí. Ver `BocPdfView`.
-            view.needsInitialFit = true
-            context.coordinator.restore(pageIndex, in: view)
-        } else if context.coordinator.currentIndex(of: view) != pageIndex {
-            context.coordinator.restore(pageIndex, in: view)
-        }
+        guard context.coordinator.loadedUrl != fileUrl else { return }
+        view.document = PDFDocument(url: fileUrl)
+        context.coordinator.loadedUrl = fileUrl
+        // El ajuste lo fija la vista **cuando tiene su tamaño**, no aquí. Ver `BocPdfView`.
+        view.needsInitialFit = true
+        context.coordinator.restore(pageIndex, in: view)
     }
 
     static func dismantleUIView(_ view: BocPdfView, coordinator: Coordinator) {
@@ -62,8 +72,6 @@ struct PdfDocumentView: UIViewRepresentable {
         var loadedUrl: URL?
         private let pageIndex: Binding<Int>
         private var token: NSObjectProtocol?
-        /// Evita que restaurar la página dispare la notificación que vuelve a escribir el enlace.
-        private var restoring = false
 
         init(pageIndex: Binding<Int>) {
             self.pageIndex = pageIndex
@@ -74,7 +82,7 @@ struct PdfDocumentView: UIViewRepresentable {
                 forName: .PDFViewPageChanged, object: view, queue: .main
             ) { [weak self, weak view] _ in
                 MainActor.assumeIsolated {
-                    guard let self, let view, !self.restoring else { return }
+                    guard let self, let view else { return }
                     let indice = self.currentIndex(of: view)
                     if self.pageIndex.wrappedValue != indice { self.pageIndex.wrappedValue = indice }
                 }
@@ -91,16 +99,16 @@ struct PdfDocumentView: UIViewRepresentable {
             return document.index(for: page)
         }
 
-        /// Lleva el visor a la página guardada. **No pelea con el dedo**: solo se llama cuando el
-        /// índice de fuera y el de dentro difieren.
+        /// Lleva el visor a la página guardada. **Se llama una sola vez, al cargar el documento.**
+        ///
+        /// No pelea con el dedo porque nunca se llama mientras se lee: la única dirección que queda
+        /// viva después es visor → estado.
         func restore(_ index: Int, in view: PDFView) {
             guard let document = view.document,
                   index > 0, index < document.pageCount,
                   let page = document.page(at: index)
             else { return }
-            restoring = true
             view.go(to: page)
-            restoring = false
         }
     }
 }

@@ -561,6 +561,41 @@ hoja que el detalle y el visor. Consecuencias, las dos declaradas:
 **Y sale ganando**: FR-038 —«compartir se comporta igual desde las tres pantallas»— pasa a cumplirse
 **por construcción** en vez de por parecido, porque las tres recorren exactamente el mismo camino.
 
+### D-528: La página visible viaja en UNA dirección, o el visor mata la aplicación
+
+**Decisión**: la página guardada entra en el visor **una sola vez**, al cargar el documento. A partir
+de ahí el flujo es de una sola dirección: visor → estado. El redibujado **no** mueve el visor.
+
+**Rationale**: la primera versión hacía las dos cosas —restauraba al cargar **y** cada vez que el
+índice de fuera no coincidía con el de dentro—, y eso cierra un bucle:
+
+```text
+el visor cambia de página → la notificación escribe el índice en el almacenamiento de escena
+        → SwiftUI redibuja → el redibujado mueve el visor → la notificación escribe otra vez → …
+```
+
+Había un guardián de «estoy restaurando» y **no lo cortaba**: la notificación llega en la cola
+principal, después de que el guardián se haya bajado.
+
+**Lo que costó descubrirlo, y por qué importa**: un bucle así no produce un error. Deja la aplicación
+sin llegar nunca a reposo, y lo que se ve desde fuera son **toques que dejan de sintetizarse** —dos
+pruebas de interfaz falladas con «Timed out while synthesizing event», que parecen intermitencias del
+simulador—. Solo al reproducirlo en un simulador limpio apareció el síntoma de verdad: **«Application
+com.jrblanco.BOCantabria is not running»**. La aplicación se moría.
+
+| | Antes | Después |
+|---|---|---|
+| Prueba de memoria | **muere a los 844 s** | pasa en **177 s** |
+| Memoria absoluta | — | 122 MB de media, estable en ~112 MB |
+| Memoria de pico | — | 192 MB |
+
+**Lo que se pierde y no importa**: si algo externo cambiara la página, el visor no la seguiría. Nada
+lo hace.
+
+**Y la lección general**: un enlace bidireccional entre una vista de UIKit que emite notificaciones y
+un estado de SwiftUI que redibuja es un bucle esperando a que alguien lo cierre. La dirección tiene
+que ser una, y elegirla es parte del diseño, no un detalle de implementación.
+
 ### D-527: Engancharse a un trabajo ya cancelado, y el guardián que no tiene prueba propia
 
 **Decisión**: `claim` solo se engancha a un trabajo en vuelo **si no está cancelado**, y `settle`
