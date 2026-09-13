@@ -44,6 +44,8 @@ import Foundation
 
 actor DocumentStore {
     private struct Job {
+        /// Identidad del trabajo, para que la limpieza de uno viejo no borre a uno nuevo.
+        let id: UUID
         let task: Task<AppResult<OfficialDocument>, Never>
         var watchers: Int
     }
@@ -153,7 +155,13 @@ actor DocumentStore {
         _ key: String,
         _ publication: Publication
     ) -> Task<AppResult<OfficialDocument>, Never> {
-        if var job = inFlight[key] {
+        // **Solo se engancha a un trabajo que siga vivo.**
+        //
+        // Un trabajo cancelado sigue en el diccionario hasta que su propia limpieza lo retira, y
+        // esa ventana es pequeña pero real: salir del detalle y volver a entrar de inmediato.
+        // Engancharse a él devolvería una cancelación **que quien vuelve no ha pedido**, que es
+        // justo la clase de defecto que FR-028 viene a evitar, por otra puerta.
+        if var job = inFlight[key], !job.task.isCancelled {
             job.watchers += 1
             inFlight[key] = job
             return job.task
@@ -161,11 +169,12 @@ actor DocumentStore {
         // `Task { }` **no hereda la cancelación** del contexto que lo crea: hereda prioridad,
         // valores de tarea y aislamiento. Es lo que hace que la descarga pertenezca al almacén y no
         // a la pantalla que la pidió primero. Y **no es `Task.detached`**, que la regla 12 prohíbe.
+        let id = UUID()
         let task = Task { [weak self] in
             guard let self else { return AppResult<OfficialDocument>.failure(.cancelled) }
-            return await self.perform(publication)
+            return await self.perform(publication, id: id)
         }
-        inFlight[key] = Job(task: task, watchers: 1)
+        inFlight[key] = Job(id: id, task: task, watchers: 1)
         return task
     }
 
@@ -184,7 +193,7 @@ actor DocumentStore {
         }
     }
 
-    private func perform(_ publication: Publication) async -> AppResult<OfficialDocument> {
+    private func perform(_ publication: Publication, id: UUID) async -> AppResult<OfficialDocument> {
         let key = publication.externalKey
         publish(key, .downloading(bytesRead: 0, totalBytes: nil))
 
@@ -213,7 +222,7 @@ actor DocumentStore {
             outcome = .failure(reason.domainError)
         }
 
-        settle(key: key, part: part, outcome: outcome)
+        settle(key: key, id: id, part: part, outcome: outcome)
         return outcome
     }
 
@@ -225,23 +234,28 @@ actor DocumentStore {
     }
 
     /// **Síncrona y aislada al actor: ni un `await` dentro.** Ver la cabecera.
-    private func settle(key: String, part: URL, outcome: AppResult<OfficialDocument>) {
+    private func settle(key: String, id: UUID, part: URL, outcome: AppResult<OfficialDocument>) {
         cache.discard(part)
-        inFlight[key] = nil
+        // **Solo se retira si sigue siendo este trabajo.** Sin el guardián, la limpieza de uno
+        // cancelado borra del diccionario al que acaba de ocupar su sitio, y el siguiente que pida
+        // el documento arranca una tercera descarga.
+        let esMio = inFlight[key]?.id == id
+        if esMio { inFlight[key] = nil }
 
         switch outcome {
         case .success(let document):
+            // El éxito sí se publica siempre: el documento está en el disco, y quien lo esté
+            // esperando —aunque sea otro trabajo— quiere saberlo.
             publish(key, .available(document))
         case .failure(.cancelled):
             // **Cancelar no es fallar** (FR-027). Quien canceló ya no está mirando, y la próxima
             // visita no debe encontrarse un error que nadie provocó.
             //
-            // El guardián: solo si lo que hay sigue siendo *esta* descarga. Sin él, la limpieza de
-            // un trabajo viejo pisa el `downloading` de uno nuevo y la barra desaparece con la
-            // descarga en marcha.
-            if case .downloading = statuses[key] ?? .absent { publish(key, .absent) }
+            // Y el guardián otra vez: si el sitio ya lo ocupa un trabajo nuevo, esta limpieza no
+            // puede pisarle su `downloading` — la barra desaparecería con la descarga en marcha.
+            if esMio, case .downloading = statuses[key] ?? .absent { publish(key, .absent) }
         case .failure(let error):
-            publish(key, .failed(error))
+            if esMio { publish(key, .failed(error)) }
         }
     }
 }

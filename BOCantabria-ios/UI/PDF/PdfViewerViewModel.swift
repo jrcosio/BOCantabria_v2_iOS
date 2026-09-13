@@ -56,17 +56,19 @@ final class PdfViewerViewModel {
     }
 
     func onAppear() async {
+        // Sin `await` al pedir los flujos: `Task { }` hereda el aislamiento y estas llamadas no
+        // suspenden. Ponerlo deja un aviso, y la cuarta puerta no perdona ninguno nuevo.
         timeToDocument = AppSignposts.timeToDocument.beginInterval(AppSignposts.timeToDocumentName)
         observations.publication = Task { [weak self] in
             guard let self else { return }
-            for await result in await self.observePublication(self.externalKey) {
+            for await result in self.observePublication(self.externalKey) {
                 guard case .success(let publicacion) = result else { continue }
                 await self.apply(publicacion)
             }
         }
         observations.document = Task { [weak self] in
             guard let self else { return }
-            for await status in await self.observeDocument(self.externalKey) {
+            for await status in self.observeDocument(self.externalKey) {
                 await self.apply(status)
             }
         }

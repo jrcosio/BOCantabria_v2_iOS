@@ -426,8 +426,11 @@ final class StubURLProtocol: URLProtocol, @unchecked Sendable {
 /// prueba de coalescencia en una carrera, y las carreras en verde son peores que las rojas.
 actor CountingDocumentDownloader: DocumentDownloader {
     private(set) var downloadCount = 0
-    private var gate: CheckedContinuation<Void, Never>?
-    private var waiting = 0
+    /// **Una cola, no una sola continuación.** Con una sola, una segunda descarga pisa a la
+    /// primera y la deja colgada para siempre: la prueba no falla, se cuelga, que es la forma más
+    /// cara de equivocarse.
+    private var gates: [CheckedContinuation<Void, Never>] = []
+    private var arrived = 0
     private let outcome: DocumentDownloadResult
     private let body: Data
     private let holds: Bool
@@ -449,9 +452,12 @@ actor CountingDocumentDownloader: DocumentDownloader {
     ) async -> DocumentDownloadResult {
         downloadCount += 1
         if holds {
-            waiting += 1
-            await withCheckedContinuation { continuation in gate = continuation }
+            arrived += 1
+            await withCheckedContinuation { continuation in gates.append(continuation) }
         }
+        // **Se comprueba la cancelación al salir de la puerta**, como hace el descargador de
+        // verdad: allí el bucle mira `Task.isCancelled` en cada trozo.
+        if Task.isCancelled { return .rejected(.cancelled) }
         if case .downloaded = outcome {
             try? body.write(to: destination)
         }
@@ -459,16 +465,19 @@ actor CountingDocumentDownloader: DocumentDownloader {
         return outcome
     }
 
-    /// Suelta la descarga retenida.
+    /// Suelta **todas** las descargas retenidas.
     func release() {
-        gate?.resume()
-        gate = nil
+        let pendientes = gates
+        gates = []
+        for gate in pendientes { gate.resume() }
     }
 
-    /// Espera a que la descarga haya llegado a la puerta. Sin esto, soltarla antes de que llegue
-    /// pierde el aviso y la prueba se cuelga en vez de fallar.
-    func waitUntilHolding() async {
-        while waiting == 0 { await Task.yield() }
+    /// Espera a que hayan llegado a la puerta al menos `count` descargas.
+    ///
+    /// Sin esto, soltarlas antes de que lleguen pierde el aviso y la prueba se cuelga en vez de
+    /// fallar.
+    func waitUntilHolding(_ count: Int = 1) async {
+        while arrived < count { await Task.yield() }
     }
 }
 

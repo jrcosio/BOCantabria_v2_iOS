@@ -89,7 +89,7 @@ struct DocumentStoreTests {
         async let primera = store.ensureLocalCopy(publicacion)
         // Se espera a que la primera haya llegado a la puerta. **Nada de esperas por tiempo**: una
         // espera convierte esto en una carrera, y una carrera en verde es peor que una roja.
-        await downloader.waitUntilHolding()
+        await downloader.waitUntilHolding(1)
         async let segunda = store.ensureLocalCopy(publicacion)
 
         await downloader.release()
@@ -112,7 +112,7 @@ struct DocumentStoreTests {
         let publicacion = publication(externalKey: "boc:1")
 
         let primera = Task { await store.ensureLocalCopy(publicacion) }
-        await downloader.waitUntilHolding()
+        await downloader.waitUntilHolding(1)
         async let segunda = store.ensureLocalCopy(publicacion)
 
         // La primera se va. La segunda sigue esperando.
@@ -125,6 +125,46 @@ struct DocumentStoreTests {
             return
         }
         #expect(await downloader.downloadCount == 1)
+    }
+
+    @Test("Volver a pedirlo después de cancelar arranca una descarga nueva y funciona")
+    func askingAgainAfterACancellationStartsAFreshDownload() async {
+        // Cubre el camino que la persona recorre: salir del detalle mientras se descarga y volver
+        // a entrar. Tiene que traer el documento, no un error que nadie pidió.
+        //
+        // **Lo que esta prueba NO discrimina, y se dice**: el almacén lleva además un guardián
+        // —`!job.task.isCancelled` en `claim`— para una ventana más estrecha, la de engancharse a
+        // un trabajo ya cancelado **antes** de que su propia limpieza lo retire del diccionario.
+        // Se encontró leyendo el código y se cerró por construcción, pero forzarla desde fuera
+        // exigiría una costura dentro del actor para saber cuándo ha corrido la cancelación, y eso
+        // es más superficie de la que el defecto merece. Al quitar el guardián, **la que se pone
+        // roja es la de FR-028**, no ésta: la ventana existe, y el que la cubre de verdad es el
+        // tipo del trabajo en vuelo.
+        let downloader = CountingDocumentDownloader(holds: true)
+        let store = DocumentStore(
+            downloader: downloader, cache: FakeDocumentCache(), crashReporter: NoOpCrashReporter()
+        )
+        let publicacion = publication(externalKey: "boc:1")
+
+        // Alguien pide y se va: el trabajo queda cancelado.
+        let primera = Task { await store.ensureLocalCopy(publicacion) }
+        await downloader.waitUntilHolding(1)
+        primera.cancel()
+        await downloader.release()
+        let cancelada = await primera.value
+        #expect(cancelada == .failure(.cancelled))
+
+        // Y otro entra justo detrás, con el trabajo viejo todavía en el diccionario.
+        async let segunda = store.ensureLocalCopy(publicacion)
+        await downloader.waitUntilHolding(2)
+        await downloader.release()
+
+        guard case .success = await segunda else {
+            Issue.record("Quien vuelve a entrar ha recibido una cancelación ajena")
+            return
+        }
+        // Y ha arrancado **su propia** descarga, no reutilizado la cancelada.
+        #expect(await downloader.downloadCount == 2)
     }
 
     // MARK: - El estado terminal (FR-029, STAB-002)

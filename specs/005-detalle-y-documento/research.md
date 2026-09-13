@@ -561,6 +561,26 @@ hoja que el detalle y el visor. Consecuencias, las dos declaradas:
 **Y sale ganando**: FR-038 —«compartir se comporta igual desde las tres pantallas»— pasa a cumplirse
 **por construcción** en vez de por parecido, porque las tres recorren exactamente el mismo camino.
 
+### D-527: Engancharse a un trabajo ya cancelado, y el guardián que no tiene prueba propia
+
+**Decisión**: `claim` solo se engancha a un trabajo en vuelo **si no está cancelado**, y `settle`
+solo retira del diccionario y publica su fallo **si el trabajo sigue siendo el suyo**.
+
+**Rationale**: un trabajo cancelado sigue en el diccionario hasta que su propia limpieza lo retira.
+La ventana es pequeña y real —salir del detalle mientras descarga y volver a entrar de inmediato—, y
+sin el guardián quien vuelve recibe **una cancelación que no ha pedido**. Y sin el guardián de
+identidad en `settle`, la limpieza del trabajo viejo borra del diccionario al que acaba de ocupar su
+sitio, y el siguiente que pida el documento arranca una tercera descarga.
+
+**Se encontró leyendo el código**, no probándolo: ninguna de las diez pruebas del almacén la tocaba.
+
+**Y hay que decir lo que no tiene**: no hay una prueba que discrimine **esta ventana concreta**.
+Forzarla desde fuera exigiría saber cuándo ha corrido la cancelación, y eso significa una costura
+dentro del actor —más superficie de la que el defecto merece—. Lo que sí hay es la prueba del camino
+que la persona recorre —salir y volver a entrar trae el documento— y el hecho, comprobado, de que al
+quitar el guardián **la prueba de FR-028 se pone roja**. La ventana está cubierta por construcción y
+por su vecina, y se anota aquí para que quien la lea sepa exactamente cuánto la protege.
+
 ### D-526: Escribir el mismo campo desde dos observaciones es una carrera, otra vez
 
 **Decisión**: el fallo al **leer la publicación** tiene su propio campo en el estado del detalle

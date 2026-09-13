@@ -55,16 +55,20 @@ final class PublicationDetailViewModel {
     // MARK: - Eventos
 
     func onAppear() async {
+        // **Sin `await` al pedir el flujo**, y no es un descuido: `Task { }` hereda el aislamiento
+        // de quien lo crea, así que estas llamadas ocurren ya en el actor principal y no suspenden.
+        // Ponerlo compila y deja un aviso —«no 'async' operations occur within 'await' expression»—
+        // que la cuarta puerta de calidad no perdona.
         observations.publication = Task { [weak self] in
             guard let self else { return }
-            for await result in await self.observePublication(self.externalKey) {
+            for await result in self.observePublication(self.externalKey) {
                 await self.apply(result)
             }
         }
         observations.document = Task { [weak self] in
             guard let self else { return }
-            for await status in await self.observeDocument(self.externalKey) {
-                await self.apply(status)
+            for await status in self.observeDocument(self.externalKey) {
+                self.apply(status)
             }
         }
     }
