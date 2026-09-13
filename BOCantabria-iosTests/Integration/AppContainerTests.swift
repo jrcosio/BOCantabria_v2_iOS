@@ -116,3 +116,27 @@ struct AppContainerTests {
         #expect(first.state.sectionChips == second.state.sectionChips)
     }
 }
+
+// MARK: - Construirlo no toca el disco
+
+extension AppContainerTests {
+
+    @Test("Construir el contenedor no crea ningún directorio de caché")
+    func buildingCreatesNoCacheDirectory() {
+        // La caché del documento creaba su directorio **en el inicializador**, y eso convertía la
+        // construcción del contenedor en un efecto de arranque. Se descubrió al arreglar otra cosa
+        // y se cierra con su prueba: el directorio se crea la primera vez que hay algo que
+        // escribir, que es cuando se sabe que va a servir para algo.
+        let directorio = FileManager.default.temporaryDirectory
+            .appendingPathComponent("boc-nunca-\(UUID().uuidString)", isDirectory: true)
+
+        _ = AppContainer(
+            telemetry: .noOp,
+            clock: ImmediateClock(),
+            connectivity: FixedConnectivityDataSource(online: true),
+            documentCacheDirectory: directorio
+        )
+
+        #expect(!FileManager.default.fileExists(atPath: directorio.path))
+    }
+}

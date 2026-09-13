@@ -276,11 +276,11 @@ mensaje comprensible con reintento y **nunca** un estado de carga perpetuo.
 - [X] T046 [P] [US2] Crear `APP/UI/Detail/Component/MissingPublication.swift` —título, explicación y
       «Volver al boletín»— y conectar el estado de error del detalle y del visor **al componente de
       error común**: el error del visor **no** puede tener estilo propio (FR-004, FR-025, apartado 34)
-- [ ] T047 [US2] Comprobar que **todo `catch` de la feature informa por `CrashReporter.log`**, con la
+- [X] T047 [US2] Comprobar que **todo `catch` de la feature informa por `CrashReporter.log`**, con la
       fase y el tipo de fallo y **nunca** el título, la dirección, la clave ni el nombre de fichero.
       Ampliar `TEST/Data/DocumentRepositoryImplTests.swift` con un espía que lo afirme (FR-024,
       principio VI)
-- [ ] T048 [US2] Escribir `TEST/Integration/DocumentFlowIntegrationTests.swift` con el grafo real y
+- [X] T048 [US2] Escribir `TEST/Integration/DocumentFlowIntegrationTests.swift` con el grafo real y
       dobles **solo en la frontera de red**: camino feliz completo; rechazo que no deja restos; **copia
       con lateral vacío que se sirve igual**; y la retirada de la caché que devuelve el estado a
       `absent` (FR-054, FR-055, SC-007)
@@ -291,7 +291,7 @@ mensaje comprensible con reintento y **nunca** un estado de carga perpetuo.
       código** —el bundle de pruebas no lo ve el proceso de la aplicación— y sustituirlo en
       `AppContainer` en el mismo sitio y con la misma forma que el descargador de feeds. **Sin tercer
       argumento de lanzamiento** (D-524)
-- [ ] T050 [P] [US2] Escribir `UITEST/Detail/DetailStatesUITests.swift`: los tres escenarios de
+- [X] T050 [P] [US2] Escribir `UITEST/Detail/DetailStatesUITests.swift`: los tres escenarios de
       rechazo y, en los tres, **mensaje con reintento y nunca un estado de carga perpetuo** (FR-057,
       SC-006) (depende de T049)
 
@@ -348,7 +348,7 @@ respuesta.
       FR-049, FR-050)
 - [X] T060 [P] [US4] Conectar guardar a «Próximamente» en la barra superior de
       `APP/UI/Detail/PublicationDetailView.swift`, igual que la tarjeta ya hace (FR-045)
-- [ ] T061 [P] [US4] Escribir `UITEST/Detail/DetailContentUITests.swift`: las dos pestañas con su
+- [X] T061 [P] [US4] Escribir `UITEST/Detail/DetailContentUITests.swift`: las dos pestañas con su
       contenido, la barra de acciones, y que ninguna acción aplazada deja sin respuesta (FR-057,
       SC-012)
 
@@ -358,15 +358,15 @@ respuesta.
 
 ## Phase 7: Polish & Cross-Cutting
 
-- [ ] T062 [P] Escribir `UITEST/Detail/DetailNavigationUITests.swift`: tarjeta → detalle → visor →
+- [X] T062 [P] Escribir `UITEST/Detail/DetailNavigationUITests.swift`: tarjeta → detalle → visor →
       dos retrocesos → **el boletín en la misma posición y sección**; y tarjeta → detalle →
       preguntar → retroceso (FR-001, FR-005, FR-057, SC-001)
-- [ ] T063 [P] Escribir `UITEST/PDF/PdfViewerUITests.swift`: cargando, documento listo, y los **dos**
+- [X] T063 [P] Escribir `UITEST/PDF/PdfViewerUITests.swift`: cargando, documento listo, y los **dos**
       errores distintos con su salida (FR-035, FR-036, FR-057)
-- [ ] T064 [P] Ampliar `UITEST/Home/AccessibilityUITests.swift`: la tarjeta **abre** y sus dos
+- [X] T064 [P] Ampliar `UITEST/Home/AccessibilityUITests.swift`: la tarjeta **abre** y sus dos
       controles siguen funcionando por separado; el alto de la tarjeta sigue creciendo al 200 %
       (FR-050)
-- [ ] T065 [P] Ampliar `UITEST/PerformanceUITests.swift` con `timeToDocument` y anotar **SC-002 y
+- [X] T065 [P] Ampliar `UITEST/PerformanceUITests.swift` con `timeToDocument` y anotar **SC-002 y
       SC-003 medidos**, no estimados. **Y la tercera fila**: cuánto tarda un documento de 25 MB —es lo
       que decide si D-502 se queda con la iteración byte a byte o pasa a descarga nativa a disco
       (D-525, quickstart paso 10)

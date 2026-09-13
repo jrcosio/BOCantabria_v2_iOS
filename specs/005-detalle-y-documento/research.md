@@ -58,13 +58,17 @@ exactamente STAB-002, que FR-029 prohíbe.
 Con 5 MiB de XML es aceptable; con 25 MB el reasignador de `Data` domina el perfil. Aquí el
 acumulador es `[UInt8]` con `reserveCapacity` y se vacía con `removeAll(keepingCapacity: true)`.
 
-**Lo que hay que medir, no estimar**: la iteración byte a byte de `AsyncBytes` tiene un camino rápido
-inlineado, pero sigue siendo una llamada asíncrona por byte. **Si 25 MB no caben con holgura en el
-presupuesto de SC-003**, la alternativa es `session.download(from:delegate:)`
-(`Foundation.swiftinterface:18256-18258`), que transmite a disco de forma nativa. No se empieza por
-ahí, por dos motivos: pierde el rechazo temprano por cabeceras —habría que mirar la respuesta dentro
-del delegado— y obliga a releer el fichero entero para la huella. Se cambia **con una cifra delante**,
-y la cifra se toma con el *signpost* de D-525.
+**Lo que había que medir, y está medido.** La iteración byte a byte de `AsyncBytes` tiene un camino
+rápido inlineado, pero sigue siendo una llamada asíncrona por byte, y la alternativa era
+`session.download(from:delegate:)` (`Foundation.swiftinterface:18256-18258`), que transmite a disco
+de forma nativa a cambio de perder el rechazo temprano por cabeceras y de obligar a releer el fichero
+entero para la huella.
+
+> **Resuelto el 13 de septiembre de 2026: 1,841 s para 25 MB**, con la huella y la escritura
+> incluidas y sin red de por medio. El presupuesto de SC-003 son **diez segundos con la red**, así
+> que aguanta con holgura y **la descarga nativa no hace falta**. La medición quedó como prueba
+> —«un documento en el tope del tamaño se descarga dentro del presupuesto»—, para que avise si
+> alguien toca el tamaño del trozo o la reserva del acumulador.
 
 ### D-503: El rechazo viaja como valor, y el orden de las comprobaciones es el requisito
 

@@ -47,11 +47,19 @@ struct FileDocumentCache: DocumentCache {
     private var fileManager: FileManager { .default }
 
     /// - Parameter directory: por defecto, `<cachés>/documents`. Las pruebas pasan un temporal.
+    ///
+    /// **No crea nada.** El contenedor de dependencias se construye en el arranque y no puede tener
+    /// efectos: ni red, ni disco, ni telemetría. El directorio se crea la primera vez que hace
+    /// falta escribir, que es cuando se sabe que va a servir para algo.
     init(directory: URL? = nil, clock: AppClock, crashReporter: CrashReporter) {
         self.directory = directory ?? Self.defaultDirectory()
         self.clock = clock
         self.crashReporter = crashReporter
-        try? fileManager.createDirectory(at: self.directory, withIntermediateDirectories: true)
+    }
+
+    /// Se llama justo antes de escribir, nunca al construir.
+    private func ensureDirectory() {
+        try? fileManager.createDirectory(at: directory, withIntermediateDirectories: true)
     }
 
     static func defaultDirectory() -> URL {
@@ -111,7 +119,8 @@ struct FileDocumentCache: DocumentCache {
     // MARK: - Escritura
 
     func stage(_ externalKey: String) -> URL {
-        documentUrl(externalKey).appendingPathExtension("part")
+        ensureDirectory()
+        return documentUrl(externalKey).appendingPathExtension("part")
     }
 
     func commit(

@@ -134,3 +134,46 @@ final class AccessibilityUITests: XCTestCase {
         )
     }
 }
+
+// MARK: - La tarjeta ahora abre
+
+extension AccessibilityUITests {
+
+    /// **La tarjeta se hizo pulsable con un gesto y no con un enlace de navegación**, y esta prueba
+    /// es lo que demuestra que el árbol no se ha movido: la tarjeta sigue siendo un elemento con su
+    /// etiqueta combinada, y sus dos controles siguen siendo elementos propios que responden por
+    /// separado (research.md D-519).
+    func testTheCardOpensWithoutSwallowingItsOwnControls() {
+        let app = XCUIApplication()
+        app.launchArguments = [
+            "-boc-data-scenario=documentReady",
+            "-AppleLanguages", "(es)", "-AppleLocale", "es_ES",
+            "-home_selection", "",
+        ]
+        app.launch()
+
+        let tarjeta = app.descendants(matching: .any)
+            .matching(identifier: "publication_card_0").firstMatch
+        XCTAssertTrue(tarjeta.waitForExistence(timeout: 20))
+
+        // Los dos controles siguen existiendo **dentro** de la tarjeta y con su área táctil.
+        let compartir = app.descendants(matching: .any)
+            .matching(identifier: "publication_share").firstMatch
+        let guardar = app.descendants(matching: .any)
+            .matching(identifier: "publication_save").firstMatch
+        XCTAssertTrue(compartir.exists, "El envoltorio se ha tragado la acción de compartir")
+        XCTAssertTrue(guardar.exists, "El envoltorio se ha tragado la acción de guardar")
+        XCTAssertEqual(compartir.frame.width, 48, accuracy: 1)
+        XCTAssertEqual(compartir.frame.height, 48, accuracy: 1)
+
+        // Y la etiqueta combinada sigue diciendo lo mismo: sección, organismo, título y fecha.
+        XCTAssertFalse(tarjeta.label.isEmpty)
+
+        // Pulsar la tarjeta abre el detalle; pulsar un control, no.
+        tarjeta.tap()
+        XCTAssertTrue(
+            app.descendants(matching: .any).matching(identifier: "detail_root").firstMatch
+                .waitForExistence(timeout: 20)
+        )
+    }
+}

@@ -186,6 +186,36 @@ struct HttpDocumentDownloaderTests {
             == .rejected(.storage))
     }
 
+    // MARK: - El tope, de verdad
+
+    @Test("Un documento en el tope del tamaño se descarga dentro del presupuesto")
+    func aDocumentAtTheSizeCapDownloadsWithinBudget() async {
+        // **Es la cifra que la decisión D-502 dejó abierta.** La iteración de `AsyncBytes` es byte
+        // a byte —no hay API pública por trozos— y había que medir si eso aguanta veinticinco
+        // megas antes de dar por buena la elección frente a la descarga nativa a disco, que
+        // transmite sola pero pierde el rechazo temprano por cabeceras y obliga a releer el fichero
+        // entero para la huella.
+        //
+        // **Medido: 1,84 s** para 25 MB, con la huella y la escritura incluidas, y sin red de por
+        // medio. El presupuesto de SC-003 son diez segundos **con** la red. Aguanta, y esta prueba
+        // es lo que avisará si alguien toca el tamaño del trozo o la reserva del acumulador.
+        var grande = Data("%PDF-1.4\n".utf8)
+        grande.append(Data(count: Int(HttpDocumentDownloader.maxDocumentBytes) - grande.count))
+        StubURLProtocol.set(StubResponse(body: grande, chunkSize: 256 * 1024))
+        let (downloader, destino) = make()
+        defer { try? FileManager.default.removeItem(at: destino) }
+
+        let inicio = DispatchTime.now().uptimeNanoseconds
+        let resultado = await downloader.download(from: Self.url, into: destino, progress: { _, _ in })
+        let segundos = Double(DispatchTime.now().uptimeNanoseconds - inicio) / 1_000_000_000
+
+        guard case .downloaded(let bytes, _) = resultado else {
+            Issue.record("Justo en el tope todavía cabe: \(resultado)"); return
+        }
+        #expect(bytes == HttpDocumentDownloader.maxDocumentBytes)
+        #expect(segundos < 5, Comment(rawValue: "25 MB han tardado \(segundos) s"))
+    }
+
     // MARK: - Ayudas
 
     private func make() -> (HttpDocumentDownloader, URL) {

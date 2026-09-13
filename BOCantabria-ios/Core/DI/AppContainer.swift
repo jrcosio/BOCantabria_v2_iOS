@@ -122,11 +122,27 @@ final class AppContainer {
         let resolvedDownloader = documentDownloader
             ?? dataScenario.documentOutcome.map { ScenarioDocumentDownloader(outcome: $0) }
             ?? HttpDocumentDownloader()
+
+        // **Un escenario tiene su propio directorio, y se vacía al arrancar.**
+        //
+        // Sin esto, las pruebas de interfaz **dependen del orden**: la caché sobrevive entre
+        // lanzamientos, así que el escenario del documento correcto deja su copia en disco y el del
+        // rechazo la encuentra y la sirve — la pantalla de error no aparece nunca y la prueba falla
+        // acusando al código. Costó un volcado del árbol descubrirlo, y el árbol lo decía con todas
+        // las letras: la previsualización estaba **dibujada**.
+        //
+        // Es la misma clase de contaminación que la selección heredada de `UserDefaults`, que este
+        // proyecto ya tenía anotada. El directorio de producción **no se toca**.
+        let cacheDirectory = documentCacheDirectory ?? dataScenario.documentCacheDirectory
+        if let cacheDirectory, dataScenario.documentOutcome != nil {
+            try? FileManager.default.removeItem(at: cacheDirectory)
+        }
+
         self.documentRepository = DocumentRepositoryImpl(
             store: DocumentStore(
                 downloader: resolvedDownloader,
                 cache: FileDocumentCache(
-                    directory: documentCacheDirectory,
+                    directory: cacheDirectory,
                     clock: clock,
                     crashReporter: telemetry.crashReporter
                 ),

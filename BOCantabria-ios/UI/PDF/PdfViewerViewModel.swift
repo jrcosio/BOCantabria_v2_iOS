@@ -8,6 +8,7 @@
 //
 
 import Foundation
+import OSLog
 import Synchronization
 
 @MainActor
@@ -29,6 +30,9 @@ final class PdfViewerViewModel {
     private let observations = ViewerObservationBox()
 
     private var publication: Publication?
+    /// El intervalo que mide SC-002 y SC-003. Se abre al aparecer y se cierra cuando el documento
+    /// está listo para leerse, que es lo que la persona espera.
+    private var timeToDocument: OSSignpostIntervalState?
 
     init(
         externalKey: String,
@@ -52,6 +56,7 @@ final class PdfViewerViewModel {
     }
 
     func onAppear() async {
+        timeToDocument = AppSignposts.timeToDocument.beginInterval(AppSignposts.timeToDocumentName)
         observations.publication = Task { [weak self] in
             guard let self else { return }
             for await result in await self.observePublication(self.externalKey) {
@@ -119,6 +124,10 @@ final class PdfViewerViewModel {
         // fotograma, y el compilador no diría nada.
         switch await PdfDocumentProbe.inspect(url) {
         case .readable(let paginas):
+            if let intervalo = timeToDocument {
+                AppSignposts.timeToDocument.endInterval(AppSignposts.timeToDocumentName, intervalo)
+                timeToDocument = nil
+            }
             state = .ready(
                 fileUrl: url,
                 title: publication?.titleWithoutIssuer ?? "",
