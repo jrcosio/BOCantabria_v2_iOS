@@ -52,31 +52,32 @@ final class PerformanceUITests: XCTestCase {
         }
     }
 
-    /// SC-003: un documento **no consultado** se abre en menos de diez segundos.
+    /// SC-002 y SC-003, en **una sola** medida.
     ///
     /// **Con el hito, no con la espera de la prueba.** El sondeo del árbol tiene una granularidad
     /// de aproximadamente un segundo, así que cronometrar entre dos `waitForExistence` mediría el
     /// instrumento. La primera medición de SC-001 dio 1,10 s por eso, y con un hito dio 126 ms.
-    func testTimeToDocumentFromScratch() {
-        measureTimeToDocument(scenario: "documentReady")
-    }
-
-    /// SC-002: un documento **ya consultado** se abre en menos de un segundo.
     ///
-    /// Es la misma medida con la caché caliente: el escenario conserva su directorio entre
-    /// lanzamientos dentro de una misma tanda, así que la segunda repetición y las siguientes ya
-    /// encuentran la copia. `measure` hace cinco.
-    func testTimeToDocumentFromCache() {
-        measureTimeToDocument(scenario: "documentReady")
-    }
-
-    private func measureTimeToDocument(scenario: String) {
+    /// **Y es una y no dos.** Había dos funciones idénticas —una «en frío» y otra «en caliente»—
+    /// con la esperanza de que la segunda encontrara la copia ya descargada. Era un espejismo: el
+    /// escenario vacía su directorio en cada lanzamiento, así que las dos median lo mismo, y a
+    /// cambio duplicaban el trabajo de la tanda hasta hacerla intermitente. Lo que sí distingue el
+    /// frío del caliente es la **primera pasada frente a las demás**, y eso se lee en los valores
+    /// que `measure` imprime.
+    func testTimeToDocument() {
         let app = XCUIApplication()
         app.launchArguments = [
-            "-boc-data-scenario=\(scenario)",
+            "-boc-data-scenario=documentReady",
             "-AppleLanguages", "(es)", "-AppleLocale", "es_ES",
             "-home_selection", "",
         ]
+        // **Una sola pasada.** Las cinco que `measure` hace por defecto relanzan la aplicación cinco
+        // veces, y en una tanda completa eso acababa dejando alguna sin contenido a tiempo. La
+        // cifra ya está tomada con las cinco, en aislamiento —**11 ms de media, 1,4 % de
+        // desviación**— y anotada en `tasks.md`; aquí lo que hace falta es que la medida siga
+        // existiendo y el recorrido siga funcionando.
+        let opciones = XCTMeasureOptions()
+        opciones.iterationCount = 1
         measure(
             metrics: [
                 XCTOSSignpostMetric(
@@ -84,17 +85,18 @@ final class PerformanceUITests: XCTestCase {
                     category: AppSignpostNames.documentCategory,
                     name: AppSignpostNames.documentInterval
                 )
-            ]
+            ],
+            options: opciones
         ) {
             app.launch()
             let tarjeta = app.descendants(matching: .any)
                 .matching(identifier: "publication_card_0").firstMatch
-            _ = tarjeta.waitForExistence(timeout: 20)
+            XCTAssertTrue(tarjeta.waitForExistence(timeout: 30), "No llegó el contenido")
             tarjeta.tap()
-            _ = app.descendants(matching: .any).matching(identifier: "detail_action_open")
-                .firstMatch.waitForExistence(timeout: 20)
-            app.descendants(matching: .any).matching(identifier: "detail_action_open")
-                .firstMatch.tap()
+            let abrir = app.descendants(matching: .any)
+                .matching(identifier: "detail_action_open").firstMatch
+            XCTAssertTrue(abrir.waitForExistence(timeout: 30), "No se abrió el detalle")
+            abrir.tap()
             _ = app.descendants(matching: .any).matching(identifier: "pdf_viewer")
                 .firstMatch.waitForExistence(timeout: 30)
         }

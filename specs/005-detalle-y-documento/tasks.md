@@ -409,17 +409,49 @@ respuesta.
       `.accessibilityElement(children: .combine)` la promueve al contener controles. Así que ni
       siquiera el rasgo que se le añadió cambió nada. Las ocho aserciones que penden de ese árbol
       siguen intactas sin tocarlas.
-- [ ] T076 Ejecutar las **cuatro puertas** y anotar sus cifras aquí, junto a las de T001. **Un «pasa»
+- [X] T076 Ejecutar las **cuatro puertas** y anotar sus cifras aquí, junto a las de T001. **Un «pasa»
       no vale** (SC-015). Comprobar de paso que **cada tipo de dominio y cada modelo de pantalla
       nuevos tienen su fichero de prueba**: lo exige SC-013, y **la regla 9 lo pone rojo sola** si
       alguno falta
 
-      | Puerta | Antes (T001) | Después |
+      | Puerta | Antes (T001) | Después | Diferencia |
+      |---|---|---|---|
+      | 1 · Construcción | 30,8 s, 0 errores | **25,1 s, 0 errores** | −5,7 s, ruido de una ejecución a otra |
+      | 2 · Pruebas sin interfaz | 285 en 41 suites, 0,515 s | **391 en 61 suites, 2,443 s** | **+106 pruebas, +20 suites** |
+      | 3 · Pruebas de interfaz | 42 en 317,3 s, 0 fallos | **63 en 882,5 s, 0 fallos** | **+21 pruebas, +565 s** |
+      | 4 · Avisos | 1, el ajeno de `appintentsmetadataprocessor` | **1, el mismo** | **cero nuevos** |
+
+      Las dos primeras se midieron sobre datos derivados nuevos, igual que las de T001, para que
+      sean comparables. **La regla 9 no se quejó**, que es lo que hace verificable SC-013: los cinco
+      modelos de dominio nuevos y los dos modelos de pantalla tienen su fichero de prueba.
+
+      **Y el camino hasta esta tabla no fue recto, que es lo que merece anotarse.** La puerta 3
+      falló **cuatro veces seguidas**, cada una por un reparto distinto de pruebas, incluidas dos
+      preexistentes de la 004 que esta feature no toca. El diagnóstico fue equivocado dos veces
+      —«intermitencia del simulador»— antes de dar con las dos causas reales, y las dos eran mías:
+
+      1. **Un bucle de realimentación en el visor** que dejaba la aplicación sin llegar nunca a
+         reposo y acababa **matándola**: se ve en el registro como «Application … is not running»,
+         pero desde la prueba solo se ve «Timed out while synthesizing event», que parece del
+         entorno. Arreglado (research.md **D-528**), y la prueba de memoria pasó de morir a los
+         844 s a terminar en 177.
+      2. **Mis propias pruebas de medición**, que con las cinco pasadas que `measure` hace por
+         defecto relanzaban la aplicación y sintetizaban decenas de arrastres, y **arrastraban a las
+         vecinas** por pura carga. Reducidas a una pasada. **Ninguna aserción se ha silenciado**: lo
+         que se ha reducido es el número de repeticiones de una medición, y las cifras que
+         justificaban las cinco están tomadas y anotadas abajo.
+
+      **Cifras propias de la feature**, medidas en aislamiento con cinco pasadas:
+
+      | Qué | Objetivo | Medido |
       |---|---|---|
-      | 1 · Construcción | | |
-      | 2 · Pruebas sin interfaz | | |
-      | 3 · Pruebas de interfaz | | |
-      | 4 · Avisos | | |
+      | SC-002 · documento en caché | < 1 s | **11 ms** de media, 1,4 % de desviación |
+      | SC-003 · documento nuevo (origen de escenario) | < 10 s | **11 ms**; el tramo de red se cubre a mano en T070 |
+      | SC-008 · cincuenta páginas | sin agotar memoria | **122 MB** de media, **192** de pico, **incremento cero** por pasada |
+      | Descarga de 25 MB, byte a byte | dentro de SC-003 | **1,841 s**, con huella y escritura |
+
+      La última cierra la pregunta que **D-502** dejó abierta: la iteración byte a byte aguanta el
+      tope con holgura y la descarga nativa a disco **no hace falta**.
 
 ---
 

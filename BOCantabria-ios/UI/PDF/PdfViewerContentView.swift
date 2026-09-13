@@ -55,8 +55,16 @@ struct PdfViewerContentView: View {
     private var content: some View {
         switch state {
         case .loading:
-            VStack(spacing: BocTheme.spacing.sm) {
-                ProgressView()
+            // **Sin indicador giratorio, y es deliberado.** Un `ProgressView()` indeterminado es una
+            // animación **infinita**, y este proyecto ya tiene anotado lo que eso provoca: la
+            // interfaz no llega nunca a reposo, y una prueba que espera reposo **se cuelga en lugar
+            // de fallar**. El apartado 26.1 del documento de diseño además los desaconseja
+            // —«evitar indicadores giratorios grandes en el centro»— y pide formas parecidas al
+            // contenido final, que es lo que hay aquí: el hueco de la página.
+            ZStack {
+                RoundedRectangle(cornerRadius: BocTheme.shape.medium)
+                    .fill(BocTheme.colors.surfaceStrong)
+                    .padding(BocTheme.spacing.xl)
                 Text(Strings.PdfViewer.loading)
                     .bocTextStyle(BocTheme.typography.bodyMedium)
                     .foregroundStyle(BocTheme.colors.textSecondary)
