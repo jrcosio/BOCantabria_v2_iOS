@@ -37,6 +37,13 @@ struct PublicationLocalDataSource: Sendable {
         }
     }
 
+    /// Una publicación concreta. Emite `nil` cuando ya no está guardada, y eso es un éxito.
+    func observePublication(externalKey: String) -> AsyncStream<AppResult<Publication?>> {
+        stream { database in
+            try PublicationQueries.publication(externalKey: externalKey, in: database)
+        }
+    }
+
     func observeHeader(
         _ selection: HomeSelection,
         title: String
@@ -114,6 +121,17 @@ struct PublicationLocalDataSource: Sendable {
             try PublicationQueries.knownBodyHash(feedId: feedId, in: database)
         }
         return hash ?? nil
+    }
+
+    /// Lectura puntual de una publicación. Lanza si la base no se puede leer.
+    ///
+    /// Existe además de la observación porque la prueba de la consulta no necesita un flujo, y
+    /// porque el caso de compartir desde una lista tampoco.
+    func publication(externalKey: String) throws -> Publication? {
+        guard let database else { return nil }
+        return try database.read { database in
+            try PublicationQueries.publication(externalKey: externalKey, in: database)
+        }
     }
 
     func publications(for selection: HomeSelection) -> [Publication] {

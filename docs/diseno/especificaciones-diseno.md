@@ -1151,17 +1151,27 @@ En móviles estrechos puede omitirse el escudo para asegurar espacio suficiente.
 > superior. Así, con cualquier título, el contenido acaba disponiendo de la pantalla entera; sin eso,
 > encoger la letra solo aplaza el problema hasta el siguiente título más largo.
 
-> **Nota (12 de septiembre de 2026, feature 004 (iOS)). No decide nada; señala una divergencia.**
-> La enmienda de arriba está firmada «feature 004» y es la **004 de Android**, el detalle de la
-> publicación; la 004 de este proyecto es otra —la tarjeta y la cabecera de Inicio— y el detalle
-> pasa aquí a la **005**. Por eso las firmas nuevas llevan «(iOS)».
+> **Enmienda (13 de septiembre de 2026, feature 005 (iOS)). Resuelve la divergencia que la 004 (iOS)
+> dejó aplazada.** La nota anterior decía que había que decidir, mirando las dos pantallas juntas,
+> si la cabecera del detalle se desplaza —como decía la enmienda de Android— o se queda y se
+> compacta —como hace Inicio desde la 004 (iOS)—.
 >
-> Lo que hay que decidir en la 005: aquella enmienda dice que la cabecera del detalle **se desplaza
-> con el contenido**, y desde la 004 (iOS) la de **Inicio se queda y se compacta**. Si una se va y
-> la otra no, las dos pantallas dejan de hablar el mismo idioma. Los motivos de cada una son buenos
-> y opuestos —allí el título es larguísimo y necesita la pantalla entera; aquí la cabecera dice qué
-> se está mirando y perderla es el problema que se vino a arreglar—, así que **no se resuelve
-> aquí**: se resuelve mirando las dos pantallas juntas, que es lo que se podrá hacer en la 005.
+> **Decisión del propietario: la cabecera del detalle SE DESPLAZA con el contenido, y las pestañas
+> quedan fijas bajo la barra superior.** Las dos pantallas divergen **a propósito**, y el motivo se
+> escribe porque sin él una de las dos parecería un descuido:
+>
+> - **En Inicio la cabecera dice DÓNDE ESTÁS** —qué sección se mira y cuántos anuncios hay— y
+>   perderla de vista al desplazar era exactamente el problema que la 004 (iOS) vino a arreglar.
+> - **En el detalle la cabecera dice QUÉ ES ESTO**, y para cuando se desplaza ya se ha leído. Un
+>   título real del BOC sin recortar ocupa seis líneas: si se queda, el contenido vive en una franja
+>   estrecha **para siempre**, y encoger la letra solo aplaza el problema hasta el siguiente título
+>   más largo.
+>
+> Lo que sí comparten es la regla de la zona que no se desplaza: **fondo sólido y divisor**, para
+> que el contenido no se lea por debajo de las pestañas fijadas.
+>
+> Nota de firma: las enmiendas de «feature 004» sin paréntesis son las de **Android**; las que
+> llevan «(iOS)» son de este proyecto, donde el detalle es la **005**.
 
 ## 18.3. Jerarquía
 
@@ -1174,13 +1184,22 @@ La secuencia visual será:
 5. Distintivo oficial.
 6. Pestañas.
 
-> **Nota (12 de septiembre de 2026, feature 004 (iOS)). Segunda divergencia con Inicio, y tampoco
-> se decide aquí.** Este apartado pone el **título antes que el organismo**; la tarjeta de Inicio,
-> desde la 004 (iOS), los pone al revés —sección, **organismo**, **título**, fecha— porque en un
-> listado el organismo es lo que permite descartar sin leer, y en el detalle ya se ha decidido leer.
-> El argumento de cada una es bueno en su sitio, y aun así dos pantallas de la misma aplicación que
-> ordenan los mismos cuatro datos de dos maneras distintas necesitan una razón escrita o una de las
-> dos está mal. **Se decide en la 005**, junto con la divergencia del apartado 18.2.
+> **Enmienda (13 de septiembre de 2026, feature 005 (iOS)). Resuelve la segunda divergencia.**
+>
+> **Se mantiene el orden de este apartado: sección, TÍTULO, organismo, fecha, distintivo**, y la
+> tarjeta de Inicio conserva el suyo, que es el contrario. Las dos son correctas en su sitio:
+>
+> - **En un listado el organismo permite descartar sin leer.** Quien recorre el boletín del día
+>   decide con «AYUNTAMIENTO DE TORRELAVEGA» si le interesa, sin llegar al título.
+> - **En el detalle ya se ha decidido leer, y el título ES el contenido.** Ponerlo detrás del
+>   organismo sería hacer que el dato menos importante preceda al principal en la única pantalla
+>   donde el principal es lo que se ha venido a ver.
+>
+> Y una consecuencia que no es obvia: **aquí el título va íntegro**, con su prefijo del organismo si
+> lo trae, mientras que en la tarjeta ese prefijo se omite al pintar. Es la misma decisión —no
+> repetir— vista desde dos composiciones: allí el organismo va **encima** del título y repetirlo
+> rompía la jerarquía; aquí va **debajo**, y además esto es el documento, no un resumen. Ninguna de
+> las dos toca lo almacenado.
 
 ## 18.4. Pestañas
 
@@ -1561,6 +1580,19 @@ Debajo o encima del campo:
 - Página blanca con sombra suave.
 - Separación de 12 dp entre páginas.
 - Indicador flotante de página: `2 / 6`.
+
+> **Enmienda (13 de septiembre de 2026, feature 005 (iOS)).** Dos precisiones sobre esta zona,
+> las dos descubiertas **mirando un boletín de verdad**, no leyendo el código:
+>
+> - **El ajuste inicial se fija cuando la vista ya conoce su ancho**, no al asignar el documento. Al
+>   asignarlo, la vista todavía no tiene tamaño, el factor de ajuste sale mal y el documento aparece
+>   **más ancho que la pantalla**, con el texto cortado por la derecha.
+> - **Las sombras de página se apagan.** El marco las dibuja demasiado marcadas sobre el gris del
+>   lector; el contraste lo da el fondo, que es para lo que está.
+>
+> El tope inferior de ampliación se fija en ese mismo momento y por un motivo que también se ve y no
+> se lee: con el factor a cero, el pellizco deja reducir el documento a nada sin forma de
+> recuperarlo.
 
 ## 24.3. Controles
 
@@ -1982,11 +2014,16 @@ Icono estándar:         24 dp
 
 ### Detalle
 
-- [ ] Sección, título, organismo y fecha jerarquizados.
-- [ ] Distintivo `Documento oficial`.
-- [ ] Tres pestañas.
-- [ ] Barra inferior de acciones.
-- [ ] Título completo sin truncar.
+*(Marcado con la feature 005 (iOS). La lista decía «tres pestañas»: son **dos** desde la enmienda
+del apartado 18.4, y «Preguntar» es pantalla propia.)*
+
+- [x] Sección, título, organismo y fecha jerarquizados. *(En el orden del apartado 18.3, que diverge
+      a propósito del de la tarjeta; ver su enmienda.)*
+- [x] Distintivo `Documento oficial`.
+- [x] **Dos** pestañas: `Documento` y `Resumen IA`.
+- [x] Barra inferior de acciones, con su margen **dentro** de la propia superficie.
+- [x] Título completo sin truncar, también con el texto al 200 %.
+- [x] La cabecera se desplaza y las pestañas se fijan, con fondo sólido y divisor (apartado 18.2).
 
 ### Resumen IA
 

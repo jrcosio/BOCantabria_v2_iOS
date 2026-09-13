@@ -24,4 +24,19 @@ enum AppSignposts {
     )
 
     static let timeToContentName: StaticString = "home_time_to_content"
+
+    /// Desde que se pide el documento oficial hasta que está listo para leerse.
+    ///
+    /// Es lo que miden SC-002 —menos de un segundo con la copia ya en caché— y SC-003 —menos de
+    /// diez con una conexión normal—. **Las dos cifras son imposibles de tomar con la espera de una
+    /// prueba de interfaz**, por lo que dice la cabecera de este fichero: la primera medición de
+    /// SC-001 dio 1,10 s y con un hito dio 126 ms.
+    ///
+    /// Y sirve además para una tercera cosa que no es un criterio de la especificación: decidir si
+    /// la descarga byte a byte aguanta un documento de veinticinco megas (research.md D-502).
+    static let timeToDocument = OSSignposter(
+        subsystem: subsystem, category: "time_to_document"
+    )
+
+    static let timeToDocumentName: StaticString = "document_time_to_ready"
 }

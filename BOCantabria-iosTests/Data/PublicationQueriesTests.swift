@@ -36,6 +36,21 @@ struct PublicationQueriesTests {
         return source
     }
 
+    @Test("Una publicación se recupera por su clave estable")
+    func aPublicationIsFetchedByItsStableKey() throws {
+        let source = sourceWithSample()
+        let encontrada = try source.publication(externalKey: "boc:101")
+        #expect(encontrada?.externalKey == "boc:101")
+        #expect(encontrada?.subsectionCode == "2.2")
+    }
+
+    @Test("Una publicación que no está guardada devuelve nulo, y eso no es un fallo")
+    func anAbsentPublicationReturnsNil() throws {
+        // Es lo que FR-004 necesita distinguir: «se retiró» no es «algo ha ido mal».
+        let source = sourceWithSample()
+        #expect(try source.publication(externalKey: "boc:no-existe") == nil)
+    }
+
     @Test("El boletín del día es la fecha máxima, de todas las secciones (FR-037)")
     func todaysBulletinIsTheLatestDateAcrossEverySection() {
         let keys = sourceWithSample().publications(for: .todaysBulletin).map(\.externalKey)

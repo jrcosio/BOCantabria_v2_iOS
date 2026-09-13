@@ -34,8 +34,48 @@ enum DataScenario: String, Sendable, CaseIterable {
     /// Sin escenario: la aplicación de verdad.
     case live
 
-    var seedsContent: Bool { self == .today || self == .offline }
+    // Los cuatro del documento. **Los cuatro siembran contenido y sus fuentes responden**: lo que
+    // cambia es qué devuelve el enlace del documento.
+    /// Un documento válido de una página.
+    case documentReady
+    /// Código 200 cuyo contenido no es el documento.
+    case documentRejected
+    /// Un cuerpo que pasa del tope.
+    case documentTooLarge
+    /// La descarga falla por red y no hay copia.
+    case documentUnavailable
+
+    var seedsContent: Bool {
+        self == .today || self == .offline || documentOutcome != nil
+    }
+
     var networkFails: Bool { self == .failing || self == .offline }
+
+    /// Qué devuelve el enlace del documento, o `nil` si este escenario no habla de documentos.
+    ///
+    /// **Este enumerado pasa a llevar dos ejes** —el del boletín y el del documento— y se dice en
+    /// voz alta. Con cuatro casos es aceptable; si algún día apareciera un tercer eje, hay que
+    /// partirlo (research.md D-524).
+    /// Dónde guarda sus documentos este escenario, o `nil` para el directorio de producción.
+    ///
+    /// **Uno por escenario**, para que una prueba no herede la caché de la anterior.
+    var documentCacheDirectory: URL? {
+        guard documentOutcome != nil else { return nil }
+        let caches = (try? FileManager.default.url(
+            for: .cachesDirectory, in: .userDomainMask, appropriateFor: nil, create: false
+        )) ?? FileManager.default.temporaryDirectory
+        return caches.appendingPathComponent("documents-\(rawValue)", isDirectory: true)
+    }
+
+    var documentOutcome: DocumentOutcome? {
+        switch self {
+        case .documentReady: .ready
+        case .documentRejected: .rejected
+        case .documentTooLarge: .tooLarge
+        case .documentUnavailable: .unavailable
+        default: nil
+        }
+    }
 }
 
 enum ScenarioDatabaseSeeder {

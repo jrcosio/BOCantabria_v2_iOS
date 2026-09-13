@@ -28,6 +28,7 @@ struct HomeContentView: View {
     var onOpenSections: () -> Void = {}
     var onSearch: () -> Void = {}
     var onInfo: () -> Void = {}
+    var onOpen: (Publication) -> Void = { _ in }
     var onShare: (Publication) -> Void = { _ in }
     var onSave: (Publication) -> Void = { _ in }
 
@@ -167,6 +168,7 @@ struct HomeContentView: View {
                 ForEach(Array(items.enumerated()), id: \.element.id) { index, publication in
                     PublicationCard(
                         publication: publication,
+                        onOpen: { onOpen(publication) },
                         onShare: { onShare(publication) },
                         onSave: { onSave(publication) }
                     )

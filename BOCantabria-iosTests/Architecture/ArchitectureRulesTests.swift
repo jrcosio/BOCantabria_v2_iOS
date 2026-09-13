@@ -6,10 +6,17 @@
 //  detectan automáticamente antes de llegar a un dispositivo. Sin ellas, la separación de capas y
 //  la coherencia visual son un acuerdo de caballeros que dura hasta el primer día con prisa.
 //
-//  Ocupan el sitio que en el proyecto Android ocupaba Konsist (research.md D-102). Nueve reglas:
-//  las seis que tuvo su feature 001, con la primera partida en dos porque en Swift las
-//  importaciones no bastan —ver la cabecera de `SourceTree`—, más las dos que protegen el aspecto,
-//  que aquí entra en esta feature.
+//  Ocupan el sitio que en el proyecto Android ocupaba Konsist (research.md D-102). **Catorce
+//  reglas**: las seis que tuvo la feature 001 de aquel proyecto, con la primera partida en dos
+//  porque en Swift las importaciones no bastan —ver la cabecera de `SourceTree`—, más las dos que
+//  protegen el aspecto; las cuatro que llegaron con el boletín (10 a 13); y la **14**, que encierra
+//  el marco del visor de documentos y llega con el detalle de la publicación.
+//
+//  **La 14 existe porque la 1 y la 6 dejaban un hueco.** La 1 prohíbe PDFKit en `Domain`; la 6 solo
+//  vigila a los proveedores —Firebase y GRDB— y PDFKit no lo es. Hasta esta feature, **nada**
+//  impedía importarlo desde la pantalla de detalle, mientras la constitución exige por escrito que
+//  quede «encerrada tras una vista propia» sin filtrar sus tipos. Sin regla, esa frase era un
+//  acuerdo de caballeros (research.md D-521).
 //
 
 import Testing
@@ -240,6 +247,48 @@ struct ArchitectureRulesTests {
     }
 
     // MARK: - Cobertura
+
+    // MARK: - El visor del documento
+
+    @Test("14 · Nadie fuera de UI/PDF toca PDFKit")
+    func onlyTheViewerTouchesPDFKit() {
+        // **Las dos mitades, igual que la 10, y con la misma corrección que aquélla lleva
+        // anotada.** Se comprobó provocando las violaciones, no razonando:
+        //
+        // - Con `import PDFKit` fuera de la carpeta, salta la mitad de las importaciones.
+        // - Con una referencia **sin** el `import`, **no llega a saltar nada**: el compilador
+        //   falla antes con «cannot find type 'PDFDocument' in scope». Para un marco externo, el
+        //   `import` de otro fichero no pone el tipo en ámbito.
+        // - Con las dos cosas a la vez —que es como se da de verdad— saltan las dos mitades.
+        //
+        // Conclusión honesta: aquí **la mitad que trabaja es la de las importaciones**, y la de las
+        // referencias dispara de forma redundante. Se conserva igualmente, porque cuesta cero y
+        // porque nombra el daño en el mensaje —«nombra PDFDocument», no «importa PDFKit»—, que es
+        // lo que se lee cuando alguien añade el `import` por un motivo que parecía razonable y
+        // acaba filtrando un tipo. Lo que **ninguna de las dos** caza es un `typealias` que
+        // reexporte el tipo desde la carpeta permitida; si algún día aparece uno, hay que mirarlo.
+        //
+        // Se comprueba sobre `code`, que va sin comentarios: sin eso, la nota que explica por qué
+        // el detalle no debe conocer `PDFDocument` dispararía la regla que esa nota documenta.
+        let pdfKitTypes = [
+            "PDFView", "PDFDocument", "PDFPage", "PDFDestination", "PDFOutline",
+            "PDFSelection", "PDFAnnotation", "PDFThumbnailView", "PDFDisplayBox",
+            "PDFDisplayMode", "PDFDisplayDirection", "PDFInterpolationQuality", "PDFViewDelegate",
+        ]
+        let allowed = "UI/PDF/"
+        for file in SourceTree.appFiles where !file.path.hasPrefix(allowed) {
+            for module in file.imports where module.hasPrefix("PDFKit") {
+                Issue.record(
+                    "\(file.path) importa «\(module)». El visor del documento vive encerrado en \(allowed)."
+                )
+            }
+            for type in pdfKitTypes where file.references(type) {
+                Issue.record(
+                    "\(file.path) nombra «\(type)», que es de PDFKit. La constitución lo encierra en \(allowed)."
+                )
+            }
+        }
+    }
 
     @Test("9 · Todo tipo de dominio y todo modelo de pantalla tiene fichero de prueba")
     func everyDomainTypeAndViewModelHasATestFile() {

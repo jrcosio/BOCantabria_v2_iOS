@@ -28,6 +28,10 @@ final class AppContainer {
     private let publicationRepository: PublicationRepository
     private let sectionRepository: BocSectionRepository
     private let selectionStore: HomeSelectionStore
+    /// **Compartido de proceso, y tiene que serlo.** Es donde vive qué se está descargando y quién
+    /// lo mira; dos instancias serían dos descargas del mismo documento y dos verdades sobre su
+    /// estado, que es justo lo que FR-026 y FR-029 prohíben.
+    private let documentRepository: DocumentRepository
 
     init(
         telemetry: TelemetryBundle,
@@ -40,6 +44,8 @@ final class AppContainer {
         remoteConfig: RemoteConfigDataSource = UnavailableRemoteConfigDataSource(),
         connectivity: ConnectivityDataSource = PathMonitorConnectivityDataSource(),
         startupScenario: StartupScenario = .ready,
+        documentDownloader: DocumentDownloader? = nil,
+        documentCacheDirectory: URL? = nil,
         installedVersion: AppVersion? = AppInfo.installedVersion
     ) {
         self.telemetry = telemetry
@@ -108,6 +114,42 @@ final class AppContainer {
             connectivity: connectivityRepository,
             crashReporter: telemetry.crashReporter
         )
+
+        // La sustitución del descargador va **en el mismo sitio y con la misma forma** que la del
+        // lector de feeds: por encima de esta línea todo es producción —caché, almacén,
+        // repositorio, casos de uso, modelos de pantalla y visor—, que es lo que hace que una
+        // prueba de interfaz pruebe algo (research.md D-524).
+        let resolvedDownloader = documentDownloader
+            ?? dataScenario.documentOutcome.map { ScenarioDocumentDownloader(outcome: $0) }
+            ?? HttpDocumentDownloader()
+
+        // **Un escenario tiene su propio directorio, y se vacía al arrancar.**
+        //
+        // Sin esto, las pruebas de interfaz **dependen del orden**: la caché sobrevive entre
+        // lanzamientos, así que el escenario del documento correcto deja su copia en disco y el del
+        // rechazo la encuentra y la sirve — la pantalla de error no aparece nunca y la prueba falla
+        // acusando al código. Costó un volcado del árbol descubrirlo, y el árbol lo decía con todas
+        // las letras: la previsualización estaba **dibujada**.
+        //
+        // Es la misma clase de contaminación que la selección heredada de `UserDefaults`, que este
+        // proyecto ya tenía anotada. El directorio de producción **no se toca**.
+        let cacheDirectory = documentCacheDirectory ?? dataScenario.documentCacheDirectory
+        if let cacheDirectory, dataScenario.documentOutcome != nil {
+            try? FileManager.default.removeItem(at: cacheDirectory)
+        }
+
+        self.documentRepository = DocumentRepositoryImpl(
+            store: DocumentStore(
+                downloader: resolvedDownloader,
+                cache: FileDocumentCache(
+                    directory: cacheDirectory,
+                    clock: clock,
+                    crashReporter: telemetry.crashReporter
+                ),
+                crashReporter: telemetry.crashReporter
+            ),
+            analytics: telemetry.analytics
+        )
     }
 
     /// Nuevo en cada llamada, como el de inicio. Lo posee la raíz de navegación, y por eso el
@@ -132,7 +174,44 @@ final class AppContainer {
             observePublications: ObservePublicationsUseCase(repository: publicationRepository),
             observeHeader: ObserveBulletinHeaderUseCase(repository: publicationRepository),
             refreshPublications: RefreshPublicationsUseCase(repository: publicationRepository),
+            shareDocument: ShareOfficialDocumentUseCase(
+                documents: documentRepository, connectivity: connectivityRepository
+            ),
             analytics: telemetry.analytics
+        )
+    }
+
+    /// Nuevo en cada llamada, y **por clave**: la publicación la observa él de la base.
+    func makePublicationDetailViewModel(externalKey: String) -> PublicationDetailViewModel {
+        PublicationDetailViewModel(
+            externalKey: externalKey,
+            observePublication: ObservePublicationUseCase(repository: publicationRepository),
+            observeDocument: ObserveOfficialDocumentUseCase(repository: documentRepository),
+            openDocument: OpenOfficialDocumentUseCase(repository: documentRepository),
+            shareDocument: ShareOfficialDocumentUseCase(
+                documents: documentRepository, connectivity: connectivityRepository
+            ),
+            analytics: telemetry.analytics
+        )
+    }
+
+    func makePdfViewerViewModel(externalKey: String) -> PdfViewerViewModel {
+        PdfViewerViewModel(
+            externalKey: externalKey,
+            observePublication: ObservePublicationUseCase(repository: publicationRepository),
+            observeDocument: ObserveOfficialDocumentUseCase(repository: documentRepository),
+            openDocument: OpenOfficialDocumentUseCase(repository: documentRepository),
+            shareDocument: ShareOfficialDocumentUseCase(
+                documents: documentRepository, connectivity: connectivityRepository
+            ),
+            analytics: telemetry.analytics
+        )
+    }
+
+    /// Compartir desde cualquier pantalla. **Una sola regla de degradación** (FR-041).
+    func makeShareOfficialDocumentUseCase() -> ShareOfficialDocumentUseCase {
+        ShareOfficialDocumentUseCase(
+            documents: documentRepository, connectivity: connectivityRepository
         )
     }
 

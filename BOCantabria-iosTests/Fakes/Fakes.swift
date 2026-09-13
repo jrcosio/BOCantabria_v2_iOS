@@ -12,6 +12,7 @@
 
 import Foundation
 import Synchronization
+import Testing
 @testable import BOCantabria_ios
 
 // MARK: - Transversales
@@ -135,6 +136,15 @@ final class ManualClock: AppClock, @unchecked Sendable {
         }
     }
 
+    /// Adelanta el instante que devuelve `now()`, **sin ceder el turno**.
+    ///
+    /// Existe para las pruebas síncronas que solo necesitan que el tiempo avance —la retirada por
+    /// antigüedad de la caché, por ejemplo—. Con el reloj congelado un filtro por fechas es inerte
+    /// y no comprueba nada, que es una trampa que este proyecto ya tiene anotada.
+    func advanceNow(by seconds: Double) {
+        state.withLock { $0.elapsed += seconds }
+    }
+
     /// Adelanta el tiempo virtual. Las esperas cuyo plazo se cumpla se reanudan.
     func advance(by seconds: Double) async {
         state.withLock { $0.elapsed += seconds }
@@ -251,16 +261,33 @@ final class FakePublicationRepository: PublicationRepository, @unchecked Sendabl
     var refreshCalls: [Bool] { calls.withLock { $0 } }
     var observedSelections: [HomeSelection] { selections.withLock { $0 } }
 
+    /// Los valores que emite `observePublication`, en orden. Varios valores sirven para comprobar
+    /// que el detalle **se corrige solo** cuando una sincronización cambia la fila (FR-003).
+    private let single: [AppResult<Publication?>]
+    private let observedKeys = Mutex<[String]>([])
+    var observedPublicationKeys: [String] { observedKeys.withLock { $0 } }
+
     init(
         publications: AppResult<[Publication]> = .success([]),
         header: AppResult<BulletinHeader> = .success(.empty),
         refreshResult: AppResult<SyncSummary> = .success(SyncSummary(succeededFeeds: 19)),
-        stale: Bool = true
+        stale: Bool = true,
+        single: [AppResult<Publication?>] = [.success(nil)]
     ) {
         self.publications = publications
         self.header = header
         self.refreshResult = refreshResult
         self.stale = stale
+        self.single = single
+    }
+
+    func observePublication(externalKey: String) -> AsyncStream<AppResult<Publication?>> {
+        observedKeys.withLock { $0.append(externalKey) }
+        let values = single
+        return AsyncStream { continuation in
+            for value in values { continuation.yield(value) }
+            continuation.finish()
+        }
     }
 
     func observePublications(_ selection: HomeSelection) -> AsyncStream<AppResult<[Publication]>> {
@@ -286,6 +313,231 @@ final class FakePublicationRepository: PublicationRepository, @unchecked Sendabl
         calls.withLock { $0.append(force) }
         return refreshResult
     }
+}
+
+/// El repositorio de documentos, con el estado que la prueba le dicte.
+///
+/// **Emite el estado vigente al suscribirse**, igual que el de verdad: sin esa reproducción, una
+/// prueba que se suscriba después de disparar la descarga no recibiría nada y se colgaría en vez de
+/// fallar (research.md D-510).
+final class FakeDocumentRepository: DocumentRepository, @unchecked Sendable {
+    private let statuses: Mutex<[String: [DocumentStatus]]>
+    private let result: AppResult<OfficialDocument>
+    private let ensureCalls = Mutex<[String]>([])
+    private let releaseCalls = Mutex<Int>(0)
+
+    var ensuredKeys: [String] { ensureCalls.withLock { $0 } }
+    var releaseCount: Int { releaseCalls.withLock { $0 } }
+
+    init(
+        statuses: [String: [DocumentStatus]] = [:],
+        result: AppResult<OfficialDocument> = .failure(.network)
+    ) {
+        self.statuses = Mutex(statuses)
+        self.result = result
+    }
+
+    func observeDocument(externalKey: String) -> AsyncStream<DocumentStatus> {
+        let values = statuses.withLock { $0[externalKey] ?? [.absent] }
+        return AsyncStream { continuation in
+            for value in values { continuation.yield(value) }
+            continuation.finish()
+        }
+    }
+
+    func ensureLocalCopy(_ publication: Publication) async -> AppResult<OfficialDocument> {
+        ensureCalls.withLock { $0.append(publication.externalKey) }
+        return result
+    }
+
+    func releaseUnused() async { releaseCalls.withLock { $0 += 1 } }
+}
+
+/// Una respuesta fabricada, para poder desconfiar del servicio sin salir a la red.
+///
+/// **Existe para SC-004**, que exige comprobar de forma mecánica que ninguna respuesta que no sea el
+/// documento oficial llega a presentarse como tal. Las respuestas que engañan —código 200 con una
+/// página de error, o un tipo declarado que no corresponde a los bytes— se fabrican aquí.
+struct StubResponse: Sendable {
+    var statusCode: Int = 200
+    var contentType: String? = "application/pdf"
+    var body: Data = Data()
+    /// La dirección **final**. Si es distinta de la pedida, simula una redirección seguida.
+    var finalUrl: URL?
+    var error: URLError?
+    /// Trocea el cuerpo, para que la entrega sea de verdad incremental.
+    var chunkSize: Int = 16 * 1024
+}
+
+/// El protocolo de URL que devuelve lo que la prueba le dicte.
+///
+/// El estado es estático porque `URLProtocol` lo instancia el sistema y no hay forma de inyectarle
+/// nada. Va tras un cerrojo y se reinicia en cada prueba.
+final class StubURLProtocol: URLProtocol, @unchecked Sendable {
+    nonisolated(unsafe) private static let stub = Mutex<StubResponse?>(nil)
+    nonisolated(unsafe) private static let requested = Mutex<[URL]>([])
+
+    static func set(_ response: StubResponse) {
+        stub.withLock { $0 = response }
+        requested.withLock { $0 = [] }
+    }
+
+    static var requestedUrls: [URL] { requested.withLock { $0 } }
+
+    static func session() -> URLSession {
+        HttpDocumentDownloader.makeSession(protocolClasses: [StubURLProtocol.self])
+    }
+
+    override class func canInit(with request: URLRequest) -> Bool { true }
+    override class func canonicalRequest(for request: URLRequest) -> URLRequest { request }
+    override func stopLoading() {}
+
+    override func startLoading() {
+        if let url = request.url { Self.requested.withLock { $0.append(url) } }
+        guard let stub = Self.stub.withLock({ $0 }) else {
+            client?.urlProtocol(self, didFailWithError: URLError(.unsupportedURL))
+            return
+        }
+        if let error = stub.error {
+            client?.urlProtocol(self, didFailWithError: error)
+            return
+        }
+        var headers: [String: String] = [:]
+        if let contentType = stub.contentType { headers["Content-Type"] = contentType }
+        headers["Content-Length"] = String(stub.body.count)
+        let url = stub.finalUrl ?? request.url!
+        let response = HTTPURLResponse(
+            url: url, statusCode: stub.statusCode, httpVersion: "HTTP/1.1", headerFields: headers
+        )!
+        client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
+        var offset = 0
+        while offset < stub.body.count {
+            let end = min(offset + stub.chunkSize, stub.body.count)
+            client?.urlProtocol(self, didLoad: stub.body.subdata(in: offset..<end))
+            offset = end
+        }
+        client?.urlProtocolDidFinishLoading(self)
+    }
+}
+
+/// Un descargador que cuenta cuántas veces se le ha pedido, y que espera a que la prueba lo suelte.
+///
+/// **La puerta es una continuación, no una espera por tiempo.** Un `Task.sleep` convertiría la
+/// prueba de coalescencia en una carrera, y las carreras en verde son peores que las rojas.
+actor CountingDocumentDownloader: DocumentDownloader {
+    private(set) var downloadCount = 0
+    /// **Una cola, no una sola continuación.** Con una sola, una segunda descarga pisa a la
+    /// primera y la deja colgada para siempre: la prueba no falla, se cuelga, que es la forma más
+    /// cara de equivocarse.
+    private var gates: [CheckedContinuation<Void, Never>] = []
+    private var arrived = 0
+    private let outcome: DocumentDownloadResult
+    private let body: Data
+    private let holds: Bool
+
+    init(
+        outcome: DocumentDownloadResult = .downloaded(byteCount: 609, checksum: String(repeating: "a", count: 64)),
+        body: Data = Data("%PDF-1.4 fake".utf8),
+        holds: Bool = false
+    ) {
+        self.outcome = outcome
+        self.body = body
+        self.holds = holds
+    }
+
+    func download(
+        from url: URL,
+        into destination: URL,
+        progress: @Sendable (Int64, Int64?) async -> Void
+    ) async -> DocumentDownloadResult {
+        downloadCount += 1
+        if holds {
+            arrived += 1
+            await withCheckedContinuation { continuation in gates.append(continuation) }
+        }
+        // **Se comprueba la cancelación al salir de la puerta**, como hace el descargador de
+        // verdad: allí el bucle mira `Task.isCancelled` en cada trozo.
+        if Task.isCancelled { return .rejected(.cancelled) }
+        if case .downloaded = outcome {
+            try? body.write(to: destination)
+        }
+        await progress(Int64(body.count), Int64(body.count))
+        return outcome
+    }
+
+    /// Suelta **todas** las descargas retenidas.
+    func release() {
+        let pendientes = gates
+        gates = []
+        for gate in pendientes { gate.resume() }
+    }
+
+    /// Espera a que hayan llegado a la puerta al menos `count` descargas.
+    ///
+    /// Sin esto, soltarlas antes de que lleguen pierde el aviso y la prueba se cuelga en vez de
+    /// fallar.
+    func waitUntilHolding(_ count: Int = 1) async {
+        while arrived < count { await Task.yield() }
+    }
+}
+
+/// Una caché en memoria, para probar el almacén sin tocar el disco.
+final class FakeDocumentCache: DocumentCache, @unchecked Sendable {
+    private struct Entry { var document: OfficialDocument }
+    private let entries = Mutex<[String: OfficialDocument]>([:])
+    private let commits = Mutex<Int>(0)
+    private let discards = Mutex<[URL]>([])
+    private let commitSucceeds: Bool
+
+    /// `commitSucceeds: false` simula el disco lleno, que es el camino de STAB-002.
+    init(seeded: [String: OfficialDocument] = [:], commitSucceeds: Bool = true) {
+        entries.withLock { $0 = seeded }
+        self.commitSucceeds = commitSucceeds
+    }
+
+    var discardedParts: [URL] { discards.withLock { $0 } }
+    var commitCount: Int { commits.withLock { $0 } }
+
+    func get(_ externalKey: String) -> OfficialDocument? { entries.withLock { $0[externalKey] } }
+
+    func stage(_ externalKey: String) -> URL {
+        FileManager.default.temporaryDirectory
+            .appendingPathComponent("fake-\(abs(externalKey.hashValue)).pdf.part")
+    }
+
+    func commit(
+        _ externalKey: String, from part: URL, byteCount: Int64, checksum: String
+    ) -> OfficialDocument? {
+        commits.withLock { $0 += 1 }
+        guard commitSucceeds else { return nil }
+        let document = OfficialDocument(
+            externalKey: externalKey, localPath: "/fake/\(externalKey).pdf",
+            byteCount: byteCount, checksum: checksum, lastUsedAt: ImmediateClock.fixedNow
+        )
+        entries.withLock { $0[externalKey] = document }
+        return document
+    }
+
+    func discard(_ part: URL) { discards.withLock { $0.append(part) } }
+
+    func evict(maxBytes: Int64, keeping inUse: Set<String>) {
+        entries.withLock { current in
+            for key in current.keys where !inUse.contains(key) { current[key] = nil }
+        }
+    }
+}
+
+func officialDocument(
+    externalKey: String = "boc:439765",
+    localPath: String = "/tmp/boc/documents/abc.pdf",
+    byteCount: Int64 = 609,
+    checksum: String = String(repeating: "a", count: 64),
+    lastUsedAt: Date = ImmediateClock.fixedNow
+) -> OfficialDocument {
+    OfficialDocument(
+        externalKey: externalKey, localPath: localPath, byteCount: byteCount,
+        checksum: checksum, lastUsedAt: lastUsedAt
+    )
 }
 
 func publication(
@@ -396,4 +648,29 @@ struct FailingFeedDownloader: FeedDownloader {
     func fetch(_ definition: BocFeedDefinition, knownBodyHash: String?) async -> FeedFetchResult {
         .failed(failure)
     }
+}
+
+
+// MARK: - Esperar el estado, no asumirlo
+
+/// Cede el turno hasta que la condición se cumpla.
+///
+/// **Existe porque leer el estado justo después de disparar una operación asíncrona es la trampa
+/// que este proyecto ya tiene anotada**: una prueba que «funcionaba» porque el trabajo era síncrono
+/// deja de funcionar en cuanto deja de serlo. Hay que **esperar** el estado.
+///
+/// Y cede el turno en vez de dormir: un `sleep` convierte la prueba en una carrera contra el
+/// planificador, y una carrera en verde es peor que una roja. El tope existe para que una condición
+/// que nunca se cumpla **falle** en vez de colgar la suite, que es la forma más cara de equivocarse.
+@MainActor
+func until(
+    _ description: String,
+    limit: Int = 10_000,
+    _ condition: () -> Bool
+) async {
+    for _ in 0..<limit {
+        if condition() { return }
+        await Task.yield()
+    }
+    Issue.record(Comment(rawValue: "Nunca se cumplió: \(description)"))
 }

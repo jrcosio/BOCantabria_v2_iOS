@@ -475,14 +475,22 @@ borrar una prueba para que pase la build.
   permutadas, el 8.1 vacío, el que trae `<!DOCTYPE`, el de la entidad externa y el de la fecha
   inválida. Si el servicio cambia de forma, se actualizan las muestras y las pruebas lo dicen.
 
-**Reglas de arquitectura** (`BOCantabria-iosTests/Architecture/`): **trece**, en una prueba propia
-que recorre el árbol de fuentes. Las cuatro últimas llegaron con el boletín: **10**, que encierra
+**Reglas de arquitectura** (`BOCantabria-iosTests/Architecture/`): **catorce**, en una prueba propia
+que recorre el árbol de fuentes. Cuatro llegaron con el boletín: **10**, que encierra
 GRDB en `Data/Source/Local/` —la 6 para en la capa y permitiría la base en cualquier punto de
 `Data`—; **11**, que prohíbe `Date()`, `Locale.current`, `Calendar.current`, `TimeZone.current` y
 `DateFormatter(` fuera de `Core/Util`, y que es la de más valor por línea porque la constitución
 exige pruebas «sin reloj del sistema» y hasta entonces no lo comprobaba nada; **12**, que prohíbe
 `Task.detached`; y **13**, que es la única que mira `rawCode` —el código **con** las cadenas— porque
 una sentencia SQL es una cadena y sobre `code` no se vería.
+
+La **14** llegó con el detalle y encierra **PDFKit en `UI/PDF/`**. Existe porque la 1 y la 6 dejaban
+un hueco: la 1 lo prohíbe en `Domain` y la 6 solo vigila a los proveedores —Firebase y GRDB—, así
+que nada impedía importarlo desde la pantalla de detalle mientras la constitución exige por escrito
+que quede «encerrada tras una vista propia». **Y al provocarla se aprendió algo que la propia regla
+ahora dice**: sin el `import`, el compilador caza la referencia antes de que la regla llegue a
+saltar, así que la mitad que trabaja de verdad es la de las importaciones. Lo que **ninguna** de las
+dos mitades caza es un `typealias` que reexporte el tipo desde la carpeta permitida.
 
 **La regla 13 es la capa barata, no la garantía.** GRDB borra con métodos de registro, sin que la
 palabra aparezca en ninguna cadena del fuente, así que lo que de verdad demuestra que nunca se
@@ -667,6 +675,52 @@ siendo posible aquí; las demás son propias de esta plataforma.
   del contenedor heredó la selección «2.2» que había dejado una tanda de pruebas de interfaz. El
   almacén se inyecta, y las pruebas de interfaz pasan siempre el argumento aunque quieran el valor
   por defecto.
+- **`Task<_, Never>` no es un detalle de estilo: es un requisito.** Con `Failure == Never`,
+  `await task.value` **no lanza** —comprobado en `_Concurrency.swiftinterface`—, así que quien
+  espera un trabajo compartido no puede heredar la cancelación de quien lo inició. Tipar ese mismo
+  trabajo como `Task<_, Error>` compila, pasa casi todas las pruebas y trae de vuelta un defecto que
+  en Android costó una feature entera encontrar: cancelar una pantalla dejaba a la otra cargando
+  **sin botón de reintento**.
+- **Un flujo que no reproduce su valor vigente al suscribirse cuelga a quien llega tarde.** Un
+  `AsyncStream` entrega lo que se publica **después**; si el estado ya era «disponible» cuando la
+  pantalla se suscribe, no recibe nada y se queda cargando **para siempre**, sin excepción y sin
+  nada en el registro. La línea que emite el estado actual al registrar el observador **es** la
+  funcionalidad.
+- **Escribir el mismo campo del estado desde dos observaciones vuelve a ser una carrera.** Ya
+  estaba anotado desde la 003 y volvió a morder en la 005: el fallo al leer la publicación se
+  escribía en el estado del documento, y la observación del documento lo pisaba un instante después.
+  Cada dato, su campo.
+- **La caché de documentos sobrevive entre lanzamientos, así que contamina las pruebas de interfaz.**
+  Un escenario que deja su copia en disco hace que el siguiente la encuentre y la sirva: la pantalla
+  de error no aparece nunca y la prueba acusa al código. Cada escenario tiene su directorio y se
+  vacía al arrancar. Es la misma clase de contaminación que `UserDefaults.standard`.
+- **El factor de ajuste de `PDFView` se lee cuando la vista ya tiene ancho, no al asignar el
+  documento.** Antes vale mal, y el documento aparece **más ancho que la pantalla** con el texto
+  cortado por la derecha. Y con el factor mínimo a cero, el pellizco deja reducirlo a nada sin forma
+  de recuperarlo. Las dos cosas se ven mirando un boletín de verdad; ninguna prueba las alcanza.
+- **Un enlace bidireccional entre una vista de UIKit y un estado de SwiftUI es un bucle esperando a
+  que alguien lo cierre, y NO falla: mata la aplicación.** El visor cambia de página → la
+  notificación escribe el estado → SwiftUI redibuja → el redibujado mueve el visor → la notificación
+  escribe otra vez. Un guardián de «estoy restaurando» **no lo corta**, porque la notificación llega
+  en la cola principal, cuando el guardián ya se ha bajado. Lo que se ve desde fuera son **toques
+  que dejan de sintetizarse**, que parece una intermitencia del simulador; solo al reproducirlo en
+  uno limpio aparece el síntoma real, «Application … is not running». La dirección tiene que ser
+  **una**: el estado entra una vez, al cargar, y a partir de ahí solo sale.
+- **`isLocked` e `isEncrypted` no son lo mismo.** Un PDF **cifrado pero no bloqueado** —con
+  restricción de impresión o copia— se lee perfectamente, y rechazarlo mutilaría documentos
+  oficiales legítimos. Lo que cierra la puerta es `isLocked`. Y **no vale mirar si el dibujado
+  falla**: un documento bloqueado **sí devuelve miniatura**.
+- **Una extensión de `XCTestCase` convierte en «override» los métodos privados de las suites que ya
+  existen**, y el target de interfaz deja de compilar entero. Los ayudantes compartidos van como
+  funciones libres.
+- **`Text("\(a): \(b)")` declara una cadena localizable nueva**, y Xcode la extrae al catálogo en
+  estado «new» en la siguiente construcción. Para componer una etiqueta de accesibilidad a partir de
+  dos textos que **ya** están traducidos, va `Text(verbatim:)`. Y de paso: **la construcción reescribe
+  `Localizable.xcstrings` a su formato nativo** —con espacio antes de los dos puntos—, así que tras
+  compilar el fichero sale modificado aunque nadie lo haya tocado. El del repositorio va en formato
+  compacto; ese cambio se descarta.
+- **`ShareLink` con un tipo propio exige `preview:`**; con una `URL` o un `String`, no. El error que
+  da el compilador —«no exact matches in call to initializer»— no dice por qué.
 - *(heredada)* **Con el reloj congelado, un filtro por fechas es inerte y no se comprueba
   nada.** Las pruebas de integración de los avisos almacenan y activan en el mismo instante:
   las que quieren ver actuar el filtro tienen que **avanzar el reloj** entre ciclos.

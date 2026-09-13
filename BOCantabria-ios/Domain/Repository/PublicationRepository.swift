@@ -14,6 +14,17 @@
 import Foundation
 
 protocol PublicationRepository: Sendable {
+    /// Emite una publicación concreta cada vez que lo guardado cambia.
+    ///
+    /// **Emite `.success(nil)` cuando ya no está guardada, y eso NO es un fallo**: es la
+    /// información que el detalle necesita para explicarlo y ofrecer volver (FR-004). Confundirlo
+    /// con un error haría que una publicación retirada se pintara como «algo ha ido mal».
+    ///
+    /// Que el detalle **observe** en vez de recibir la publicación por la ruta es lo que hace que
+    /// una sincronización posterior corrija la pantalla sola (FR-003), y lo que evita que exista
+    /// una segunda copia del dato viajando por la navegación (research.md D-512).
+    func observePublication(externalKey: String) -> AsyncStream<AppResult<Publication?>>
+
     /// Emite la lista completa de la selección cada vez que lo guardado cambia.
     func observePublications(_ selection: HomeSelection) -> AsyncStream<AppResult<[Publication]>>
 
