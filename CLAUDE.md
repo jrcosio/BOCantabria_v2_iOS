@@ -713,6 +713,12 @@ siendo posible aquí; las demás son propias de esta plataforma.
 - **Una extensión de `XCTestCase` convierte en «override» los métodos privados de las suites que ya
   existen**, y el target de interfaz deja de compilar entero. Los ayudantes compartidos van como
   funciones libres.
+- **`Text("\(a): \(b)")` declara una cadena localizable nueva**, y Xcode la extrae al catálogo en
+  estado «new» en la siguiente construcción. Para componer una etiqueta de accesibilidad a partir de
+  dos textos que **ya** están traducidos, va `Text(verbatim:)`. Y de paso: **la construcción reescribe
+  `Localizable.xcstrings` a su formato nativo** —con espacio antes de los dos puntos—, así que tras
+  compilar el fichero sale modificado aunque nadie lo haya tocado. El del repositorio va en formato
+  compacto; ese cambio se descarta.
 - **`ShareLink` con un tipo propio exige `preview:`**; con una `URL` o un `String`, no. El error que
   da el compilador —«no exact matches in call to initializer»— no dice por qué.
 - *(heredada)* **Con el reloj congelado, un filtro por fechas es inerte y no se comprueba

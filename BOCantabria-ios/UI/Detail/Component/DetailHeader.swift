@@ -85,7 +85,11 @@ struct DetailHeader: View {
                 .fixedSize(horizontal: false, vertical: true)
         }
         .accessibilityElement(children: .combine)
-        .accessibilityLabel(Text("\(String(localized: description)): \(value)"))
+        // **`verbatim` y no una interpolación a secas.** `Text("\(a): \(b)")` declara una cadena
+        // localizable nueva, y Xcode la extrae al catálogo como «%@: %@» en estado «new» en la
+        // siguiente construcción. Esto no es un texto que traducir: es la **composición** de dos
+        // que ya lo están.
+        .accessibilityLabel(Text(verbatim: "\(String(localized: description)): \(value)"))
         .accessibilityIdentifier(id)
     }
 
