@@ -106,6 +106,48 @@ final class DetailContentUITests: XCTestCase {
                           "La previsualización va DEBAJO de la ficha")
     }
 
+    /// FR-050 y SC-010: al 200 %, el título **no se recorta** y los dos botones **se apilan**.
+    ///
+    /// Es una prueba y no una mirada porque las dos cosas se rompen en silencio: un título
+    /// recortado sigue siendo un título, y dos botones que se encogen en vez de apilarse siguen
+    /// cabiendo. Lo que se compara es **geometría**.
+    func testAtDoubleTextSizeTheTitleGrowsAndTheButtonsStack() {
+        let normal = launchApp(scenario: "documentReady")
+        openFirstDetail(in: normal)
+        let tituloNormal = element("detail_title", in: normal).frame.height
+        let abrirNormal = element("detail_action_open", in: normal).frame
+        let preguntarNormal = element("detail_action_ask", in: normal).frame
+        // De partida comparten línea: sus centros están a la misma altura.
+        XCTAssertEqual(abrirNormal.midY, preguntarNormal.midY, accuracy: 2,
+                       "De partida los dos botones comparten línea")
+        normal.terminate()
+
+        let grande = launchApp(
+            scenario: "documentReady",
+            extraArguments: [
+                "-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL",
+            ]
+        )
+        openFirstDetail(in: grande)
+
+        let titulo = element("detail_title", in: grande)
+        XCTAssertGreaterThan(
+            titulo.frame.height, tituloNormal,
+            "El título no ha crecido: la tipografía no escala con el ajuste del dispositivo"
+        )
+        XCTAssertFalse(titulo.label.contains("…"), "El título se recorta al 200 %")
+
+        let abrir = element("detail_action_open", in: grande).frame
+        let preguntar = element("detail_action_ask", in: grande).frame
+        XCTAssertGreaterThan(
+            preguntar.midY, abrir.midY + 10,
+            "Los botones no se han apilado: se están solapando o encogiendo"
+        )
+        // Y conservan su área táctil.
+        XCTAssertGreaterThanOrEqual(abrir.height, 44)
+        XCTAssertGreaterThanOrEqual(preguntar.height, 44)
+    }
+
     /// FR-045: guardar todavía lo dice.
     func testSavingStillSaysItIsComing() {
         let app = launchApp(scenario: "documentReady")

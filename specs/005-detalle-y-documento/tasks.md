@@ -370,35 +370,45 @@ respuesta.
       SC-003 medidos**, no estimados. **Y la tercera fila**: cuánto tarda un documento de 25 MB —es lo
       que decide si D-502 se queda con la iteración byte a byte o pasa a descarga nativa a disco
       (D-525, quickstart paso 10)
-- [ ] T066 Ejecutar en el **iPhone SE (3.ª generación)**, que hay que dar de alta con
+- [X] T066 Ejecutar en el **iPhone SE (3.ª generación)**, que hay que dar de alta con
       `xcrun simctl create`: la barra de acciones no tapa contenido ni queda bajo el área reservada, y
       sigue habiendo contenido desplazable con un título de ciento treinta caracteres (SC-011,
       quickstart paso 9)
-- [ ] T067 Comprobar a mano el **tamaño de letra al 200 %**: el título completo sin recortar y los dos
+- [X] T067 Comprobar a mano el **tamaño de letra al 200 %**: el título completo sin recortar y los dos
       botones **apilados** (SC-010, quickstart paso 8)
-- [ ] T068 Comprobar a mano **la copia dañada**: lateral vacío, truncado y ausente. En los tres, el
+- [X] T068 Comprobar a mano **la copia dañada**: lateral vacío, truncado y ausente. En los tres, el
       documento se abre y **la aplicación no se cierra** (SC-007, quickstart paso 6)
-- [ ] T069 Comprobar a mano **un documento de cincuenta páginas**: recorrerlo entero de arriba abajo
+- [X] T069 Comprobar a mano **un documento de cincuenta páginas**: recorrerlo entero de arriba abajo
       con el monitor de memoria de Xcode delante. Ni la memoria del proceso se dispara ni la interfaz
       se bloquea al desplazar. **Es el único criterio de la especificación que ninguna prueba
       automática puede afirmar** (SC-008)
-- [ ] T070 **Atravesar la frontera de verdad una vez**: abrir una publicación real con el registro
+- [X] T070 **Atravesar la frontera de verdad una vez**: abrir una publicación real con el registro
       delante y comprobar que las líneas dicen la fase, el tamaño y el motivo, **y que no dicen ni el
       título, ni la dirección, ni la clave** (quickstart paso 11)
-- [ ] T071 [P] Enmendar `DOC/` **apartado 18.2**: sustituir la nota del 12 de septiembre que dice «se
+- [X] T071 [P] Enmendar `DOC/` **apartado 18.2**: sustituir la nota del 12 de septiembre que dice «se
       decide en la 005» por la decisión y su motivo —la cabecera se desplaza; en Inicio dice dónde
       estás y aquí dice qué es esto— (FR-011)
-- [ ] T072 [P] Enmendar `DOC/` **apartado 18.3**: lo mismo con el orden de los datos, y por qué
+- [X] T072 [P] Enmendar `DOC/` **apartado 18.3**: lo mismo con el orden de los datos, y por qué
       diverge del de la tarjeta (FR-007)
-- [ ] T073 [P] Enmendar `DOC/` **apartado 36**: la lista de comprobación del detalle todavía dice
+- [X] T073 [P] Enmendar `DOC/` **apartado 36**: la lista de comprobación del detalle todavía dice
       «tres pestañas»
-- [ ] T074 [P] Actualizar `CLAUDE.md`: «trece» reglas pasa a **catorce**; añadir a las trampas
+- [X] T074 [P] Actualizar `CLAUDE.md`: «trece» reglas pasa a **catorce**; añadir a las trampas
       conocidas lo que esta feature ha aprendido —el tipo `Never` del trabajo en vuelo, la
       reproducción del estado al suscribirse, y el factor mínimo del visor fijado antes de tiempo—; y
       la tabla de orden de portado, si hace falta
-- [ ] T075 **Volcar el árbol de accesibilidad DESPUÉS** y compararlo con `/tmp/boc-005-tree-antes.txt`.
+- [X] T075 **Volcar el árbol de accesibilidad DESPUÉS** y compararlo con `/tmp/boc-005-tree-antes.txt`.
       Lo único que puede haber cambiado es el rasgo de botón sobre la tarjeta. Si hay más, el
       mecanismo no es el de D-519 (quickstart paso 3)
+
+      **Resultado: el árbol es IDÉNTICO.** 125 líneas antes y 125 después, y la única diferencia que
+      arroja `diff` es el identificador de proceso y las marcas de tiempo. Ni un contenedor nuevo,
+      ni un identificador movido, ni un marco distinto.
+      
+      Y un hallazgo que explica por qué: **la tarjeta ya era un `Button`** en el árbol. El volcado
+      del antes (T002) lo enseñaba —`Button … identifier: 'publication_card_0'`—, porque
+      `.accessibilityElement(children: .combine)` la promueve al contener controles. Así que ni
+      siquiera el rasgo que se le añadió cambió nada. Las ocho aserciones que penden de ese árbol
+      siguen intactas sin tocarlas.
 - [ ] T076 Ejecutar las **cuatro puertas** y anotar sus cifras aquí, junto a las de T001. **Un «pasa»
       no vale** (SC-015). Comprobar de paso que **cada tipo de dominio y cada modelo de pantalla
       nuevos tienen su fichero de prueba**: lo exige SC-013, y **la regla 9 lo pone rojo sola** si

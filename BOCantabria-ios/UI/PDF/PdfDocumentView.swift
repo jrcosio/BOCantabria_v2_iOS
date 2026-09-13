@@ -18,8 +18,8 @@ struct PdfDocumentView: UIViewRepresentable {
 
     func makeCoordinator() -> Coordinator { Coordinator(pageIndex: $pageIndex) }
 
-    func makeUIView(context: Context) -> PDFView {
-        let view = PDFView()
+    func makeUIView(context: Context) -> BocPdfView {
+        let view = BocPdfView()
         view.displayMode = .singlePageContinuous
         view.displayDirection = .vertical
         view.autoScales = true
@@ -34,25 +34,19 @@ struct PdfDocumentView: UIViewRepresentable {
         return view
     }
 
-    func updateUIView(_ view: PDFView, context: Context) {
+    func updateUIView(_ view: BocPdfView, context: Context) {
         if context.coordinator.loadedUrl != fileUrl {
             view.document = PDFDocument(url: fileUrl)
             context.coordinator.loadedUrl = fileUrl
-
-            // **Después de asignar el documento, nunca antes.** Sin documento vale cero, y con
-            // cero el pellizco deja reducirlo a nada sin forma de recuperarlo. Se ve mirando la
-            // pantalla, no leyendo el código (research.md D-515).
-            let ajuste = view.scaleFactorForSizeToFit
-            view.minScaleFactor = ajuste
-            view.maxScaleFactor = ajuste * 5
-
+            // El ajuste lo fija la vista **cuando tiene su tamaño**, no aquí. Ver `BocPdfView`.
+            view.needsInitialFit = true
             context.coordinator.restore(pageIndex, in: view)
         } else if context.coordinator.currentIndex(of: view) != pageIndex {
             context.coordinator.restore(pageIndex, in: view)
         }
     }
 
-    static func dismantleUIView(_ view: PDFView, coordinator: Coordinator) {
+    static func dismantleUIView(_ view: BocPdfView, coordinator: Coordinator) {
         coordinator.stopObserving()
         // Suelta el mapeo del fichero. Sin esto, un documento grande sigue ocupando después de
         // salir de la pantalla.
@@ -75,7 +69,7 @@ struct PdfDocumentView: UIViewRepresentable {
             self.pageIndex = pageIndex
         }
 
-        func observe(_ view: PDFView) {
+        func observe(_ view: BocPdfView) {
             token = NotificationCenter.default.addObserver(
                 forName: .PDFViewPageChanged, object: view, queue: .main
             ) { [weak self, weak view] _ in
@@ -108,5 +102,37 @@ struct PdfDocumentView: UIViewRepresentable {
             view.go(to: page)
             restoring = false
         }
+    }
+}
+
+
+/// `PDFView` que fija su ajuste **cuando ya conoce su tamaño**.
+///
+/// **Es un defecto que se ve y no se lee.** `scaleFactorForSizeToFit` depende del ancho de la
+/// vista, y en el momento en que SwiftUI asigna el documento la vista todavía no lo tiene: el
+/// factor sale mal, el documento aparece **más ancho que la pantalla** y el texto se corta por la
+/// derecha. Se descubrió abriendo un boletín de verdad y mirándolo, no leyendo el código
+/// (research.md D-515).
+///
+/// El tope inferior se fija aquí por la misma razón que ya estaba escrita: con el factor a cero, el
+/// pellizco deja reducir el documento a nada sin forma de recuperarlo.
+final class BocPdfView: PDFView {
+    /// Lo pone la vista de SwiftUI al asignar un documento nuevo.
+    var needsInitialFit = false
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        guard needsInitialFit, document != nil, bounds.width > 0 else { return }
+        needsInitialFit = false
+
+        let ajuste = scaleFactorForSizeToFit
+        guard ajuste > 0 else {
+            // Todavía no se puede calcular: se intenta en la siguiente pasada.
+            needsInitialFit = true
+            return
+        }
+        minScaleFactor = ajuste
+        maxScaleFactor = ajuste * 5
+        scaleFactor = ajuste
     }
 }

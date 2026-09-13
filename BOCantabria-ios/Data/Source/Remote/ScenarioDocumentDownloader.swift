@@ -33,7 +33,7 @@ struct ScenarioDocumentDownloader: DocumentDownloader {
     ) async -> DocumentDownloadResult {
         switch outcome {
         case .ready:
-            let bytes = Self.onePagePdf
+            let bytes = Self.scenarioPdf
             guard (try? bytes.write(to: destination)) != nil else { return .rejected(.storage) }
             await progress(Int64(bytes.count), Int64(bytes.count))
             return .downloaded(byteCount: Int64(bytes.count), checksum: Self.checksum(of: bytes))
@@ -52,20 +52,43 @@ struct ScenarioDocumentDownloader: DocumentDownloader {
         SHA256.hash(data: data).map { String(format: "%02x", $0) }.joined()
     }
 
-    /// Un documento portátil mínimo de una página, con texto visible.
+    /// Cuántas páginas tiene el documento del escenario.
     ///
-    /// Es el mismo que las muestras de prueba, escrito a mano por la misma razón: el sistema no
-    /// tiene ninguna herramienta de PDF y unos bytes literales son deterministas.
-    static let onePagePdf: Data = {
-        let contenido = "BT /F1 18 Tf 72 700 Td (Boletin Oficial de Cantabria) Tj ET"
+    /// **Cincuenta, no una**, y es deliberado: SC-008 pide que recorrer un documento de cincuenta
+    /// páginas no agote la memoria ni bloquee la interfaz, y un escenario de una página no lo
+    /// ejercita nunca. Además, con más de una aparece el indicador de página del apartado 24.2, que
+    /// con una sola no tendría nada que decir.
+    static let scenarioPageCount = 50
+
+    /// Un documento portátil de cincuenta páginas, con texto visible en cada una.
+    ///
+    /// Escrito a mano por la misma razón que las muestras de prueba: el sistema no tiene ninguna
+    /// herramienta de PDF, y unos bytes construidos aquí son deterministas — su huella es constante
+    /// y se puede afirmar.
+    static let scenarioPdf: Data = makePdf(pages: scenarioPageCount)
+
+    static func makePdf(pages: Int) -> Data {
+        let fuenteId = 3 + pages * 2
         var objetos: [String] = [
             "<< /Type /Catalog /Pages 2 0 R >>",
-            "<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
-            "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] "
-                + "/Resources << /Font << /F1 5 0 R >> >> /Contents 4 0 R >>",
-            "<< /Length \(contenido.utf8.count) >>\nstream\n\(contenido)\nendstream",
-            "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>",
+            "<< /Type /Pages /Kids ["
+                + (0..<pages).map { "\(3 + $0 * 2) 0 R" }.joined(separator: " ")
+                + "] /Count \(pages) >>",
         ]
+        for indice in 0..<pages {
+            let contenido = "BT /F1 18 Tf 72 700 Td (Boletin Oficial de Cantabria"
+                + " - pagina \(indice + 1)) Tj ET"
+            objetos.append(
+                "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] "
+                    + "/Resources << /Font << /F1 \(fuenteId) 0 R >> >> "
+                    + "/Contents \(4 + indice * 2) 0 R >>"
+            )
+            objetos.append(
+                "<< /Length \(contenido.utf8.count) >>\nstream\n\(contenido)\nendstream"
+            )
+        }
+        objetos.append("<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>")
+
         var salida = "%PDF-1.4\n"
         var desplazamientos: [Int] = []
         for (indice, cuerpo) in objetos.enumerated() {
@@ -79,7 +102,6 @@ struct ScenarioDocumentDownloader: DocumentDownloader {
         }
         salida += "trailer\n<< /Size \(objetos.count + 1) /Root 1 0 R >>\n"
             + "startxref\n\(xref)\n%%EOF\n"
-        objetos.removeAll()
         return Data(salida.utf8)
-    }()
+    }
 }

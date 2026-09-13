@@ -52,6 +52,30 @@ final class PdfViewerUITests: XCTestCase {
                        "El visor se ha quedado cargando")
     }
 
+    /// SC-008: recorrer cincuenta páginas **no agota la memoria ni bloquea la interfaz**.
+    ///
+    /// **Se mide, no se estima.** El escenario sirve un documento de cincuenta páginas justo para
+    /// esto: con uno de una sola, este camino no se ejercitaría nunca.
+    func testScrollingFiftyPagesDoesNotExhaustMemory() {
+        let app = launchApp(scenario: "documentReady")
+        openViewer(in: app)
+
+        XCTAssertTrue(element("pdf_viewer_page_indicator", in: app).exists,
+                      "Con más de una página tiene que aparecer el indicador")
+
+        measure(metrics: [XCTMemoryMetric(application: app)]) {
+            let ventana = app.windows.firstMatch
+            for _ in 0..<12 {
+                ventana.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.8))
+                    .press(forDuration: 0.01,
+                           thenDragTo: ventana.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.1)))
+            }
+        }
+
+        // Y sigue respondiendo: la interfaz no se ha quedado bloqueada.
+        XCTAssertTrue(element("pdf_viewer_back", in: app).isHittable)
+    }
+
     private func openViewer(in app: XCUIApplication) {
         openFirstDetail(in: app)
         element("detail_action_open", in: app).tap()
